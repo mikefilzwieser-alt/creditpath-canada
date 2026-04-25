@@ -15,6 +15,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Credit Path Canada",
   description: "Credit rebuilding with a personalized monthly blueprint.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -27,6 +32,9 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${dmSans.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="icon" href="/logo.png" type="image/png" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

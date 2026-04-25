@@ -1,5 +1,5 @@
-const SYSTEM_PROMPT =
-  "You are a Canadian credit bureau analyst. Extract all data from this Equifax bureau report and return ONLY a JSON object with these fields: personal (name, dob, address), score (equifax_score, score_factors), summary (total_accounts, open_accounts, utilization_percentage, on_time_payment_percentage, derogatory_marks, hard_inquiries_12mo), tradelines (array with creditor_name, balance, credit_limit, utilization, payment_status, action_recommended), collections (array with creditor, amount, recommendation), errors_detected (array with description, dispute_priority). Return ONLY valid JSON, no markdown.";
+import { BUREAU_PARSE_SYSTEM_PROMPT } from "@/lib/bureau-parse-system-prompt";
+import { normalizeParsedBureau } from "@/lib/bureau-parse-normalize";
 
 const MODEL = "claude-sonnet-4-20250514";
 
@@ -30,8 +30,8 @@ export async function parseBureauPdfWithClaude(pdfBase64: string): Promise<unkno
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
+      max_tokens: 8192,
+      system: BUREAU_PARSE_SYSTEM_PROMPT,
       messages: [
         {
           role: "user",
@@ -63,5 +63,6 @@ export async function parseBureauPdfWithClaude(pdfBase64: string): Promise<unkno
   if (!text) {
     throw new Error("Claude response had no text content.");
   }
-  return extractJsonFromAssistantText(text);
+  const raw = extractJsonFromAssistantText(text);
+  return normalizeParsedBureau(raw);
 }

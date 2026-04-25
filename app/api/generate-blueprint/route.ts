@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { generateBlueprintPlanFromParsedData } from "@/lib/generate-blueprint-claude";
+import { runBlueprintGenerationForBlueprint } from "@/lib/blueprint-run-generation";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
-
-/** Appended to the Claude system prompt (base text lives in `@/lib/generate-blueprint-claude`). */
-const INSTALLMENT_AND_UTILIZATION_RULE = `IMPORTANT: Installment loans (car loans, personal loans, mortgages) do NOT have credit utilization. Never recommend paying down an installment loan to reduce utilization percentage. For installment loans the advice should focus on: making on-time payments, keeping the account open, and noting it contributes positively to credit mix. Only apply utilization advice to revolving credit accounts like credit cards and lines of credit.`;
 
 type Body = {
   blueprint_id?: string;
@@ -60,42 +57,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: row, error: fetchError } = await admin
-    .from("blueprints")
-    .select("id, client_id, raw_parse_data")
-    .eq("id", blueprintId)
-    .maybeSingle();
-
-  if (fetchError || !row || row.client_id !== user.id) {
-    return NextResponse.json({ error: "Blueprint not found." }, { status: 404 });
+  const result = await runBlueprintGenerationForBlueprint(admin, user.id, blueprintId);
+  if (!result.ok) {
+    const status = result.error === "Blueprint not found." ? 404 : result.error.includes("raw_parse") ? 400 : 502;
+    return NextResponse.json({ error: result.error }, { status });
   }
 
-  const raw = row.raw_parse_data;
-  if (raw == null || (typeof raw === "object" && raw !== null && Object.keys(raw as object).length === 0)) {
-    return NextResponse.json({ error: "Blueprint has no raw_parse_data to generate from." }, { status: 400 });
-  }
-
-  let plan: unknown;
-  try {
-    plan = await generateBlueprintPlanFromParsedData(raw, INSTALLMENT_AND_UTILIZATION_RULE);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Claude generation failed.";
-    return NextResponse.json({ error: message }, { status: 502 });
-  }
-
-  const now = new Date().toISOString();
-  const { error: updateError } = await admin
-    .from("blueprints")
-    .update({
-      blueprint_data: plan,
-      status: "ready",
-      updated_at: now,
-    })
-    .eq("id", blueprintId);
-
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ ok: true, blueprint_id: blueprintId });
+  return NextResponse.json({ ok: true, blueprint_id: blueprintId, skipped: result.skipped });
 }

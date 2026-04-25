@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { DM_Mono, DM_Sans, Montserrat } from "next/font/google";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { defaultTenant } from "@/lib/tenant";
+import { uploadBureauPdfAndParse } from "@/lib/upload-bureau-pdf";
 
 type GoalOption = {
   id: string;
@@ -23,6 +24,27 @@ const GOAL_OPTIONS: GoalOption[] = [
 
 const TOTAL_STEPS = 4;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+/** Minimum time the account-setup overlay stays visible before redirect (ms). */
+const ACCOUNT_SETUP_MIN_VISIBLE_MS = 3500;
+
+/** Progress bar tick interval (ms). Slowed ~50% from previous cadence. */
+const ACCOUNT_SETUP_PROGRESS_TICK_MS = 480;
+/** Width transition duration (ms). Slowed ~50% from previous smoothing. */
+const ACCOUNT_SETUP_BAR_TRANSITION_MS = 645;
+
+/** North American display: (604) → (604)444 → (604)444-4444 as digits are entered. */
+function formatPhoneDisplay(digits: string): string {
+  const d = digits.slice(0, 10);
+  if (d.length === 0) return "";
+  if (d.length < 3) return `(${d}`;
+  if (d.length === 3) return `(${d})`;
+  if (d.length <= 6) return `(${d.slice(0, 3)})${d.slice(3)}`;
+  return `(${d.slice(0, 3)})${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+function parsePhoneDigits(input: string): string {
+  return input.replace(/\D/g, "").slice(0, 10);
+}
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -47,45 +69,44 @@ export default function OnboardingPage() {
   const [borrowellConfirmed, setBorrowellConfirmed] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  /** Raw 10-digit string only (no formatting). */
+  const [phoneDigits, setPhoneDigits] = useState("");
   const [password, setPassword] = useState("");
-  const [bankAccountNumber, setBankAccountNumber] = useState("");
-  const [transitNumber, setTransitNumber] = useState("");
-  const [institutionNumber, setInstitutionNumber] = useState("");
   const [pipedaConsent, setPipedaConsent] = useState(false);
-  const [padAuthorization, setPadAuthorization] = useState(false);
   const [isSubmittingAccount, setIsSubmittingAccount] = useState(false);
+  const [accountSetupProgress, setAccountSetupProgress] = useState(0);
   const [accountError, setAccountError] = useState("");
+  const accountSetupNavigatedRef = useRef(false);
+  const accountSetupProgressTargetRef = useRef(0);
 
   const primaryGoal = selectedGoals[0] ?? "";
   const canContinueGoals = selectedGoals.length > 0;
   const canContinueBorrowell = borrowellConfirmed;
-  const canContinueUpload = Boolean(pdfFile) && !isUploading;
+  const canContinueUpload = Boolean(pdfFile);
   const canCreateAccount =
     fullName.trim().length > 1 &&
     email.includes("@") &&
-    phone.trim().length >= 10 &&
+    phoneDigits.length === 10 &&
     password.length >= 8 &&
-    bankAccountNumber.trim().length > 0 &&
-    /^\d{5}$/.test(transitNumber) &&
-    /^\d{3}$/.test(institutionNumber) &&
-    pipedaConsent &&
-    padAuthorization;
+    pipedaConsent;
 
-  const firstPaymentDate = useMemo(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-    return date.toLocaleDateString("en-CA", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  }, []);
+  useEffect(() => {
+    if (!isSubmittingAccount) return;
+    const id = window.setInterval(() => {
+      setAccountSetupProgress((prev) => {
+        const target = accountSetupProgressTargetRef.current;
+        if (prev >= target) return prev;
+        const gap = target - prev;
+        const step = Math.max(0.14, Math.min(1.2, gap * 0.06));
+        const next = Math.min(target, prev + step);
+        return Math.round(next * 10) / 10;
+      });
+    }, ACCOUNT_SETUP_PROGRESS_TICK_MS);
+    return () => window.clearInterval(id);
+  }, [isSubmittingAccount]);
 
   const handleGoalAdd = (goalId: string) => {
     setAccountError("");
@@ -148,52 +169,34 @@ export default function OnboardingPage() {
     setPdfFile(file);
   };
 
-  const handleUpload = async () => {
+  const handleStep3Next = () => {
     if (!pdfFile) return;
-
-    setIsUploading(true);
-    setUploadProgress(10);
     setUploadMessage("");
-
-    let progressValue = 10;
-    const timer = setInterval(() => {
-      progressValue = Math.min(progressValue + 10, 90);
-      setUploadProgress(progressValue);
-    }, 300);
-
-    try {
-      await new Promise((r) => setTimeout(r, 600));
-
-      clearInterval(timer);
-      setUploadProgress(100);
-      setUploadMessage(
-        "File saved for this step. After you create your account, upload the same PDF from Dashboard → Upload to parse it and build your blueprint.",
-      );
-      setStep(4);
-    } catch {
-      clearInterval(timer);
-      setUploadProgress(0);
-      setUploadMessage("Upload failed. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
+    setStep(4);
   };
 
   const handleAccountSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canCreateAccount) return;
 
+    accountSetupNavigatedRef.current = false;
     setIsSubmittingAccount(true);
     setAccountError("");
+    setAccountSetupProgress(0);
+    accountSetupProgressTargetRef.current = 0;
+
+    const startedAt = Date.now();
 
     try {
+      accountSetupProgressTargetRef.current = 22;
+
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           data: {
             full_name: fullName.trim(),
-            phone: phone.trim(),
+            phone: phoneDigits,
             goals: selectedGoals,
             primary_goal: goalLabelById[primaryGoal] ?? primaryGoal,
           },
@@ -205,13 +208,18 @@ export default function OnboardingPage() {
         return;
       }
 
-      const accessToken = signUpData.session?.access_token;
-      if (!accessToken) {
+      accountSetupProgressTargetRef.current = 48;
+
+      const session = signUpData.session;
+      const accessToken = session?.access_token;
+      if (!session || !accessToken) {
         setAccountError(
           "Your account was created, but we need an active session to finish setup. Confirm your email if required, then sign in and complete onboarding.",
         );
         return;
       }
+
+      accountSetupProgressTargetRef.current = 72;
 
       const createClientResponse = await fetch("/api/create-client", {
         method: "POST",
@@ -222,7 +230,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           full_name: fullName.trim(),
           email: email.trim(),
-          phone: phone.trim(),
+          phone: phoneDigits,
           goals: selectedGoals,
           primary_goal: goalLabelById[primaryGoal] ?? primaryGoal,
         }),
@@ -237,16 +245,72 @@ export default function OnboardingPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const userId = session.user.id;
+
+      if (pdfFile) {
+        accountSetupProgressTargetRef.current = 86;
+        const bureauResult = await uploadBureauPdfAndParse(pdfFile, userId, accessToken);
+        if (!bureauResult.ok) {
+          setAccountError(
+            `Your account is ready, but we couldn't process your PDF: ${bureauResult.error}. Open Dashboard → Upload to try again.`,
+          );
+          return;
+        }
+      }
+
+      accountSetupProgressTargetRef.current = 100;
+
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < ACCOUNT_SETUP_MIN_VISIBLE_MS) {
+        await new Promise((r) => setTimeout(r, ACCOUNT_SETUP_MIN_VISIBLE_MS - elapsed));
+      }
+
+      accountSetupNavigatedRef.current = true;
+      router.replace("/pricing");
     } catch {
       setAccountError("Something went wrong while creating your account. Please try again.");
     } finally {
-      setIsSubmittingAccount(false);
+      if (!accountSetupNavigatedRef.current) {
+        accountSetupProgressTargetRef.current = 0;
+        setIsSubmittingAccount(false);
+        setAccountSetupProgress(0);
+      }
     }
   };
 
   return (
-    <div className={`${dmSans.className} flex flex-1 flex-col bg-[#F5F7FA] px-4 py-6 sm:px-6 lg:py-10`}>
+    <div className={`${dmSans.className} relative flex flex-1 flex-col bg-[#F5F7FA] px-4 py-6 sm:px-6 lg:py-10`}>
+      {step === 4 && isSubmittingAccount ? (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F1923]/55 px-4 backdrop-blur-[2px]"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-[var(--cp-border)] bg-white p-8 shadow-[0_20px_50px_rgba(15,25,35,0.18)]">
+            <p
+              className={`${montserrat.className} text-center text-base font-bold leading-snug text-[var(--cp-dark)] sm:text-lg`}
+            >
+              Setting up your account and preparing your Blueprint...
+            </p>
+            <div className="mt-6 h-3 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-[var(--cp-teal)] ease-in-out"
+                style={{
+                  width: `${Math.min(100, Math.round(accountSetupProgress))}%`,
+                  transitionProperty: "width",
+                  transitionDuration: `${ACCOUNT_SETUP_BAR_TRANSITION_MS}ms`,
+                  transitionTimingFunction: "cubic-bezier(0.45, 0, 0.55, 1)",
+                }}
+              />
+            </div>
+            <p className={`${dmMono.className} mt-4 text-center text-xs text-[var(--cp-muted)]`}>
+              This can take a few seconds. Please keep this page open.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <header className="rounded-[16px] border border-[var(--cp-border)] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(15,25,35,0.06)] sm:px-6">
           <div className="flex items-center justify-between">
@@ -382,31 +446,85 @@ export default function OnboardingPage() {
               Get Your Free Credit Report
             </h2>
             <p className="mt-1 text-sm text-[var(--cp-muted)]">
-              Borrowell is free and shows your Equifax score. No hard inquiry — ever.
+              Follow the steps below, then confirm you have your PDF to continue.
             </p>
 
-            <div className="mt-4">
-              <a
-                href="https://borrowell.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${montserrat.className} inline-flex rounded-[8px] bg-[var(--cp-teal)] px-5 py-3 text-sm font-bold text-[var(--cp-dark)]`}
-              >
-                Sign Up for Borrowell
-              </a>
+            <div
+              className={`${montserrat.className} mt-5 rounded-xl border border-[#00C9A7]/40 bg-[#E8FAF6] px-4 py-3.5 text-sm font-semibold leading-snug text-[var(--cp-dark)] sm:px-5`}
+            >
+              Free forever. No hard inquiry. Most clients are set up in under 5 minutes — if you run into any issues, we
+              are here to help.
             </div>
 
-            <p className="mt-4 rounded-xl border border-[var(--cp-border)] bg-white p-4 text-sm text-[var(--cp-muted)]">
-              Once signed up, download your credit report PDF from your Borrowell dashboard.
-              You&apos;ll upload it on the next step.
-            </p>
+            <div className="mt-5 rounded-2xl border border-[var(--cp-border)] bg-[#F8FAFC] p-4 sm:p-5">
+              <ol className="space-y-0 divide-y divide-[var(--cp-border)]/80">
+                {[
+                  {
+                    n: 1,
+                    title: "Go to Borrowell",
+                    body: "Visit borrowell.com and click Sign Up Free. No credit card required and it never affects your credit score.",
+                  },
+                  {
+                    n: 2,
+                    title: "Create your account",
+                    body: "Enter your name, email, address, and date of birth. Borrowell uses this to pull your Equifax report softly — no hard inquiry ever.",
+                  },
+                  {
+                    n: 3,
+                    title: "Verify your identity",
+                    body: "You may be asked 2-3 security questions based on your credit history. Answer as accurately as possible. If verification fails, contact us and we will help you get your report another way.",
+                  },
+                  {
+                    n: 4,
+                    title: "Access your report",
+                    body: "Once inside your Borrowell dashboard, look for Credit Report or My Report and click Download PDF. Save it to your device.",
+                  },
+                  {
+                    n: 5,
+                    title: "Come back here",
+                    body: "Return to this page, check the box below to confirm you have your PDF ready, then hit Next to upload it.",
+                  },
+                ].map((stepItem) => (
+                  <li key={stepItem.n} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                    <span
+                      className={`${dmMono.className} flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--cp-teal)] text-sm font-bold text-[var(--cp-dark)]`}
+                    >
+                      {stepItem.n}
+                    </span>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p className={`${montserrat.className} text-sm font-bold text-[var(--cp-dark)]`}>
+                        Step {stepItem.n} — {stepItem.title}
+                      </p>
+                      <p className="mt-1.5 text-sm leading-relaxed text-[var(--cp-dark)]">{stepItem.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-            <label className="mt-4 flex items-start gap-3 text-sm text-[var(--cp-dark)]">
+            <div className="mt-6">
+              <a
+                href="https://borrowell.com/download-credit-report"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${montserrat.className} inline-flex w-full items-center justify-center rounded-xl bg-[var(--cp-teal)] px-6 py-3.5 text-center text-base font-bold text-[var(--cp-dark)] shadow-[0_8px_24px_rgba(0,201,167,0.35)] transition-opacity hover:opacity-95 sm:w-auto sm:min-w-[220px]`}
+              >
+                Go to Borrowell
+              </a>
+              <p className={`${dmMono.className} mt-2.5 text-center text-xs text-[var(--cp-muted)] sm:text-left`}>
+                Having trouble? Email us at{" "}
+                <a href="mailto:michaelf@titaniumford.ca" className="font-semibold text-[var(--cp-teal)] underline">
+                  michaelf@titaniumford.ca
+                </a>
+              </p>
+            </div>
+
+            <label className="mt-6 flex items-start gap-3 rounded-xl border border-[var(--cp-border)] bg-white p-4 text-sm text-[var(--cp-dark)]">
               <input
                 type="checkbox"
                 checked={borrowellConfirmed}
                 onChange={(event) => setBorrowellConfirmed(event.target.checked)}
-                className="mt-1 size-4 rounded border-[var(--cp-border)]"
+                className="mt-1 size-4 shrink-0 rounded border-[var(--cp-border)]"
               />
               I&apos;ve signed up for Borrowell and have my report ready
             </label>
@@ -476,22 +594,9 @@ export default function OnboardingPage() {
               )}
             </label>
             <p className="mt-3 text-xs text-[var(--cp-muted)]">
-              Your report is encrypted and never shared.
+              Your report is encrypted and never shared. After you create your account, we&apos;ll
+              upload and analyze it automatically — no second upload needed.
             </p>
-
-            {isUploading && (
-              <div className="mt-4">
-                <div className="h-2 rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-[var(--cp-teal)] transition-all"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-[var(--cp-muted)]">
-                  Uploading and preparing your report...
-                </p>
-              </div>
-            )}
 
             {uploadMessage && (
               <p className="mt-4 rounded-xl bg-[rgba(0,201,167,0.08)] p-3 text-sm text-[var(--cp-dark)]">
@@ -510,14 +615,14 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 disabled={!canContinueUpload}
-                onClick={handleUpload}
+                onClick={handleStep3Next}
                 className={`${montserrat.className} rounded-[8px] px-5 py-3 text-sm font-bold transition-colors ${
                   canContinueUpload
                     ? "cursor-pointer bg-[#00C9A7] text-[var(--cp-dark)]"
                     : "cursor-not-allowed bg-[#e2e8f0] text-[#9CA3AF]"
                 }`}
               >
-                {isUploading ? "Uploading..." : "Next"}
+                Next
               </button>
             </div>
           </section>
@@ -529,7 +634,8 @@ export default function OnboardingPage() {
               Create Your Account
             </h2>
             <p className="mt-1 text-sm text-[var(--cp-muted)]">
-              Your first month is on us. No charge for 30 days.
+              Your first month is on us. No charge for 30 days. Subscription billing runs through Stripe after you create
+              your account—no bank details required here.
             </p>
 
             <form onSubmit={handleAccountSubmit} className="mt-5 space-y-4">
@@ -547,10 +653,12 @@ export default function OnboardingPage() {
                 className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
               />
               <input
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                value={formatPhoneDisplay(phoneDigits)}
+                onChange={(event) => setPhoneDigits(parsePhoneDigits(event.target.value))}
                 placeholder="Phone"
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
                 className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
               />
               <input
@@ -560,59 +668,6 @@ export default function OnboardingPage() {
                 type="password"
                 className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
               />
-
-              <div className="rounded-[12px] border border-[#e2e8f0] bg-[#F8F9FC] p-5">
-                <p
-                  className={`${montserrat.className} flex items-center gap-2 text-sm font-bold text-[var(--cp-dark)]`}
-                >
-                  <span className="text-[var(--cp-teal)]" aria-hidden="true">
-                    🔒
-                  </span>
-                  Pre-Authorized Debit (PAD)
-                </p>
-                <div className="mt-3 space-y-3">
-                  <input
-                    value={bankAccountNumber}
-                    onChange={(event) => setBankAccountNumber(event.target.value.replace(/\D/g, ""))}
-                    placeholder="Bank Account Number"
-                    inputMode="numeric"
-                    className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
-                  />
-                  <input
-                    value={transitNumber}
-                    onChange={(event) =>
-                      setTransitNumber(event.target.value.replace(/\D/g, "").slice(0, 5))
-                    }
-                    placeholder="Transit Number (5 digits)"
-                    inputMode="numeric"
-                    className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
-                  />
-                  <input
-                    value={institutionNumber}
-                    onChange={(event) =>
-                      setInstitutionNumber(event.target.value.replace(/\D/g, "").slice(0, 3))
-                    }
-                    placeholder="Institution Number (3 digits)"
-                    inputMode="numeric"
-                    className="w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm"
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-[var(--cp-muted)]">
-                Your banking information is encrypted and never stored on our servers. Powered by
-                Stripe.
-              </p>
-
-              <label className="flex items-start gap-3 text-xs text-[var(--cp-muted)]">
-                <input
-                  type="checkbox"
-                  checked={padAuthorization}
-                  onChange={(event) => setPadAuthorization(event.target.checked)}
-                  className="mt-0.5 size-4 rounded border-[var(--cp-border)]"
-                />
-                I authorize Credit Path Canada to debit $19.99 CAD/month beginning 30 days from
-                today. I can cancel anytime before then at no charge.
-              </label>
 
               <label className="flex items-start gap-3 text-xs text-[var(--cp-muted)]">
                 <input
@@ -627,8 +682,8 @@ export default function OnboardingPage() {
               </label>
 
               <div className="rounded-xl border border-[var(--cp-border)] bg-[rgba(245,197,24,0.14)] p-4 text-sm text-[var(--cp-dark)]">
-                Your first 30 days are completely free. First payment of $19.99 CAD on{" "}
-                {firstPaymentDate}. Cancel anytime.
+                Your first 30 days are completely free. When you&apos;re ready to continue after the trial, you&apos;ll
+                subscribe with Stripe from your dashboard—secure checkout, no bank details collected on this page.
               </div>
 
               <button
@@ -640,7 +695,11 @@ export default function OnboardingPage() {
                     : "cursor-not-allowed bg-[#e2e8f0] text-[#9CA3AF]"
                 }`}
               >
-                {isSubmittingAccount ? "Creating account..." : "Create Account"}
+                {isSubmittingAccount
+                  ? pdfFile
+                    ? "Creating account & uploading report..."
+                    : "Creating account..."
+                  : "Create Account"}
               </button>
               {accountError && (
                 <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{accountError}</p>

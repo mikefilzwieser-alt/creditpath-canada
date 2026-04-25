@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -11,6 +12,7 @@ import {
   useState,
 } from "react";
 import type { User } from "@supabase/supabase-js";
+import { hasDashboardPaywallAccess } from "@/lib/dashboard-access";
 import { supabase } from "@/lib/supabase";
 
 const TEAL = "#00C9A7";
@@ -63,6 +65,8 @@ export function DashboardShell({
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  /** False until subscription/promo paywall check finishes (mirrors proxy for client navigations). */
+  const [paywallChecked, setPaywallChecked] = useState(false);
 
   const refreshUser = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
@@ -100,6 +104,107 @@ export function DashboardShell({
     };
   }, [router]);
 
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      queueMicrotask(() => setPaywallChecked(true));
+      return;
+    }
+
+    const paymentSuccess =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("payment") === "success";
+
+    // Do not queue paywallChecked=false when Stripe is returning: a microtask(false) would run
+    // after the async branch sets true and would leave the shell stuck on the blocking loader.
+    if (!paymentSuccess) {
+      queueMicrotask(() => setPaywallChecked(false));
+    }
+
+    let cancelled = false;
+    void (async () => {
+      if (paymentSuccess) {
+        if (!cancelled) setPaywallChecked(true);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("clients")
+        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+      console.log("[dashboard paywall] DashboardShell client row", {
+        userId: user.id,
+        subscription_status: data?.subscription_status ?? null,
+        stripe_customer_id: data?.stripe_customer_id ?? null,
+        fetchError: error?.message ?? null,
+      });
+      if (error) {
+        router.replace("/pricing");
+        return;
+      }
+      if (
+        !hasDashboardPaywallAccess({
+          subscriptionStatus: data?.subscription_status,
+          appliedPromoCode: data?.applied_promo_code,
+          trialStart: data?.trial_start,
+          stripeCustomerId: data?.stripe_customer_id,
+        })
+      ) {
+        router.replace("/pricing");
+        return;
+      }
+      setPaywallChecked(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    if (!user || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("payment") !== "success") return;
+
+    let cancelled = false;
+    const stripParam = () => {
+      url.searchParams.delete("payment");
+      const q = url.searchParams.toString();
+      router.replace(`${url.pathname}${q ? `?${q}` : ""}`);
+    };
+
+    const poll = async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (
+        hasDashboardPaywallAccess({
+          subscriptionStatus: data?.subscription_status,
+          appliedPromoCode: data?.applied_promo_code,
+          trialStart: data?.trial_start,
+          stripeCustomerId: data?.stripe_customer_id,
+        })
+      ) {
+        stripParam();
+      }
+    };
+
+    const id = window.setInterval(() => void poll(), 2500);
+    void poll();
+    const t = window.setTimeout(() => window.clearInterval(id), 120_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+      window.clearTimeout(t);
+    };
+  }, [user, router]);
+
   const authValue = useMemo(
     () => ({
       user,
@@ -110,9 +215,11 @@ export function DashboardShell({
     [user, loading, refreshUser, headingFontClass],
   );
 
+  const blockingLoader = loading || (Boolean(user) && !paywallChecked);
+
   return (
     <DashboardAuthContext.Provider value={authValue}>
-      {loading ? (
+      {blockingLoader ? (
         <>
           <div
             className={`fixed inset-0 z-50 flex min-h-screen items-center justify-center ${bodyFontClass}`}
@@ -139,14 +246,45 @@ export function DashboardShell({
           style={{ backgroundColor: BG, color: NAVY }}
         >
           <aside
-            className={`shrink-0 border-b border-white/10 md:border-b-0 md:border-r md:border-white/10 ${headingFontClass}`}
+            className={`flex shrink-0 flex-col border-b border-white/10 md:min-h-screen md:border-b-0 md:border-r md:border-white/10 ${headingFontClass}`}
             style={{ backgroundColor: NAVY }}
           >
-            <div className="flex flex-row gap-1 overflow-x-auto px-3 py-4 md:flex-col md:px-0 md:py-8">
-              <div className="hidden px-6 pb-6 md:block">
-                <span className="text-lg font-bold tracking-tight text-white">Credit Path</span>
-              </div>
-              <nav className="flex flex-row gap-1 md:flex-col md:px-3">
+            <div className="flex flex-1 flex-row items-center gap-3 overflow-x-auto px-3 py-4 md:flex-col md:items-stretch md:px-0 md:py-8">
+              <Link
+                href="/dashboard"
+                className="flex shrink-0 items-center px-3 py-3 md:block md:px-6 md:pb-4 md:pt-2"
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    padding: 6,
+                    borderRadius: 12,
+                    backgroundColor: "#ffffff",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <Image
+                    src="/Teal Logo.png"
+                    alt="Credit Path Canada"
+                    width={320}
+                    height={80}
+                    sizes="280px"
+                    priority
+                    style={{
+                      height: "80px",
+                      width: "auto",
+                      maxWidth: "min(calc(100vw - 3rem), 260px)",
+                      borderRadius: 12,
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                  />
+                </span>
+              </Link>
+              <nav className="flex min-w-0 flex-1 flex-row gap-1 md:flex-col md:px-3">
                 {NAV.map((item) => {
                   const active =
                     pathname === item.href ||
@@ -166,6 +304,18 @@ export function DashboardShell({
                   );
                 })}
               </nav>
+            </div>
+            <div className="mt-auto border-t border-white/10 px-3 py-4 md:px-3 md:pb-8">
+              <button
+                type="button"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push("/");
+                }}
+                className="w-full whitespace-nowrap rounded-lg px-4 py-2.5 text-left text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white md:py-3"
+              >
+                Sign out
+              </button>
             </div>
           </aside>
           <main className={`min-w-0 flex-1 p-6 md:p-10 ${bodyFontClass}`}>{children}</main>

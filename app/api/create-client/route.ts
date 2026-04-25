@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email does not match authenticated user." }, { status: 403 });
     }
 
+    const nowIso = new Date().toISOString();
     const { error: insertError } = await admin.from("clients").insert({
       id: user.id,
       full_name: full_name.trim(),
@@ -69,12 +70,15 @@ export async function POST(request: Request) {
       goals,
       primary_goal: primary_goal.trim(),
       subscription_status: "trial",
-      trial_start: new Date().toISOString(),
+      trial_start: nowIso,
+      created_at: nowIso,
     });
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 400 });
     }
+
+    console.info("[create-client]", { userId: user.id, subscription_status: "trial" });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

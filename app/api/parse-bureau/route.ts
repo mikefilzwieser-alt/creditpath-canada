@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseBureauPdfWithClaude } from "@/lib/parse-bureau-claude";
+import { parsePdfBufferAndSaveBlueprintForUser } from "@/lib/parse-bureau-save-for-user";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -93,64 +93,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to download PDF from storage." }, { status: 502 });
   }
 
-  if (pdfBuffer.length > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: "PDF exceeds 10MB." }, { status: 400 });
+  const result = await parsePdfBufferAndSaveBlueprintForUser(admin, user.id, pdfBuffer, {
+    clientEmail: user.email ?? null,
+  });
+
+  if (!result.ok) {
+    const status = result.error.includes("exceeds") ? 400 : 502;
+    return NextResponse.json({ error: result.error }, { status });
   }
 
-  const pdfBase64 = pdfBuffer.toString("base64");
-
-  let parsed: unknown;
-  try {
-    parsed = await parseBureauPdfWithClaude(pdfBase64);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Claude parse failed.";
-    return NextResponse.json({ error: message }, { status: 502 });
-  }
-
-  const row = {
-    client_id: user.id,
-    month_number: 1,
-    status: "processing",
-    raw_parse_data: parsed,
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data: inserted, error: insertError } = await admin
-    .from("blueprints")
-    .insert(row)
-    .select("id")
-    .single();
-
-  if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
-  }
-
-  const blueprintId = inserted?.id as string | undefined;
-  if (blueprintId) {
-    const now = new Date().toISOString();
-    const { error: readyError } = await admin
-      .from("blueprints")
-      .update({ status: "ready", updated_at: now })
-      .eq("id", blueprintId);
-
-    if (readyError) {
-      return NextResponse.json({ error: readyError.message }, { status: 400 });
-    }
-
-    const origin = new URL(request.url).origin;
-    try {
-      await fetch(`${origin}/api/generate-blueprint`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authHeader,
-        },
-        body: JSON.stringify({ blueprint_id: blueprintId }),
-      });
-    } catch {
-      /* blueprint_data may be filled on next manual run */
-    }
-  }
-
-  return NextResponse.json({ ok: true, blueprintId: inserted?.id ?? null });
+  return NextResponse.json({ ok: true, blueprintId: result.blueprintId });
 }

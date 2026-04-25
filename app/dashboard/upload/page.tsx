@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { supabase } from "@/lib/supabase";
+import { uploadBureauPdfAndParse } from "@/lib/upload-bureau-pdf";
 
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
@@ -83,39 +84,9 @@ export default function DashboardUploadPage() {
         return;
       }
 
-      const path = `${user.id}/${Date.now()}.pdf`;
-      const { error: upErr } = await supabase.storage.from("bureaus").upload(path, file, {
-        contentType: "application/pdf",
-      });
-
-      if (upErr) {
-        setError(upErr.message);
-        setProcessing(false);
-        return;
-      }
-
-      const { data: signed, error: signErr } = await supabase.storage
-        .from("bureaus")
-        .createSignedUrl(path, 3600);
-
-      if (signErr || !signed?.signedUrl) {
-        setError(signErr?.message ?? "Could not create file URL.");
-        setProcessing(false);
-        return;
-      }
-
-      const parseRes = await fetch("/api/parse-bureau", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ fileUrl: signed.signedUrl }),
-      });
-
-      const parseJson = (await parseRes.json().catch(() => ({}))) as { error?: string; ok?: boolean };
-      if (!parseRes.ok) {
-        setError(parseJson.error ?? "Parse request failed.");
+      const result = await uploadBureauPdfAndParse(file, user.id, accessToken);
+      if (!result.ok) {
+        setError(result.error);
         setProcessing(false);
         return;
       }
