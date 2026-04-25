@@ -28,7 +28,7 @@ const steps = [
   },
   {
     n: 3,
-    title: "Get personalized Blueprint",
+    title: "Get your personalized Blueprint",
     text: "Receive a structured 24-month plan with clear priorities based on your bureau—not generic tips.",
   },
   {
@@ -72,32 +72,53 @@ export default function HomePage() {
     <div
       className={`flex min-h-full flex-col bg-[var(--cp-bg-light)] text-[var(--cp-dark)] ${montserrat.variable}`}
     >
-      <header className="border-b border-[var(--cp-border)] bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+      <header
+        style={{
+          backgroundColor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(8px)",
+          borderBottom: "1px solid rgba(0,0,0,0.08)",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1152px",
+            margin: "0 auto",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+          }}
+        >
+          <Link href="/" style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
             <img
               src="/logo.png"
               alt="Credit Path Canada"
-              style={{
-                height: "56px",
-                width: "auto",
-                display: "block",
-                maxWidth: "280px",
-                objectFit: "contain",
-              }}
+              style={{ height: "60px", width: "auto", display: "block" }}
             />
           </Link>
-          <nav className="flex items-center gap-3 text-sm font-semibold">
-            <Link href="/login" className="text-[var(--cp-dark)]/80 hover:text-[var(--cp-dark)]">
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <Link href="/login" style={{ fontSize: "14px", fontWeight: 500, color: "#0F1923" }}>
               Sign in
             </Link>
             <Link
               href="/onboarding"
-              className={`rounded-lg bg-[var(--cp-teal)] px-4 py-2 text-[var(--cp-dark)] transition-opacity hover:opacity-90 ${h}`}
+              style={{
+                backgroundColor: "#00C9A7",
+                color: "#0F1923",
+                padding: "8px 20px",
+                borderRadius: "12px",
+                fontSize: "14px",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
             >
               Get started
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
