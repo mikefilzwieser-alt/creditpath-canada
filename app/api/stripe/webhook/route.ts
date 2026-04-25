@@ -1,9 +1,83 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import Stripe from "stripe";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { CCVIP2026_PROMO_CODE, normalizeAppliedPromoCode } from "@/lib/dashboard-access";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getStripe } from "@/lib/stripe-server";
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) {
+    console.warn("[stripe webhook] welcome email skipped: RESEND_API_KEY not set");
+    return;
+  }
+
+  const { data: authData, error: authErr } = await admin.auth.admin.getUserById(userId);
+  if (authErr || !authData?.user?.email) {
+    console.warn("[stripe webhook] welcome email skipped: could not load user email", {
+      userId,
+      message: authErr?.message,
+    });
+    return;
+  }
+
+  const fullNameRaw =
+    (typeof authData.user.user_metadata?.full_name === "string"
+      ? authData.user.user_metadata.full_name.trim()
+      : "") || "";
+
+  const resend = new Resend(apiKey);
+  const from =
+    process.env.RESEND_FROM?.trim() ?? "Credit Path Canada <onboarding@resend.dev>";
+
+  const greetingName = fullNameRaw ? escapeHtml(fullNameRaw) : "there";
+
+  const html = `
+  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0F1923;">
+    <div style="background: #00C9A7; padding: 24px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Credit Path Canada</h1>
+    </div>
+    <div style="padding: 32px;">
+      <p>Hi ${greetingName},</p>
+      <p>You're officially enrolled in Canada's Credit Education Program — and your journey starts today.</p>
+      <p>Over the next 12–24 months we're going to work together to strengthen your credit profile, month by month, with a clear personalized plan built specifically for you.</p>
+      <p>Your first blueprint is ready. Log in anytime to see your Month 1 actions and track your progress.</p>
+      <p style="text-align: center; margin: 32px 0;">
+        <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold;">View My Blueprint</a>
+      </p>
+      <p>If you have any questions at any point, reply to this email or reach out directly — we're with you every step of the way.</p>
+      <p>— Michael Filzwieser<br>Founder, Credit Path Canada<br>(604) 442-0894</p>
+    </div>
+    <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
+      Credit Path Canada · <a href="https://www.creditpathcanada.ca">creditpathcanada.ca</a>
+    </div>
+  </div>
+`.trim();
+
+  const { error } = await resend.emails.send({
+    from,
+    to: [authData.user.email.trim()],
+    subject: "Welcome to Credit Path Canada",
+    html,
+  });
+
+  if (error) {
+    console.warn("[stripe webhook] welcome email send failed", {
+      userId,
+      message: typeof error.message === "string" ? error.message : JSON.stringify(error),
+    });
+  }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,6 +155,12 @@ export async function POST(request: Request) {
           }
 
           await admin.from("clients").update(updatePayload).eq("id", userId);
+          void sendCheckoutWelcomeEmail(admin, userId).catch((err) => {
+            console.warn("[stripe webhook] welcome email unexpected error", {
+              userId,
+              message: err instanceof Error ? err.message : String(err),
+            });
+          });
         }
         break;
       }
