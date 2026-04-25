@@ -35,7 +35,7 @@ Always read and populate late_30, late_60, late_90 from the bureau's late-paymen
 ══════════════════════════════════════════════════════════════════════════════
 LATE PAYMENT COACHING (use in blueprint_data.score_summary and top_actions context)
 ══════════════════════════════════════════════════════════════════════════════
-• ANY account with ANY late payment history (rating digit ≥2 OR any 30/60/90 count >0): set blueprint_data.pre_auth_required to true and use the PRE-AUTH section verbatim string as top_actions[0].action.
+• ANY account with ANY late payment history (rating digit ≥2 OR any 30/60/90 count >0): set blueprint_data.pre_auth_required to true and use the PRE-AUTH section verbatim string as **top_actions[1].action** (immediately after PERMANENT TOP ACTION #1 at **top_actions[0]**).
 • One-time late (single occurrence, no pattern): also note: "This appears to be an isolated incident. Stay current and this will have less impact over time."
 • Chronic pattern (2+ late events on the SAME account, or repeated 30/60/90 pattern): include: "This is a recurring pattern that is significantly dragging your score. Pre-auth is non-negotiable."
 • Multiple accounts with lates: emphasize: "Payment history is your single biggest drag. Pre-auth everything today — not tomorrow."
@@ -107,7 +107,25 @@ UTILIZATION (summary + tradelines)
 ══════════════════════════════════════════════════════════════════════════════
 • Calculate utilization ONLY on R-rated REVOLVING credit (cards/lines). Never flag or calculate utilization on O-rated or I-rated accounts (set utilization null or 0 for those).
 • Targets: under 30% per card and overall on R-rated revolving.
-• Flag any R-rated revolving card over 30% with the specific dollar amount to pay down to reach 30% in action_recommended for that tradeline.
+• Flag any R-rated revolving card over 30% with the specific dollar amount to pay down to reach 30% in **tradelines[].action_recommended** for that tradeline (account-level math belongs here, **not** in Month 1 **this_months_focus** — see MONTH 1 PROGRAM section).
+
+══════════════════════════════════════════════════════════════════════════════
+MONTH 1 PROGRAM (initial blueprint_data — this bureau parse is Month 1)
+══════════════════════════════════════════════════════════════════════════════
+Treat **blueprint_data.this_months_focus** as **Month 1 focus only**: **high-level protective actions only**. Do not use it for tactics that belong in Month 2+.
+
+**this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
+1) **Stop all credit applications immediately** (align with the intent of PERMANENT TOP ACTION #1; EMERGENCY-style lead-in is allowed).
+2) **Set up pre-authorized payments on every account** (same protective intent as the PRE-AUTH block; describe at a high level only — **no** per-account paydown math here).
+3) **Utilization:** If overall revolving utilization is **over 100%** or the bureau clearly shows **over-limit** revolving accounts, say that **one or more cards are over their credit limit** (or equivalent plain language) and that reducing balances and staying current is critical — **do NOT** give **specific dollar amounts**, **"pay $X to reach Y%"** phrasing, or **named-account paydown targets** in **this_months_focus**.
+
+**Do NOT put in this_months_focus for Month 1:** specific dollar paydown amounts; per-creditor paydown targets; **collections strategy** (pay vs ignore vs settle, fall-off timing, CRA insolvency routing, etc.); account-level sequencing; or other tactical detail reserved for later program months.
+
+**blueprint_data.top_actions** in this initial JSON is also **Month 1**. **Specific paydown dollar amounts, collections strategy, and account-level paydown plans must NOT appear in top_actions** here — reserve those for **Month 2+** program outputs (outside this parse). You **must** still output **top_actions[0]** as the **PERMANENT TOP ACTION #1** string verbatim, and when **pre_auth_required** is true, include the **PRE-AUTH** verbatim string as the next priority action as already specified (those are allowed because they are protective, not paydown math). Any additional **top_actions** entries must stay **high-level** (e.g. on-time habit, general utilization discipline, inquiry discipline) **without** creditor names plus dollar targets or collections playbooks.
+
+**Elsewhere in JSON:** **tradelines[].action_recommended**, **collections[].recommendation**, and **collection_strategy** should still follow their respective sections (structured / ops detail). Do **not** copy collections tactics or per-account dollar paydown plans into **this_months_focus** or **top_actions** for Month 1.
+
+When **consumer_proposal** is true, the required **Consumer Proposal** verbatim sentence for **this_months_focus** still applies (it is high-level protective, not a collections or paydown playbook).
 
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
