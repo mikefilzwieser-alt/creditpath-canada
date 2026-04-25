@@ -831,10 +831,11 @@ export default function BlueprintPage() {
     return normalizeScoreFactors(raw?.score_factors ?? parsed?.score?.score_factors);
   }, [parsed]);
   const focusBullets = useMemo(() => {
+    const month = normalizeProgramMonth(blueprint?.current_month);
     const base = splitFocusIntoBullets(plan?.this_months_focus);
-    if (base.length >= 3) return base;
-    return padFocusBulletsWithDefaults(base, plan, parsed);
-  }, [plan, parsed]);
+    const expanded = base.length >= 3 ? base : padFocusBulletsWithDefaults(base, plan, parsed);
+    return month === 1 ? expanded.slice(0, 2) : expanded;
+  }, [blueprint?.current_month, plan, parsed]);
   const scoreSummaryText = useMemo(() => normalizeSentenceCapitalization(plan?.score_summary), [plan?.score_summary]);
 
   const programMonth = normalizeProgramMonth(blueprint?.current_month);

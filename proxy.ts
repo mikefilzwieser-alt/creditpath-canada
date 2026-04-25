@@ -23,6 +23,7 @@ type ClientPaywallRow = {
   applied_promo_code: string | null;
   trial_start: string | null;
   stripe_customer_id: string | null;
+  access_until: string | null;
 };
 
 /**
@@ -59,6 +60,7 @@ function shouldRedirectToPricing(
     appliedPromoCode: row.applied_promo_code,
     trialStart: row.trial_start,
     stripeCustomerId: row.stripe_customer_id,
+    accessUntil: row.access_until,
   });
 }
 
@@ -118,7 +120,7 @@ export async function proxy(request: NextRequest) {
 
     const { data: row, error } = await supabase
       .from("clients")
-      .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id")
+      .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -126,12 +128,14 @@ export async function proxy(request: NextRequest) {
     const effectiveRow = (readError ? null : row) as ClientPaywallRow | null;
     const statusRead = effectiveRow?.subscription_status ?? null;
     const stripeRead = effectiveRow?.stripe_customer_id ?? null;
+    const accessUntilRead = effectiveRow?.access_until ?? null;
 
     console.log("[dashboard paywall] client row", {
       userId: user.id,
       path: pathname,
       subscription_status: statusRead,
       stripe_customer_id: stripeRead,
+      access_until: accessUntilRead,
       rowPresent: Boolean(effectiveRow),
       fetchError: error?.message ?? null,
       paymentSuccessQuery: paymentSuccess,
@@ -143,6 +147,7 @@ export async function proxy(request: NextRequest) {
         userId: user.id,
         subscription_status: statusRead,
         stripe_customer_id: stripeRead,
+        access_until: accessUntilRead,
         fetchError: error?.message ?? null,
       });
       const redirectRes = NextResponse.redirect(new URL("/pricing", request.url));

@@ -17,16 +17,29 @@ export function trialWithPaymentAllowsDashboard(
   return Boolean(sid);
 }
 
+export function cancelledWithAccessWindowAllowsDashboard(
+  accessUntil: string | null | undefined,
+): boolean {
+  if (!accessUntil) return false;
+  const until = new Date(accessUntil);
+  if (Number.isNaN(until.getTime())) return false;
+  return until.getTime() > Date.now();
+}
+
 export function hasDashboardPaywallAccess(params: {
   subscriptionStatus: string | null | undefined;
   appliedPromoCode: string | null | undefined;
   trialStart?: string | null | undefined;
   stripeCustomerId?: string | null | undefined;
+  accessUntil?: string | null | undefined;
 }): boolean {
   const status = (params.subscriptionStatus ?? "").trim().toLowerCase();
   if (status === "active") return true;
   if (status === "trial") {
     return trialWithPaymentAllowsDashboard(params.trialStart, params.stripeCustomerId);
+  }
+  if (status === "cancelled") {
+    return cancelledWithAccessWindowAllowsDashboard(params.accessUntil);
   }
   if (normalizeAppliedPromoCode(params.appliedPromoCode) === CCVIP2026_PROMO_CODE) return true;
   return false;

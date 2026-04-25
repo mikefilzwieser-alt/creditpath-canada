@@ -69,10 +69,12 @@ export async function POST(request: Request) {
           const updatePayload: {
             subscription_status: string;
             stripe_customer_id: string;
+            access_until: string | null;
             applied_promo_code?: string;
           } = {
             subscription_status: "active",
             stripe_customer_id: customerId,
+            access_until: null,
           };
           if (appliedPromoCode) {
             updatePayload.applied_promo_code = appliedPromoCode;
@@ -87,7 +89,10 @@ export async function POST(request: Request) {
         const customerRaw = sub.customer;
         const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
         if (customerId) {
-          await admin.from("clients").update({ subscription_status: "inactive" }).eq("stripe_customer_id", customerId);
+          await admin
+            .from("clients")
+            .update({ subscription_status: "inactive", access_until: null })
+            .eq("stripe_customer_id", customerId);
         }
         break;
       }
@@ -97,7 +102,10 @@ export async function POST(request: Request) {
           const customerRaw = sub.customer;
           const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
           if (customerId) {
-            await admin.from("clients").update({ subscription_status: "inactive" }).eq("stripe_customer_id", customerId);
+            await admin
+              .from("clients")
+              .update({ subscription_status: "inactive", access_until: null })
+              .eq("stripe_customer_id", customerId);
           }
         }
         break;

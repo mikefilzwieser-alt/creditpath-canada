@@ -130,7 +130,7 @@ export function DashboardShell({
 
       const { data, error } = await supabase
         .from("clients")
-        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id")
+        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -139,6 +139,7 @@ export function DashboardShell({
         userId: user.id,
         subscription_status: data?.subscription_status ?? null,
         stripe_customer_id: data?.stripe_customer_id ?? null,
+        access_until: data?.access_until ?? null,
         fetchError: error?.message ?? null,
       });
       if (error) {
@@ -151,6 +152,7 @@ export function DashboardShell({
           appliedPromoCode: data?.applied_promo_code,
           trialStart: data?.trial_start,
           stripeCustomerId: data?.stripe_customer_id,
+          accessUntil: data?.access_until,
         })
       ) {
         router.replace("/pricing");
@@ -179,7 +181,7 @@ export function DashboardShell({
     const poll = async () => {
       const { data } = await supabase
         .from("clients")
-        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id")
+        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
         .eq("id", user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -189,6 +191,7 @@ export function DashboardShell({
           appliedPromoCode: data?.applied_promo_code,
           trialStart: data?.trial_start,
           stripeCustomerId: data?.stripe_customer_id,
+          accessUntil: data?.access_until,
         })
       ) {
         stripParam();

@@ -133,6 +133,9 @@ export default function HomePage() {
               <h1 className={`mt-4 text-4xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
                 Your personalized path back to strong credit.
               </h1>
+              <p className={`mt-3 text-lg font-medium text-[#00C9A7] ${h}`}>
+                Future proof your credit for less than the cost of a coffee per week.
+              </p>
               <p className={`mt-4 text-lg font-semibold text-[var(--cp-dark)] sm:text-xl ${h}`}>
                 Your Credit. Your Path. Your Future.
               </p>
@@ -298,6 +301,9 @@ export default function HomePage() {
             <div className="mt-10 rounded-2xl border-2 border-[var(--cp-teal)] bg-white p-8 shadow-[0_12px_40px_rgba(15,25,35,0.08)]">
               <p className={`text-center text-4xl font-bold text-[var(--cp-dark)] ${h}`}>$4.44</p>
               <p className="text-center text-sm font-semibold text-[var(--cp-muted)]">per week · CAD</p>
+              <p className={`mt-3 text-center text-base font-medium text-[#0F1923] ${h}`}>
+                Future proof your credit for less than the cost of a coffee per week.
+              </p>
               <p className={`mt-4 text-center text-sm font-bold text-[var(--cp-teal)] ${h}`}>
                 First 30 days free · Cancel anytime
               </p>

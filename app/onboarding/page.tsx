@@ -344,7 +344,10 @@ export default function OnboardingPage() {
             <h2 className={`${montserrat.className} text-lg font-bold text-[var(--cp-dark)]`}>
               Step 1: Your Goals
             </h2>
-            <p className="mt-1 text-sm text-[var(--cp-muted)]">
+            <p className={`${montserrat.className} mt-2 text-base font-medium text-[#00C9A7]`}>
+              Future proof your credit for less than the cost of a coffee per week.
+            </p>
+            <p className="mt-3 text-sm text-[var(--cp-muted)]">
               Select your goals below. Drag to rank them — #1 is your top priority.
             </p>
 

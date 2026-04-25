@@ -30,7 +30,7 @@ export async function POST() {
 
   const { data: client, error: clientErr } = await admin
     .from("clients")
-    .select("stripe_customer_id, subscription_status")
+    .select("stripe_customer_id, subscription_status, access_until")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -63,11 +63,16 @@ export async function POST() {
     );
   }
 
-  const setCancelledInDb = async (): Promise<{ ok: true } | { ok: false; message: string }> => {
-    console.log("[cancel-subscription] DB: updating subscription_status to cancelled", { userId: user.id });
+  const setCancelledInDb = async (
+    accessUntilIso: string | null,
+  ): Promise<{ ok: true } | { ok: false; message: string }> => {
+    console.log("[cancel-subscription] DB: updating subscription_status to cancelled", {
+      userId: user.id,
+      access_until: accessUntilIso,
+    });
     const { error: updErr } = await admin
       .from("clients")
-      .update({ subscription_status: "cancelled" })
+      .update({ subscription_status: "cancelled", access_until: accessUntilIso })
       .eq("id", user.id);
     if (updErr) {
       console.log("[cancel-subscription] DB: update failed", updErr.message);
@@ -80,7 +85,7 @@ export async function POST() {
   const stripe = getStripe();
   if (!customerId) {
     console.log("[cancel-subscription] Step 2: no stripe_customer_id — Supabase-only cancel");
-    const r = await setCancelledInDb();
+    const r = await setCancelledInDb(null);
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
     }
@@ -89,7 +94,7 @@ export async function POST() {
 
   if (!stripe) {
     console.log("[cancel-subscription] Step 2: Stripe SDK not configured — Supabase-only cancel");
-    const r = await setCancelledInDb();
+    const r = await setCancelledInDb(null);
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
     }
@@ -117,7 +122,7 @@ export async function POST() {
       console.log(
         "[cancel-subscription] Step 4: no active Stripe subscription — updating Supabase only and returning success",
       );
-      const r = await setCancelledInDb();
+      const r = await setCancelledInDb(null);
       if (!r.ok) {
         return NextResponse.json({ error: r.message }, { status: 500 });
       }
@@ -125,15 +130,30 @@ export async function POST() {
     }
 
     const subscriptionId = first.id;
-    console.log("[cancel-subscription] Step 4: cancelling subscription in Stripe", { subscriptionId });
+    console.log("[cancel-subscription] Step 4: set cancel_at_period_end in Stripe", { subscriptionId });
 
-    const cancelled = await stripe.subscriptions.cancel(subscriptionId);
-    console.log("[cancel-subscription] Step 5: Stripe cancel succeeded", {
-      subscriptionId: cancelled.id,
-      status: cancelled.status,
+    await stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
+    const updatedResp = await stripe.subscriptions.retrieve(subscriptionId);
+    const updated = ("data" in updatedResp ? updatedResp.data : updatedResp) as {
+      id: string;
+      status: string;
+      cancel_at_period_end?: boolean;
+      current_period_end?: number;
+    };
+    const accessUntilIso =
+      typeof updated.current_period_end === "number" && Number.isFinite(updated.current_period_end)
+        ? new Date(updated.current_period_end * 1000).toISOString()
+        : null;
+    console.log("[cancel-subscription] Step 5: Stripe update succeeded", {
+      subscriptionId: updated.id,
+      status: updated.status,
+      cancel_at_period_end: updated.cancel_at_period_end,
+      access_until: accessUntilIso,
     });
 
-    const r = await setCancelledInDb();
+    const r = await setCancelledInDb(accessUntilIso);
     if (!r.ok) {
       console.log(
         "[cancel-subscription] Step 6: fail — Stripe cancelled but DB update failed; user should contact support",
