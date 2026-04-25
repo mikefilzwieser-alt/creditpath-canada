@@ -84,7 +84,7 @@ export default function PricingPage() {
           <h1 className="mt-2 text-center text-2xl font-bold tracking-tight">Credit Education Program</h1>
           <p className="mt-4 text-center text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
             $4.44
-            <span className="text-lg font-semibold text-[#0F1923]/70"> / biweekly</span>
+            <span className="text-lg font-semibold text-[#0F1923]/70"> / week</span>
           </p>
 
           <div
@@ -97,7 +97,10 @@ export default function PricingPage() {
           <ul className="mt-6 space-y-3 text-sm leading-relaxed text-[#0F1923]/80">
             <li className="flex gap-2">
               <span className="font-bold" style={{ color: TEAL }}>✓</span>
-              ✓ Less than the cost of a coffee per week!
+              Less than the cost of a coffee per week!
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold" style={{ color: TEAL }}>✓</span>
               Personalized monthly credit blueprint and priority actions
             </li>
             <li className="flex gap-2">
