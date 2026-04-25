@@ -133,9 +133,6 @@ export default function HomePage() {
               <h1 className={`mt-4 text-4xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
                 Your personalized path back to strong credit.
               </h1>
-              <p className={`mt-3 text-lg font-medium text-[#00C9A7] ${h}`}>
-                Future proof your credit for less than the cost of a coffee per week.
-              </p>
               <p className={`mt-4 text-lg font-semibold text-[var(--cp-dark)] sm:text-xl ${h}`}>
                 Your Credit. Your Path. Your Future.
               </p>
@@ -160,8 +157,9 @@ export default function HomePage() {
                 </div>
                 <div className={`mt-5 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
                   <p className="font-semibold leading-snug">✓ Guaranteed results or your money back</p>
-                  <p className="font-medium leading-snug">✓ $4.44/week after — cancel anytime</p>
+                  <p className="font-medium leading-snug">✓ Less than a coffee per week — $4.44</p>
                   <p className="font-medium leading-snug">✓ First 30 days free</p>
+                  <p className="font-medium leading-snug">✓ Cancel anytime</p>
                 </div>
               </div>
             </div>
@@ -301,8 +299,8 @@ export default function HomePage() {
             <div className="mt-10 rounded-2xl border-2 border-[var(--cp-teal)] bg-white p-8 shadow-[0_12px_40px_rgba(15,25,35,0.08)]">
               <p className={`text-center text-4xl font-bold text-[var(--cp-dark)] ${h}`}>$4.44</p>
               <p className="text-center text-sm font-semibold text-[var(--cp-muted)]">per week · CAD</p>
-              <p className={`mt-3 text-center text-base font-medium text-[#0F1923] ${h}`}>
-                Future proof your credit for less than the cost of a coffee per week.
+              <p className={`mt-3 text-center text-base text-[#0F1923] ${h}`}>
+                Less than a coffee per week. No contracts.
               </p>
               <p className={`mt-4 text-center text-sm font-bold text-[var(--cp-teal)] ${h}`}>
                 First 30 days free · Cancel anytime

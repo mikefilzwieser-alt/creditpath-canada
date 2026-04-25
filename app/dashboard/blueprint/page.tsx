@@ -10,6 +10,7 @@ import {
   MAX_THEMED_PROGRAM_MONTH,
   normalizeProgramMonth,
 } from "@/lib/monthly-progression-themes";
+import { logPostgrestError } from "@/lib/log-postgrest-error";
 import { supabase } from "@/lib/supabase";
 
 const TEAL = "#00C9A7";
@@ -798,7 +799,11 @@ export default function BlueprintPage() {
         .eq("program_month", programMonth);
       if (cancelled) return;
       if (qErr) {
-        console.error("[blueprint] action_completions select failed", qErr);
+        logPostgrestError("[blueprint] action_completions select failed", qErr, {
+          client_id: user.id,
+          blueprint_id: blueprint.id,
+          program_month: programMonth,
+        });
         const empty = new Set<number>();
         completionsRef.current = empty;
         setCompletedSet(empty);
@@ -970,7 +975,12 @@ export default function BlueprintPage() {
           .eq("action_index", index)
           .eq("program_month", pm);
         if (error) {
-          console.error("[blueprint] action_completions delete failed", error);
+          logPostgrestError("[blueprint] action_completions delete failed", error, {
+            client_id: clientId,
+            blueprint_id: blueprintId,
+            program_month: pm,
+            action_index: index,
+          });
           completionsRef.current.add(index);
           return;
         }
@@ -992,13 +1002,42 @@ export default function BlueprintPage() {
         program_month: pm,
         action_index: index,
       };
+
+      const { data: blueprintRow, error: blueprintLookupErr } = await supabase
+        .from("blueprints")
+        .select("id")
+        .eq("id", blueprintId)
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (blueprintLookupErr) {
+        logPostgrestError("[blueprint] blueprints lookup failed (before action_completions save)", blueprintLookupErr, {
+          client_id: clientId,
+          blueprint_id: blueprintId,
+        });
+        completionsRef.current.delete(index);
+        return;
+      }
+      if (!blueprintRow) {
+        console.error(
+          "[blueprint] action_completions: no blueprint row for this client (FK on blueprint_id would fail on insert)",
+          { client_id: clientId, blueprint_id: blueprintId },
+        );
+        completionsRef.current.delete(index);
+        return;
+      }
+
       const { data: existingRow, error: selectErr } = await supabase
         .from("action_completions")
         .select("id")
         .match(match)
         .maybeSingle();
       if (selectErr) {
-        console.error("[blueprint] action_completions lookup failed", selectErr);
+        logPostgrestError("[blueprint] action_completions lookup failed", selectErr, {
+          client_id: clientId,
+          blueprint_id: blueprintId,
+          program_month: pm,
+          action_index: index,
+        });
         completionsRef.current.delete(index);
         return;
       }
@@ -1014,7 +1053,14 @@ export default function BlueprintPage() {
             completed_at: completedAt,
           });
       if (error) {
-        console.error("[blueprint] action_completions save failed", error);
+        logPostgrestError("[blueprint] action_completions insert/update failed", error, {
+          client_id: clientId,
+          blueprint_id: blueprintId,
+          program_month: pm,
+          action_index: index,
+          row_id: rowId ?? null,
+          op: rowId ? "update" : "insert",
+        });
         completionsRef.current.delete(index);
         return;
       }
