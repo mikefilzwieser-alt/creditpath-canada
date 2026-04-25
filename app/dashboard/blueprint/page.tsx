@@ -266,6 +266,39 @@ function padFocusBulletsWithDefaults(
   return capitalizeBulletStarts(out);
 }
 
+/**
+ * Month 1: at most two bullets from the plan’s own focus text only (no padded pre-auth / inquiries / generic bullets).
+ * Month 2+: unchanged — full split + padding to at least three items when needed.
+ */
+function computeFocusBulletsForDisplay(
+  plan: BlueprintPlan | null | undefined,
+  parsed: ParsedBureau | null | undefined,
+  programMonthRaw: number | string | null | undefined,
+): string[] {
+  const programMonth = normalizeProgramMonth(programMonthRaw);
+  const base = splitFocusIntoBullets(plan?.this_months_focus);
+
+  if (programMonth !== 1) {
+    return base.length >= 3 ? base : padFocusBulletsWithDefaults(base, plan, parsed);
+  }
+
+  if (base.length > 0) {
+    return base.slice(0, 2);
+  }
+
+  const raw = typeof plan?.this_months_focus === "string" ? plan.this_months_focus.trim() : "";
+  if (!raw) return [];
+
+  const sentences = raw
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (sentences.length >= 2) {
+    return capitalizeBulletStarts(sentences.slice(0, 2));
+  }
+  return capitalizeBulletStarts([raw]);
+}
+
 function normalizeSentenceCapitalization(raw: unknown): string {
   const text = formatDisplay(raw);
   if (text === "—") return text;
@@ -830,12 +863,10 @@ export default function BlueprintPage() {
     const raw = parsed as Record<string, unknown> | null | undefined;
     return normalizeScoreFactors(raw?.score_factors ?? parsed?.score?.score_factors);
   }, [parsed]);
-  const focusBullets = useMemo(() => {
-    const month = normalizeProgramMonth(blueprint?.current_month);
-    const base = splitFocusIntoBullets(plan?.this_months_focus);
-    const expanded = base.length >= 3 ? base : padFocusBulletsWithDefaults(base, plan, parsed);
-    return month === 1 ? expanded.slice(0, 2) : expanded;
-  }, [blueprint?.current_month, plan, parsed]);
+  const focusBullets = useMemo(
+    () => computeFocusBulletsForDisplay(plan, parsed, blueprint?.current_month),
+    [blueprint?.current_month, plan, parsed],
+  );
   const scoreSummaryText = useMemo(() => normalizeSentenceCapitalization(plan?.score_summary), [plan?.score_summary]);
 
   const programMonth = normalizeProgramMonth(blueprint?.current_month);
@@ -1026,10 +1057,7 @@ export default function BlueprintPage() {
       const focusText = hasPlan ? formatDisplay(plan?.this_months_focus) : "Focus not available yet.";
       const topActions = monthlyProgramActions;
       const focusItems = hasPlan
-        ? (() => {
-            const base = splitFocusIntoBullets(plan?.this_months_focus);
-            return base.length >= 3 ? base : padFocusBulletsWithDefaults(base, plan, parsed);
-          })()
+        ? computeFocusBulletsForDisplay(plan, parsed, blueprint?.current_month)
         : splitFocusIntoBullets(focusText);
       const summary = parsed.summary ?? {};
       const collectionRows = (Array.isArray(parsed.collections) ? parsed.collections : []).slice(0, 8);

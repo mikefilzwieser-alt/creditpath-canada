@@ -25,7 +25,8 @@ export function getProgramMonthThemeSubtitle(month: number): string {
   return SUBTITLES[month] ?? SUBTITLES[1]!;
 }
 
-export function normalizeProgramMonth(raw: number | null | undefined): number {
-  if (typeof raw !== "number" || !Number.isFinite(raw)) return 1;
-  return Math.max(1, Math.floor(raw));
+export function normalizeProgramMonth(raw: number | string | null | undefined): number {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : raw;
+  if (typeof n !== "number" || !Number.isFinite(n)) return 1;
+  return Math.max(1, Math.floor(n));
 }
