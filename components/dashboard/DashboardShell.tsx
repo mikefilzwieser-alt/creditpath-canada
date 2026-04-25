@@ -89,13 +89,15 @@ export function DashboardShell({
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
         router.replace("/onboarding");
         return;
       }
-      setUser(session.user);
-      setLoading(false);
+      if (session) {
+        setUser(session.user);
+        setLoading(false);
+      }
     });
 
     return () => {
