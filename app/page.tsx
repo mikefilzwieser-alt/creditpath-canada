@@ -134,7 +134,7 @@ export default function HomePage() {
                 Your personalized path back to strong credit.
               </h1>
               <p className={`mt-4 text-lg font-semibold text-[var(--cp-dark)] sm:text-xl ${h}`}>
-                Your Credit. Your Path. Your Future.
+                <span style={{ color: "#00C9A7" }}>Your Credit. Your Path. Your Future.</span>
               </p>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--cp-dark)]/80">
                 Upload your bureau. Set your goals. Follow your personalized 24-month Blueprint with clear monthly
@@ -155,7 +155,7 @@ export default function HomePage() {
                     Sign in
                   </Link>
                 </div>
-                <div className={`mt-5 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
+                <div className={`mt-10 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
                   <p className="font-semibold leading-snug">✓ Trusted by Canadians rebuilding their credit.</p>
                   <p className="font-medium leading-snug">✓ Less than a coffee per week — $4.44</p>
                   <p className="font-medium leading-snug">✓ First 30 days free</p>
@@ -165,8 +165,10 @@ export default function HomePage() {
             </div>
             <div className="hidden rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-8 shadow-[0_12px_36px_rgba(15,25,35,0.08)] md:block md:p-9 md:py-10">
               <p className={`text-base font-bold text-[var(--cp-teal)] ${h}`}>Why Credit Path Canada</p>
-              <p className="mt-4 text-base leading-relaxed text-[var(--cp-dark)]/75">
-                Built for Canadians 🍁 who want a clear, month-by-month plan—not another generic score app.
+              <p className="mt-4 text-base leading-relaxed text-[var(--cp-dark)]/75">Built for Canadians 🍁</p>
+              <p className="mt-2 text-base leading-relaxed text-[var(--cp-dark)]/75">{"By Canadians  🍁"}</p>
+              <p className="mt-2 text-base leading-relaxed text-[var(--cp-dark)]/75">
+                Who want a clear, month-by-month plan — not another generic score app.
               </p>
             </div>
           </div>

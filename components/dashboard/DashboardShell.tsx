@@ -77,13 +77,13 @@ export function DashboardShell({
     let cancelled = false;
 
     (async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getUser();
       if (cancelled) return;
-      if (!data.session) {
+      if (!data.user) {
         router.replace("/onboarding");
         return;
       }
-      setUser(data.session.user);
+      setUser(data.user);
       setLoading(false);
     })();
 
