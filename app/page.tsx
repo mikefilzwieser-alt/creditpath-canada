@@ -128,7 +128,7 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] md:items-center md:gap-12 md:py-24">
             <div className="border-l-4 border-[var(--cp-teal)] pl-6 md:pl-8">
               <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[var(--cp-teal)] ${h}`}>
-                Canada&apos;s Credit Rebuilding Platform
+                Canada&apos;s Credit Education Platform
               </p>
               <h1 className={`mt-4 text-4xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
                 Your personalized path back to strong credit.
@@ -156,7 +156,7 @@ export default function HomePage() {
                   </Link>
                 </div>
                 <div className={`mt-5 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
-                  <p className="font-semibold leading-snug">✓ Guaranteed results or your money back</p>
+                  <p className="font-semibold leading-snug">✓ Trusted by Canadians rebuilding their credit.</p>
                   <p className="font-medium leading-snug">✓ Less than a coffee per week — $4.44</p>
                   <p className="font-medium leading-snug">✓ First 30 days free</p>
                   <p className="font-medium leading-snug">✓ Cancel anytime</p>
@@ -166,7 +166,7 @@ export default function HomePage() {
             <div className="hidden rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-8 shadow-[0_12px_36px_rgba(15,25,35,0.08)] md:block md:p-9 md:py-10">
               <p className={`text-base font-bold text-[var(--cp-teal)] ${h}`}>Why Credit Path Canada</p>
               <p className="mt-4 text-base leading-relaxed text-[var(--cp-dark)]/75">
-                Built for Canadians 🍁 who want a clear, month-by-month rebuild—not another generic score app.
+                Built for Canadians 🍁 who want a clear, month-by-month plan—not another generic score app.
               </p>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function HomePage() {
         <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-14 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
-              Guaranteed results or your money back.
+              Trusted by Canadians rebuilding their credit.
             </h2>
             <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
               Follow the program exactly as prescribed for 12 months and if your score hasn&apos;t improved,

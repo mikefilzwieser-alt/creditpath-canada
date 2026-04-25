@@ -97,10 +97,6 @@ export default function PricingPage() {
           <ul className="mt-6 space-y-3 text-sm leading-relaxed text-[#0F1923]/80">
             <li className="flex gap-2">
               <span className="font-bold" style={{ color: TEAL }}>✓</span>
-              Less than the cost of a coffee per week!
-            </li>
-            <li className="flex gap-2">
-              <span className="font-bold" style={{ color: TEAL }}>✓</span>
               Personalized monthly credit blueprint and priority actions
             </li>
             <li className="flex gap-2">
@@ -110,6 +106,10 @@ export default function PricingPage() {
             <li className="flex gap-2">
               <span className="font-bold" style={{ color: TEAL }}>✓</span>
               Cancel anytime from your Stripe billing portal after checkout
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold" style={{ color: TEAL }}>✓</span>
+              Less than the cost of a coffee per week!
             </li>
           </ul>
 
