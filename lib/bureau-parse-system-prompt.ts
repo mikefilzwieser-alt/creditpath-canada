@@ -99,6 +99,9 @@ If ANY tradeline currently shows past due amount (PDA > 0) OR rating digit ≥2 
 CREDIT CARD (NETWORK) RECOMMENDATIONS — set "recommended_cards" integer 0–3
 ══════════════════════════════════════════════════════════════════════════════
 IMPORTANT: Only count R-rated revolving cards that are CURRENTLY OPEN AND IN GOOD STANDING (R0 or R1). Do NOT count R9 (written off), R8 (repossession), or closed accounts toward the 3-card minimum. A client with 3 R-rated cards where 2 are R9 has functionally 1 card reporting and recommended_cards should be 2.
+When recommending a secured credit card in top_actions, the action text must be concise. Use this exact format:
+"Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
+Never include "on the Visa or Mastercard network" or "so you can" phrasing in this action.
 Count ONLY Visa/Mastercard/Amex network R-rated revolving cards toward the minimum of 3.
 • 0 network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
 • 1 → recommended_cards: 2
