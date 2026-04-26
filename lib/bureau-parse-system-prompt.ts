@@ -125,6 +125,13 @@ MONTH 1 PROGRAM (initial blueprint_data — this bureau parse is Month 1)
 ══════════════════════════════════════════════════════════════════════════════
 Treat **blueprint_data.this_months_focus** as **Month 1 focus only**: **high-level protective actions only**. Do not use it for tactics that belong in Month 2+.
 
+SCORE SUMMARY FORMAT:
+score_summary must contain exactly 2 parts separated by "|||":
+- Part 1 (before |||): Maximum 2 sentences. First sentence = score + primary issue. Second sentence = one positive factor or forward-looking statement.
+- Part 2 (after |||): The full detailed analysis (utilization breakdown, specific accounts, collections context, etc.)
+
+Example format: "Your 511 score is held back by late payments and high utilization. Your student loans and auto loan are building positive history.|||Full detailed analysis here with specific account references, utilization percentages, collections details, and Consumer Proposal context."
+
 **this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
 1) **Stop all credit applications immediately** (align with the intent of PERMANENT TOP ACTION #1; EMERGENCY-style lead-in is allowed).
 2) **Set up pre-authorized payments on every account** (same protective intent as the PRE-AUTH block; describe at a high level only — **no** per-account paydown math here).

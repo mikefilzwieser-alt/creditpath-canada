@@ -715,6 +715,7 @@ export default function BlueprintPage() {
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
   const [monthlyPlanRow, setMonthlyPlanRow] = useState<MonthlyPlanRow | null>(null);
   const [error, setError] = useState("");
+  const [showScoreSummaryDetail, setShowScoreSummaryDetail] = useState(false);
   const [tab, setTab] = useState<TabId>("overview");
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
@@ -873,6 +874,16 @@ export default function BlueprintPage() {
     [blueprint?.current_month, plan, parsed],
   );
   const scoreSummaryText = useMemo(() => normalizeSentenceCapitalization(plan?.score_summary), [plan?.score_summary]);
+  const scoreSummaryParts = useMemo(() => {
+    const [visibleRaw, ...detailRest] = scoreSummaryText.split("|||");
+    const visible = visibleRaw.trim();
+    const detail = detailRest.join("|||").trim();
+    return {
+      visible: visible || scoreSummaryText,
+      detail,
+      hasDetail: detail.length > 0,
+    };
+  }, [scoreSummaryText]);
 
   const programMonth = normalizeProgramMonth(blueprint?.current_month);
 
@@ -1651,8 +1662,33 @@ export default function BlueprintPage() {
                       {formatDisplay(plan?.rebuild_score_label)}
                     </p>
                     <p className="leading-relaxed text-white/85" style={{ fontSize: 14 }}>
-                      {scoreSummaryText}
+                      {scoreSummaryParts.visible}
                     </p>
+                    {scoreSummaryParts.hasDetail ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setShowScoreSummaryDetail((v) => !v)}
+                          className="mt-1 inline-flex items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold"
+                          style={{ color: TEAL }}
+                        >
+                          <span
+                            aria-hidden
+                            className={`inline-block transition-transform duration-200 ${
+                              showScoreSummaryDetail ? "rotate-90" : "rotate-0"
+                            }`}
+                          >
+                            ▸
+                          </span>
+                          Read more
+                        </button>
+                        {showScoreSummaryDetail ? (
+                          <p className="leading-relaxed text-white/65" style={{ fontSize: 13 }}>
+                            {scoreSummaryParts.detail}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
                   </>
                 ) : (
                   <>
