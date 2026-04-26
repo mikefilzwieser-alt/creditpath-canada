@@ -1573,10 +1573,31 @@ export default function BlueprintPage() {
                     }
                     bullets = bullets.slice(0, 3);
                     return (
-                      <ol style={{ paddingLeft: 20, margin: 0 }}>
+                      <ol style={{ paddingLeft: 0, margin: 0, listStyle: "none" }}>
                         {bullets.map((b, i) => (
-                          <li key={i} style={{ marginBottom: 8, lineHeight: 1.6, fontSize: 14 }}>
-                            {b.replace(/^[-•]\s*/, '')}
+                          <li
+                            key={i}
+                            style={{
+                              marginBottom: 10,
+                              lineHeight: 1.6,
+                              fontSize: 14,
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#00C9A7",
+                                fontWeight: 700,
+                                fontSize: 16,
+                                flexShrink: 0,
+                                marginTop: 1,
+                              }}
+                            >
+                              {i + 1}.
+                            </span>
+                            <span>{b.replace(/^[-•]\s*/, "")}</span>
                           </li>
                         ))}
                       </ol>
