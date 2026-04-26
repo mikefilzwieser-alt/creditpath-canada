@@ -1561,7 +1561,7 @@ export default function BlueprintPage() {
                   color: NAVY,
                 }}
               >
-                <p className={`text-xs font-bold uppercase tracking-wide ${h}`} style={{ color: TEAL }}>
+                <p className={`text-xs font-bold uppercase tracking-wide ${h}`} style={{ color: TEAL, marginBottom: 12 }}>
                   This month&apos;s focus
                 </p>
                 {plan?.this_months_focus ? (
@@ -1956,6 +1956,11 @@ export default function BlueprintPage() {
                         {product.name}
                       </h3>
                       <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/65">{product.description}</p>
+                      {product.description === "Canada's top credit-building card. Reports to Equifax. Apply now." ? (
+                        <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
+                          💸 Use referral code 79976711S1 for a $50 bonus!
+                        </p>
+                      ) : null}
                     </div>
                     <a
                       href={product.href}
