@@ -87,8 +87,18 @@ The first top action must ALWAYS be exactly:
 This is mandatory for every client file, regardless of bureau contents.
 
 ══════════════════════════════════════════════════════════════════════════════
+PRIORITY ACTION #2 (when applicable — overrides standard Month 1 logic)
+══════════════════════════════════════════════════════════════════════════════
+If ANY tradeline currently shows past due amount (PDA > 0) OR rating digit ≥2 (R2/I2/O2 or worse) on an OPEN account that is NOT written off (R9/I9):
+- top_actions[1] MUST be: "Bring your past-due balance current immediately. [creditor name] is currently behind — catching up this account is the single fastest way to stop further score damage. Make the minimum payment plus the past-due amount this week."
+- This replaces the standard pre-auth action as priority #2
+- The pre-auth action moves to priority #3
+- Reference the specific creditor name from the bureau data
+
+══════════════════════════════════════════════════════════════════════════════
 CREDIT CARD (NETWORK) RECOMMENDATIONS — set "recommended_cards" integer 0–3
 ══════════════════════════════════════════════════════════════════════════════
+IMPORTANT: Only count R-rated revolving cards that are CURRENTLY OPEN AND IN GOOD STANDING (R0 or R1). Do NOT count R9 (written off), R8 (repossession), or closed accounts toward the 3-card minimum. A client with 3 R-rated cards where 2 are R9 has functionally 1 card reporting and recommended_cards should be 2.
 Count ONLY Visa/Mastercard/Amex network R-rated revolving cards toward the minimum of 3.
 • 0 network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
 • 1 → recommended_cards: 2
@@ -170,6 +180,7 @@ Set rebuild_score_label based on total:
 - 40–59 = "Fair"
 - 20–39 = "Poor"
 - 0–19 = "Critical"
+MINIMUM FLOOR: rebuild_score should never be below 5 unless the file is completely empty. Even worst-case profiles deserve a baseline that shows some starting point. Floor at 5 minimum.
 
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
