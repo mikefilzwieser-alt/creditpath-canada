@@ -31,11 +31,19 @@ type ClientPaywallRow = {
  * the current page. Subscription redirects must only run on real document navigations.
  */
 function isDashboardSoftNavigation(request: NextRequest): boolean {
-  if (request.headers.get("rsc") === "1") return true;
-  if (request.headers.get("next-router-prefetch") === "1") return true;
-  if (request.headers.get("next-router-segment-prefetch") === "1") return true;
-  if (request.headers.get("Sec-Fetch-Dest") === "empty") return true;
-  if (request.headers.get("Sec-Fetch-Mode") === "cors") return true;
+  const rsc = request.headers.get("rsc");
+  const prefetch = request.headers.get("next-router-prefetch");
+  const segmentPrefetch = request.headers.get("next-router-segment-prefetch");
+  const fetchDest = request.headers.get("Sec-Fetch-Dest");
+  const fetchMode = request.headers.get("Sec-Fetch-Mode");
+  
+  if (rsc === "1") return true;
+  if (prefetch === "1") return true;
+  if (segmentPrefetch === "1") return true;
+  if (fetchDest === "empty") return true;
+  if (fetchMode === "cors") return true;
+  if (fetchMode === "same-origin" && fetchDest === "empty") return true;
+  
   return false;
 }
 
