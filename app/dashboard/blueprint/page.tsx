@@ -856,14 +856,11 @@ export default function BlueprintPage() {
     return typeof s === "number" && Number.isFinite(s);
   }, [parsed]);
 
-  const rebuildScore = useMemo(
-    () => computeSeverityAdjustedRebuildScore(plan?.rebuild_score, parsed, equifaxScore),
-    [equifaxScore, parsed, plan?.rebuild_score],
-  );
+  const rebuildScore = Math.max(10, Math.round(plan?.rebuild_score ?? 10));
 
   const rebuildScoreKnown = useMemo(() => {
-    return typeof plan?.rebuild_score === "number" && Number.isFinite(plan.rebuild_score);
-  }, [plan]);
+    return Number.isFinite(rebuildScore);
+  }, [rebuildScore]);
 
   const factors = useMemo(() => {
     const raw = parsed as Record<string, unknown> | null | undefined;
