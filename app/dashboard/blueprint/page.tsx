@@ -500,7 +500,7 @@ const CREDIT_PRODUCT_OFFERS = [
   {
     name: "Tangerine Money-Back Credit Card",
     description:
-      "No credit check secured option. Reports to both Equifax and TransUnion. Use referral code 79976711S1 for a $50 bonus.",
+      "No credit check secured option. Reports to both Equifax and TransUnion.",
     href: "https://www.tangerine.ca/en/products/spending/creditcard",
     cta: "Apply now",
   },
@@ -1597,7 +1597,7 @@ export default function BlueprintPage() {
                             >
                               {i + 1}.
                             </span>
-                            <span>{b.replace(/^[-•]\s*/, "")}</span>
+                            <span style={{ fontWeight: 600 }}>{b.replace(/^[-•]\s*/, "")}</span>
                           </li>
                         ))}
                       </ol>

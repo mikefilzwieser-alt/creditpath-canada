@@ -514,7 +514,7 @@ export default function SettingsPage() {
                   You&apos;re making progress!
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-[#0F1923]/80">
-                  Are you 100% positive you want to give up on your goals?
+                  Are you <span style={{ color: "#00C9A7" }}>100%</span> positive you want to give up on your goals?
                 </p>
                 <div className="mt-6 flex flex-col gap-3">
                   <button
