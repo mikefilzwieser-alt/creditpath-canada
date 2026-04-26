@@ -209,7 +209,7 @@ export default function HomePage() {
                   >
                     {step.n}
                   </span>
-                  <h3 className={`mt-4 text-lg font-bold text-[var(--cp-dark)] ${h}`} style={{ fontSize: "15px" }}>{step.title}</h3>
+                  <h3 className={`mt-4 text-lg font-bold text-[var(--cp-dark)] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>{step.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--cp-dark)]/75">{step.text}</p>
                 </div>
               ))}
