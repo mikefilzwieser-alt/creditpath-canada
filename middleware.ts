@@ -35,6 +35,7 @@ function isDashboardSoftNavigation(request: NextRequest): boolean {
   if (request.headers.get("next-router-prefetch") === "1") return true;
   if (request.headers.get("next-router-segment-prefetch") === "1") return true;
   if (request.headers.get("Sec-Fetch-Dest") === "empty") return true;
+  if (request.headers.get("Sec-Fetch-Mode") === "cors") return true;
   return false;
 }
 

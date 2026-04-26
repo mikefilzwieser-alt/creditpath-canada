@@ -267,6 +267,9 @@ export default function HomePage() {
               Real Canadians 🍁 Real score movement
             </p>
             <TestimonialCarousel headingClass={h} />
+            <p className="mt-6 text-center text-xs text-[var(--cp-muted)]">
+              Results may vary. Testimonials are illustrative examples of potential outcomes.
+            </p>
           </div>
         </section>
 
@@ -277,8 +280,7 @@ export default function HomePage() {
               Trusted by Canadians rebuilding their credit.
             </h2>
             <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
-              Follow the program exactly as prescribed for 12 months and if your score hasn&apos;t improved,
-              we&apos;ll refund every dollar.
+              Show up every month and your credit will move.
             </p>
             <p className="mx-auto mt-8 max-w-3xl text-left text-xs font-bold leading-snug text-[var(--cp-dark)]/75">
               Guarantee requires: 12 consecutive months of active subscription; completion of all monthly actions with
