@@ -1957,6 +1957,11 @@ export default function BlueprintPage() {
                         {product.name}
                       </h3>
                       <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/65">{product.description}</p>
+                      {product.name === "Tangerine Money-Back Credit Card" ? (
+                        <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
+                          💸 Use referral code 79976711S1 for a $50 bonus.
+                        </p>
+                      ) : null}
                     </div>
                     <a
                       href={product.href}
