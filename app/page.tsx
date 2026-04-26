@@ -348,7 +348,7 @@ export default function HomePage() {
                   a: "Never. We never pull your credit. You upload your own report — zero hard inquiries from us.",
                 },
                 {
-                  q: "Is this legit?",
+                  q: "Is my data safe?",
                   a: "Credit Path Canada is a Canadian financial education platform built specifically for Canadians rebuilding their credit. Your bureau data is encrypted, never sold, and never shared. We do not pull your credit — ever.",
                 },
                 {
@@ -380,6 +380,12 @@ export default function HomePage() {
       <footer className="border-t border-[var(--cp-border)] bg-white py-8 text-center text-xs text-[var(--cp-muted)] sm:text-sm">
         <p className="font-medium text-[var(--cp-dark)]/80">
           Your Credit. Your Path. Your Future. · creditpathcanada.ca · © 2026 Credit Path Canada
+        </p>
+        <p style={{ textAlign: "center", fontSize: 14, color: "#888", marginTop: 16 }}>
+          Questions? Reach us at{" "}
+          <a href="mailto:info@creditpathcanada.ca" style={{ color: "#00C9A7" }}>
+            info@creditpathcanada.ca
+          </a>
         </p>
       </footer>
     </div>
