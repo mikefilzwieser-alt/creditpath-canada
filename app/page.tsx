@@ -28,7 +28,7 @@ const steps = [
   },
   {
     n: 3,
-    title: "Get your personalized Blueprint",
+    title: "Personalized Blueprint",
     text: "Receive a structured 24-month plan with clear priorities based on your bureau—not generic tips.",
   },
   {
