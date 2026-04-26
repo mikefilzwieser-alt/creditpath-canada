@@ -133,6 +133,7 @@ score_summary must contain exactly 2 parts separated by "|||":
 Example format: "Your 511 score is held back by late payments and high utilization. Your student loans and auto loan are building positive history.|||Full detailed analysis here with specific account references, utilization percentages, collections details, and Consumer Proposal context."
 
 **this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
+this_months_focus MUST always start with the EMERGENCY stop-applications line as bullet 1, even for Consumer Proposal clients. Never omit this bullet.
 1) **Stop all credit applications immediately** (align with the intent of PERMANENT TOP ACTION #1; EMERGENCY-style lead-in is allowed).
 2) **Set up pre-authorized payments on every account** (same protective intent as the PRE-AUTH block; describe at a high level only — **no** per-account paydown math here).
 3) **Utilization:** If overall revolving utilization is **over 100%** or the bureau clearly shows **over-limit** revolving accounts, say that **one or more cards are over their credit limit** (or equivalent plain language) and that reducing balances and staying current is critical — **do NOT** give **specific dollar amounts**, **"pay $X to reach Y%"** phrasing, or **named-account paydown targets** in **this_months_focus**.
@@ -187,7 +188,7 @@ Set rebuild_score_label based on total:
 - 40–59 = "Fair"
 - 20–39 = "Poor"
 - 0–19 = "Critical"
-MINIMUM FLOOR: rebuild_score should never be below 5 unless the file is completely empty. Even worst-case profiles deserve a baseline that shows some starting point. Floor at 5 minimum.
+MINIMUM FLOOR: rebuild_score must never be below 10. Even worst-case profiles with Consumer Proposal, collections, and late payments deserve a floor of 10 to show a starting point.
 
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
