@@ -102,6 +102,15 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   if (user && pathname.startsWith("/dashboard")) {
+    if (pathname !== "/dashboard" && !pathname.startsWith("/dashboard/") ) {
+      return supabaseResponse;
+    }
+
+    // Skip paywall check for all dashboard sub-routes — only check on /dashboard root
+    if (pathname.startsWith("/dashboard/")) {
+      return supabaseResponse;
+    }
+
     if (isDashboardSoftNavigation(request)) {
       return supabaseResponse;
     }

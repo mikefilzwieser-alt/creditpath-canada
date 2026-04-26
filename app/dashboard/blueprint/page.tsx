@@ -1565,17 +1565,23 @@ export default function BlueprintPage() {
                   This month&apos;s focus
                 </p>
                 {plan?.this_months_focus ? (
-                  focusBullets.length > 0 ? (
-                    <ol className={`mt-2 list-decimal space-y-1.5 pl-6 text-base font-semibold leading-snug ${h}`} style={{ color: NAVY }}>
-                      {focusBullets.map((bullet, idx) => (
-                        <li key={`${bullet}-${idx}`} className="pl-1 [&::marker]:font-bold [&::marker]:text-[#00C9A7]">
-                          {bullet}
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className={`mt-2 text-lg font-semibold leading-snug ${h}`}>{plan.this_months_focus}</p>
-                  )
+                  (() => {
+                    const raw = plan?.this_months_focus ?? "";
+                    let bullets = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+                    if (bullets.length === 1) {
+                      bullets = raw.split(/(?<=[.!])\s+/).map(s => s.trim()).filter(Boolean);
+                    }
+                    bullets = bullets.slice(0, 3);
+                    return (
+                      <ol style={{ paddingLeft: 20, margin: 0 }}>
+                        {bullets.map((b, i) => (
+                          <li key={i} style={{ marginBottom: 8, lineHeight: 1.6, fontSize: 14 }}>
+                            {b.replace(/^[-•]\s*/, '')}
+                          </li>
+                        ))}
+                      </ol>
+                    );
+                  })()
                 ) : null}
                 <div className="mt-5 border-t pt-5" style={{ borderColor: "rgba(15, 25, 35, 0.12)" }} role="alert">
                   <div
