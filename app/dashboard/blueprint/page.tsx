@@ -2002,10 +2002,10 @@ export default function BlueprintPage() {
         {tab === "collections" && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
+              <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
                 Let Fall Off
               </span>
-              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-900">
+              <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
                 Action Required
               </span>
             </div>
@@ -2021,8 +2021,8 @@ export default function BlueprintPage() {
                   const leftBorder = letFallOff ? "#d97706" : "#b91c1c";
                   const bg = letFallOff ? "rgba(245, 158, 11, 0.10)" : "rgba(239, 68, 68, 0.08)";
                   const badgeText = letFallOff ? "Let Fall Off" : "Action Required";
-                  const badgeBg = letFallOff ? "rgba(245, 158, 11, 0.18)" : "rgba(239, 68, 68, 0.16)";
-                  const badgeColor = letFallOff ? "#92400e" : "#991b1b";
+                  const badgeBg = letFallOff ? "#FEF3C7" : "#FEE2E2";
+                  const badgeColor = letFallOff ? "#92400E" : "#991B1B";
                   const hasLastActivity = formatDisplay(c.date_of_last_activity) !== "—";
                   const hasFalloffDate = formatDisplay(c.estimated_falloff_date) !== "—";
                   const hasMonthsToFalloff = formatDisplay(c.months_to_falloff) !== "—";
