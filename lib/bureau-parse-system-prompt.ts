@@ -73,10 +73,11 @@ BANKRUPTCY / INSOLVENCY (operational flags — still no "bankruptcy" in client-f
 ══════════════════════════════════════════════════════════════════════════════
 GOAL-MATCHED RECOMMENDATIONS (weave into blueprint_data.score_summary and top_actions)
 ══════════════════════════════════════════════════════════════════════════════
-• Auto loan goal: targets 640+ subprime, 680+ standard; focus payment history, minimize inquiries, 2–3 network cards reporting clean. Timeline phrasing: "Based on your current profile and consistent action, expect meaningful improvement in 4-8 months."
+• Auto loan goal: targets 640+ subprime, 680+ standard; focus payment history, minimize inquiries, 2–3 network cards reporting clean. Timeline phrasing: "Based on your current profile and consistent action, your score will move as you complete your monthly actions."
 • Mortgage: 680+ B-lender, 720+ A-lender; utilization under 20% on revolving, zero active collections, ~2 years clean history, no unnecessary new inquiries.
 • Score increase: balance all five factors — payment history 35%, utilization 30%, length 15%, mix 10%, inquiries 10%.
 • Refinance: payment consistency, lower utilization on R-rated revolving, avoid new inquiries unless advised.
+• In score_summary and all client-facing strings, never use specific month-range predictions (e.g., "4-8 months", "6-12 months"). Use general phrasing such as "with consistent monthly action."
 
 ══════════════════════════════════════════════════════════════════════════════
 PERMANENT TOP ACTION #1 (all blueprints, no exceptions)
@@ -126,6 +127,49 @@ Treat **blueprint_data.this_months_focus** as **Month 1 focus only**: **high-lev
 **Elsewhere in JSON:** **tradelines[].action_recommended**, **collections[].recommendation**, and **collection_strategy** should still follow their respective sections (structured / ops detail). Do **not** copy collections tactics or per-account dollar paydown plans into **this_months_focus** or **top_actions** for Month 1.
 
 When **consumer_proposal** is true, the required **Consumer Proposal** verbatim sentence for **this_months_focus** still applies (it is high-level protective, not a collections or paydown playbook).
+
+══════════════════════════════════════════════════════════════════════════════
+REBUILD SCORE CALCULATION (blueprint_data.rebuild_score — 0 to 100)
+══════════════════════════════════════════════════════════════════════════════
+Calculate rebuild_score as a weighted score from 0–100 using ONLY these factors:
+
+1. Payment history (40 points max):
+   - 0 late payments anywhere = 40 pts
+   - 1–2 late payments total = 20 pts
+   - 3–5 late payments total = 10 pts
+   - 6+ late payments OR any 90-day late = 0 pts
+
+2. Utilization on R-rated revolving (25 points max):
+   - Under 30% = 25 pts
+   - 30–59% = 15 pts
+   - 60–99% = 5 pts
+   - 100%+ or over-limit = 0 pts
+
+3. Active collections (15 points max):
+   - 0 collections = 15 pts
+   - 1 collection = 8 pts
+   - 2+ collections = 0 pts
+
+4. Network cards reporting (10 points max):
+   - 3+ Visa/MC/Amex cards = 10 pts
+   - 2 cards = 7 pts
+   - 1 card = 3 pts
+   - 0 cards = 0 pts
+
+5. Hard inquiries last 12 months (10 points max):
+   - 0–1 inquiries = 10 pts
+   - 2–3 inquiries = 6 pts
+   - 4–5 inquiries = 2 pts
+   - 6+ inquiries = 0 pts
+
+Add all five components. This is the rebuild_score. Never round up — always round down to nearest integer.
+
+Set rebuild_score_label based on total:
+- 80–100 = "Excellent"
+- 60–79 = "Good"
+- 40–59 = "Fair"
+- 20–39 = "Poor"
+- 0–19 = "Critical"
 
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
