@@ -185,7 +185,8 @@ export default function DashboardUploadPage() {
 
       {processing ? (
         <p className="text-sm opacity-70">
-          Uploading to secure storage, then analyzing your report. This can take a minute.
+          Uploading to secure storage, then analyzing your report.{" "}
+          <span style={{ color: "#00C9A7" }}>This can take a minute.</span>
         </p>
       ) : null}
     </div>

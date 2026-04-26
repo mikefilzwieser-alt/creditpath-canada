@@ -311,6 +311,9 @@ export function DashboardShell({
               </nav>
             </div>
             <div className="mt-auto border-t border-white/10 px-3 py-4 md:px-3 md:pb-8">
+              <div className="px-4 pb-4 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                Questions? <a href="mailto:info@creditpathcanada.ca" style={{ color: "#00C9A7" }}>info@creditpathcanada.ca</a>
+              </div>
               <button
                 type="button"
                 onClick={async () => {

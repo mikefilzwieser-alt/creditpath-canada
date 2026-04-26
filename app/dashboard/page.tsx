@@ -487,16 +487,46 @@ export default function DashboardPage() {
         >
           <h2 className="text-lg font-bold tracking-tight text-white">Estimated Current Score</h2>
 
-          <div className="mt-6 flex flex-col items-center gap-2 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
-              Estimated Score
-            </p>
-            <p
-              className="mt-2 text-4xl font-bold tabular-nums leading-none tracking-tight"
-              style={{ color: TEAL }}
-            >
-              {estimatedRangeEnd}
-            </p>
+          <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="min-w-0 w-full flex-1 text-center sm:text-left">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
+                Current Score
+              </p>
+              <p className="mt-2 text-4xl font-bold tabular-nums leading-none tracking-tight text-white">
+                {equifaxScore}
+              </p>
+            </div>
+
+            <div className="flex shrink-0 items-center justify-center py-1 sm:py-0" aria-hidden>
+              <svg
+                width="40"
+                height="24"
+                viewBox="0 0 40 24"
+                fill="none"
+                className="rotate-90 text-white/45 sm:rotate-0"
+                aria-hidden
+              >
+                <path
+                  d="M4 12h22M22 6l8 6-8 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div className="min-w-0 w-full flex-1 text-center sm:text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
+                Estimated Score After 1 Month
+              </p>
+              <p
+                className="mt-2 text-4xl font-bold tabular-nums leading-none tracking-tight"
+                style={{ color: TEAL }}
+              >
+                {estimatedRangeEnd}
+              </p>
+            </div>
           </div>
 
           <p className="mx-auto mt-6 max-w-xl text-center text-sm leading-relaxed text-white/60">
