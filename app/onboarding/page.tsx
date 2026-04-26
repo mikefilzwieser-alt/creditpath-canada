@@ -516,8 +516,8 @@ export default function OnboardingPage() {
               </a>
               <p className={`${dmMono.className} mt-2.5 text-center text-xs text-[var(--cp-muted)] sm:text-left`}>
                 Having trouble? Email us at{" "}
-                <a href="mailto:michaelf@titaniumford.ca" className="font-semibold text-[var(--cp-teal)] underline">
-                  michaelf@titaniumford.ca
+                <a href="mailto:info@creditpathcanada.ca" className="font-semibold text-[var(--cp-teal)] underline">
+                  info@creditpathcanada.ca
                 </a>
               </p>
             </div>
