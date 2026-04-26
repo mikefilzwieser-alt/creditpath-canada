@@ -1867,6 +1867,7 @@ export default function BlueprintPage() {
                               {impactLine ? (
                                 <p
                                   className={`mt-1 text-xs leading-snug text-[#0F1923]/55 ${done ? "line-through" : ""}`}
+                                  style={{ color: "#00C9A7" }}
                                 >
                                   {impactLine}
                                 </p>
@@ -1956,11 +1957,6 @@ export default function BlueprintPage() {
                         {product.name}
                       </h3>
                       <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/65">{product.description}</p>
-                      {product.description === "Canada's top credit-building card. Reports to Equifax. Apply now." ? (
-                        <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
-                          💸 Use referral code 79976711S1 for a $50 bonus!
-                        </p>
-                      ) : null}
                     </div>
                     <a
                       href={product.href}
