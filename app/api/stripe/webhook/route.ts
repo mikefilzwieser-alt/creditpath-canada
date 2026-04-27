@@ -121,17 +121,21 @@ export async function POST(request: Request) {
           let appliedPromoCode: string | undefined;
           try {
             const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-              expand: ["total_details.breakdown.discounts.discount.promotion_code"],
+              expand: ["total_details.breakdown.discounts"],
             });
-            const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
-            const promoCode = disc && typeof disc === "object" ? (disc as any).promotion_code : undefined;
 
-            if (promoCode && typeof promoCode === "object" && typeof promoCode.code === "string") {
-              appliedPromoCode = normalizeAppliedPromoCode(promoCode.code);
-            } else if (promoCode && typeof promoCode === "string") {
-              // fallback: retrieve the promotion code object directly
-              const promoObj = await stripe.promotionCodes.retrieve(promoCode);
-              appliedPromoCode = normalizeAppliedPromoCode(promoObj.code);
+            const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
+            const promoCodeRaw = disc && typeof disc === "object" ? (disc as any).promotion_code : undefined;
+
+            if (promoCodeRaw) {
+              if (typeof promoCodeRaw === "string") {
+                // It's a string ID — retrieve the full object
+                const promoObj = await stripe.promotionCodes.retrieve(promoCodeRaw);
+                appliedPromoCode = normalizeAppliedPromoCode(promoObj.code);
+              } else if (typeof promoCodeRaw === "object" && typeof promoCodeRaw.code === "string") {
+                // Already expanded
+                appliedPromoCode = normalizeAppliedPromoCode(promoCodeRaw.code);
+              }
             }
           } catch (e) {
             console.warn("[stripe webhook] checkout.sessions.retrieve (promo) failed", {
