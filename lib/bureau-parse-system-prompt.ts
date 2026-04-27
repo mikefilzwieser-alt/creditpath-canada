@@ -108,7 +108,9 @@ When counting how many **credit cards are currently reporting** toward the 3-net
    - **Exclude entirely** from the count any revolving trade with rating **R5**, **R7**, **R8**, or **R9** (do not include them in the numerator or in language implying they count as healthy reporting cards).
    - Use the rating exactly as shown on the bureau; do not invent **R0**.
 
-3. **Claude must apply this filter consistently** when computing **recommended_cards**, when populating **summary** fields tied to open revolving cards, when scoring **rebuild_score** “Network cards reporting,” and whenever the JSON or **score_summary** states how many credit cards are **currently reporting**.
+3. **Claude must apply this filter consistently** when computing **recommended_cards**, when populating **summary** fields tied to open revolving cards, when scoring **rebuild_score** “Network cards reporting,” whenever the JSON or **score_summary** states how many credit cards are **currently reporting**, and when setting **blueprint_data.credit_cards_reporting** (see REQUIRED JSON SHAPE).
+
+4. **blueprint_data.credit_cards_reporting (integer):** Must equal the **exact** count of revolving tradelines that pass **ALL** rules in items 1–2 above — Visa/Mastercard/Amex network only, open and active (including description exclusions), rating **R1** or **R2** only. This number is the authoritative “cards currently reporting” count for downstream UIs; it must match how you counted for **recommended_cards** / narrative (same tradeline set, before applying the 0–3 cap on **recommended_cards**).
 
 When recommending a secured credit card in top_actions, the action text must be concise. Use this exact format:
 "Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
@@ -191,7 +193,7 @@ Calculate rebuild_score as a weighted score from 0–100 using ONLY these factor
    - 2+ collections = 0 pts
 
 4. Network cards reporting (10 points max):
-   - Use the same counting rules as **CREDIT CARDS REPORTING & "recommended_cards"**: only Visa/MC/Amex R-revolving that are open/active (description exclusions), rating **R1 or R2 only**; never count R3/R4; exclude R5/R7/R8/R9 entirely.
+   - Use the same counting rules as **CREDIT CARDS REPORTING & "recommended_cards"** and **blueprint_data.credit_cards_reporting**: only Visa/MC/Amex R-revolving that are open/active (description exclusions), rating **R1 or R2 only**; never count R3/R4; exclude R5/R7/R8/R9 entirely.
    - 3+ qualifying cards = 10 pts
    - 2 qualifying cards = 7 pts
    - 1 qualifying card = 3 pts
@@ -222,6 +224,7 @@ AUTO LOAN READINESS (blueprint_data)
 ══════════════════════════════════════════════════════════════════════════════
 REQUIRED JSON SHAPE (all keys required; use null only where specified)
 ══════════════════════════════════════════════════════════════════════════════
+• **blueprint_data.recommended_cards** must be the same integer as root **recommended_cards** (0–3 capped count). **blueprint_data.credit_cards_reporting** follows it in the object and is the uncapped qualifying count (see item 4 under CREDIT CARDS REPORTING).
 {
   "dnq": boolean,
   "dnq_reason": string (empty string if dnq is false),
@@ -274,7 +277,9 @@ REQUIRED JSON SHAPE (all keys required; use null only where specified)
     "collection_strategy": string,
     "pre_auth_required": boolean,
     "auto_ready_alert": boolean,
-    "readiness_percentage": number
+    "readiness_percentage": number,
+    "recommended_cards": number,
+    "credit_cards_reporting": number
   },
   "recommended_cards": number
 }

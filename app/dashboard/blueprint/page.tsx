@@ -71,6 +71,7 @@ type BlueprintPlan = {
   rebuild_score_label?: string;
   score_summary?: string;
   this_months_focus?: string;
+  credit_cards_reporting?: number;
   top_actions?: Array<{
     action?: string;
     impact?: string;
@@ -1504,7 +1505,10 @@ export default function BlueprintPage() {
   const tradelines = Array.isArray(parsed.tradelines) ? parsed.tradelines : [];
   const collections = Array.isArray(parsed.collections) ? parsed.collections : [];
   const errors = Array.isArray(parsed.errors_detected) ? parsed.errors_detected : [];
-  const revolvingNetworkCount = countNetworkCardsTowardMinimum(tradelines);
+  const revolvingNetworkCount =
+    typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
+      ? Math.max(0, Math.floor(plan.credit_cards_reporting))
+      : countNetworkCardsTowardMinimum(tradelines);
   const recommendedProducts = [...CREDIT_PRODUCT_OFFERS];
 
   return (

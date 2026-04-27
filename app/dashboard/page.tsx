@@ -88,6 +88,7 @@ type BlueprintPlan = {
   score_summary?: string;
   this_months_focus?: string;
   readiness_percentage?: number;
+  credit_cards_reporting?: number;
   top_actions?: Array<{
     action?: string;
     impact?: string;
@@ -297,7 +298,10 @@ export default function DashboardPage() {
   const hasCollections = collections.length > 0;
   const monthsClean = hasAnyLate || hasCollections ? 0 : monthsElapsed;
 
-  const cardsReporting = tradelines.filter(isNetworkCard).length;
+  const cardsReporting =
+    typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
+      ? Math.max(0, Math.floor(plan.credit_cards_reporting))
+      : tradelines.filter(isNetworkCard).length;
   const readinessPercentage =
     typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
       ? Math.min(100, Math.max(0, Math.round(plan.readiness_percentage)))
