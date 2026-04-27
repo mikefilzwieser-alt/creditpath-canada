@@ -96,14 +96,25 @@ If ANY tradeline currently shows past due amount (PDA > 0) OR rating digit ≥2 
 - Reference the specific creditor name from the bureau data
 
 ══════════════════════════════════════════════════════════════════════════════
-CREDIT CARD (NETWORK) RECOMMENDATIONS — set "recommended_cards" integer 0–3
+CREDIT CARDS REPORTING & "recommended_cards" (0–3) — STRICT COUNTING RULES
 ══════════════════════════════════════════════════════════════════════════════
-IMPORTANT: Only count R-rated revolving cards that are CURRENTLY OPEN AND IN GOOD STANDING (R0 or R1). Do NOT count R9 (written off), R8 (repossession), or closed accounts toward the 3-card minimum. A client with 3 R-rated cards where 2 are R9 has functionally 1 card reporting and recommended_cards should be 2.
+When counting how many **credit cards are currently reporting** toward the 3-network-card minimum, **recommended_cards**, and any narrative that states how many cards are reporting, apply **all** of the following to **each** R-rated **revolving** tradeline that is on the **Visa, Mastercard, or Amex** network (see TRADELINE CLASSIFICATION for store-only exclusions):
+
+1. **Open and active only:** Count only tradelines that are **currently open and active** — not closed, written off, or paid out. Inspect the bureau’s description / account narrative / remarks: if the combined text (**case-insensitive**) contains **any** of **"Written off"**, **"Closed"**, **"Account paid"**, or **"Account closed"**, **do not** count that tradeline toward “credit cards reporting.”
+
+2. **Equifax R-rating filter (revolving only):** For the **active reporting card count**:
+   - **Include ONLY** tradelines whose rating is **R1** or **R2** (these are the only ratings that count toward “currently reporting” healthy cards for this purpose).
+   - **Do not count** **R3** or **R4** toward the active card count (delinquent — they must not increase the reporting count).
+   - **Exclude entirely** from the count any revolving trade with rating **R5**, **R7**, **R8**, or **R9** (do not include them in the numerator or in language implying they count as healthy reporting cards).
+   - Use the rating exactly as shown on the bureau; do not invent **R0**.
+
+3. **Claude must apply this filter consistently** when computing **recommended_cards**, when populating **summary** fields tied to open revolving cards, when scoring **rebuild_score** “Network cards reporting,” and whenever the JSON or **score_summary** states how many credit cards are **currently reporting**.
+
 When recommending a secured credit card in top_actions, the action text must be concise. Use this exact format:
 "Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
 Never include "on the Visa or Mastercard network" or "so you can" phrasing in this action.
-Count ONLY Visa/Mastercard/Amex network R-rated revolving cards toward the minimum of 3.
-• 0 network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
+Count ONLY Visa/Mastercard/Amex network R-rated revolving cards that pass **all** rules in items 1–2 above toward the minimum of 3.
+• 0 qualifying network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
 • 1 → recommended_cards: 2
 • 2 → recommended_cards: 1
 • 3+ → recommended_cards: 0 and state: "You have enough credit cards reporting. Focus on keeping all balances under 30% and paying on time every month."
@@ -180,10 +191,11 @@ Calculate rebuild_score as a weighted score from 0–100 using ONLY these factor
    - 2+ collections = 0 pts
 
 4. Network cards reporting (10 points max):
-   - 3+ Visa/MC/Amex cards = 10 pts
-   - 2 cards = 7 pts
-   - 1 card = 3 pts
-   - 0 cards = 0 pts
+   - Use the same counting rules as **CREDIT CARDS REPORTING & "recommended_cards"**: only Visa/MC/Amex R-revolving that are open/active (description exclusions), rating **R1 or R2 only**; never count R3/R4; exclude R5/R7/R8/R9 entirely.
+   - 3+ qualifying cards = 10 pts
+   - 2 qualifying cards = 7 pts
+   - 1 qualifying card = 3 pts
+   - 0 qualifying cards = 0 pts
 
 5. Hard inquiries last 12 months (10 points max):
    - 0–1 inquiries = 10 pts
@@ -204,7 +216,7 @@ CRITICAL: rebuild_score is a mathematical calculation. After calculating all 5 c
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
 ══════════════════════════════════════════════════════════════════════════════
-• Compute readiness_percentage: number 0–100 from: current Equifax score vs 640 target, months of clean payment history, utilization trend on R-revolving, collections status (resolved vs active), count of clean network cards reporting.
+• Compute readiness_percentage: number 0–100 from: current Equifax score vs 640 target, months of clean payment history, utilization trend on R-revolving, collections status (resolved vs active), count of **qualifying** network cards reporting (same R1/R2 + open/description rules as **CREDIT CARDS REPORTING**).
 • When readiness_percentage >= 75, set blueprint_data.auto_ready_alert to true (alerts ops / email pipeline server-side).
 
 ══════════════════════════════════════════════════════════════════════════════
