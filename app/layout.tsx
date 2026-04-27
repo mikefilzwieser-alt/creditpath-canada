@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Credit rebuilding with a personalized monthly blueprint.",
   icons: {
     icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 };
 
