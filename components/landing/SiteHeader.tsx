@@ -4,9 +4,11 @@ import type { CSSProperties } from "react";
 type SiteHeaderProps = {
   /** Highlights "Blog" when true (e.g. on /blog routes). */
   blogActive?: boolean;
+  /** Highlights "Free Resources" when true (e.g. on /resources). */
+  resourcesActive?: boolean;
 };
 
-export function SiteHeader({ blogActive = false }: SiteHeaderProps) {
+export function SiteHeader({ blogActive = false, resourcesActive = false }: SiteHeaderProps) {
   const linkStyle = (active: boolean): CSSProperties => ({
     fontSize: "14px",
     fontWeight: 500,
@@ -45,12 +47,29 @@ export function SiteHeader({ blogActive = false }: SiteHeaderProps) {
             style={{ height: "60px", width: "auto", display: "block" }}
           />
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Link href="/blog" style={linkStyle(blogActive)}>
             Blog
           </Link>
           <Link href="/login" style={linkStyle(false)}>
             Sign in
+          </Link>
+          <Link
+            href="/resources"
+            style={{
+              border: "2px solid #00C9A7",
+              backgroundColor: "transparent",
+              color: "#0F1923",
+              padding: "6px 18px",
+              borderRadius: "12px",
+              fontSize: "14px",
+              fontWeight: 600,
+              textDecoration: resourcesActive ? "underline" : "none",
+              textUnderlineOffset: 4,
+              textDecorationColor: resourcesActive ? "#00C9A7" : "transparent",
+            }}
+          >
+            Free Resources
           </Link>
           <Link
             href="/onboarding"
@@ -64,7 +83,7 @@ export function SiteHeader({ blogActive = false }: SiteHeaderProps) {
               textDecoration: "none",
             }}
           >
-            Get started
+            Exclusive Client Access
           </Link>
         </div>
       </div>

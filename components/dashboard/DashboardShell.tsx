@@ -9,6 +9,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -81,28 +82,24 @@ export function DashboardShell({
   const [routeHash, setRouteHash] = useState("");
   const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
   const [firstLoginSlide, setFirstLoginSlide] = useState(0);
+  /** Optimistic dismiss so the modal hides immediately; reset when the signed-in user changes. */
+  const firstLoginDismissedRef = useRef(false);
 
-  const markFirstLoginSeen = useCallback(async () => {
+  useEffect(() => {
+    firstLoginDismissedRef.current = false;
+  }, [user?.id]);
+
+  const markFirstLoginSeen = useCallback(() => {
     if (!user?.id) return;
-    const { data, error } = await supabase
-      .from("clients")
-      .update({ first_login_seen: true })
-      .eq("id", user.id)
-      .select("first_login_seen")
-      .maybeSingle();
-    if (error) {
-      console.error("[dashboard] first_login_seen update failed", error.message);
-      return;
-    }
-    if (!data || data.first_login_seen !== true) {
-      console.error("[dashboard] first_login_seen update affected 0 rows or value not persisted", {
-        userId: user.id,
-        returned: data,
-      });
-      return;
-    }
+    firstLoginDismissedRef.current = true;
     setShowFirstLoginModal(false);
     setFirstLoginSlide(0);
+    void (async () => {
+      const { error } = await supabase.from("clients").update({ first_login_seen: true }).eq("id", user.id);
+      if (error) {
+        console.error("[dashboard] first_login_seen update failed", error.message);
+      }
+    })();
   }, [user?.id]);
 
   const refreshUser = useCallback(async () => {
@@ -177,7 +174,16 @@ export function DashboardShell({
             .select("first_login_seen")
             .eq("id", user.id)
             .maybeSingle();
-          if (!cancelled && !flErr && flData && flData.first_login_seen === false) {
+          if (!cancelled && !flErr && flData?.first_login_seen === true) {
+            firstLoginDismissedRef.current = true;
+          }
+          if (
+            !cancelled &&
+            !flErr &&
+            flData &&
+            flData.first_login_seen === false &&
+            !firstLoginDismissedRef.current
+          ) {
             setFirstLoginSlide(0);
             setShowFirstLoginModal(true);
           }
@@ -219,7 +225,11 @@ export function DashboardShell({
         return;
       }
 
-      if (!cancelled && data && data.first_login_seen === false) {
+      if (!cancelled && data?.first_login_seen === true) {
+        firstLoginDismissedRef.current = true;
+      }
+
+      if (!cancelled && data && data.first_login_seen === false && !firstLoginDismissedRef.current) {
         setFirstLoginSlide(0);
         setShowFirstLoginModal(true);
       }
@@ -413,7 +423,7 @@ export function DashboardShell({
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
                   <button
                     type="button"
-                    onClick={() => void markFirstLoginSeen()}
+                    onClick={() => markFirstLoginSeen()}
                     className="text-sm font-semibold underline decoration-[#0F1923]/25 underline-offset-2"
                     style={{ color: "rgba(15, 25, 35, 0.55)" }}
                   >
@@ -442,7 +452,7 @@ export function DashboardShell({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => void markFirstLoginSeen()}
+                        onClick={() => markFirstLoginSeen()}
                         className="rounded-xl px-5 py-2.5 text-sm font-bold"
                         style={{ backgroundColor: TEAL, color: NAVY }}
                       >
