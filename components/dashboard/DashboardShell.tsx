@@ -159,12 +159,12 @@ export function DashboardShell({
     void (async () => {
       if (paymentSuccess) {
         if (!cancelled) {
-          const { data: flData } = await supabase
+          const { data: flData, error: flErr } = await supabase
             .from("clients")
             .select("first_login_seen")
             .eq("id", user.id)
             .maybeSingle();
-          if (!cancelled && flData?.first_login_seen === false) {
+          if (!cancelled && !flErr && flData?.first_login_seen === false) {
             setFirstLoginSlide(0);
             setShowFirstLoginModal(true);
           }
@@ -175,9 +175,7 @@ export function DashboardShell({
 
       const { data, error } = await supabase
         .from("clients")
-        .select(
-          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen",
-        )
+        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -205,7 +203,13 @@ export function DashboardShell({
         router.replace("/pricing");
         return;
       }
-      if (data?.first_login_seen === false) {
+
+      const { data: flData, error: flErr } = await supabase
+        .from("clients")
+        .select("first_login_seen")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && !flErr && flData?.first_login_seen === false) {
         setFirstLoginSlide(0);
         setShowFirstLoginModal(true);
       }
