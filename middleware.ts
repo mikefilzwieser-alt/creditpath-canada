@@ -96,14 +96,11 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   if (user && pathname.startsWith("/dashboard")) {
-    if (pathname.startsWith("/dashboard/")) {
-      return supabaseResponse;
-    }
-    if (pathname !== "/dashboard" && !pathname.startsWith("/dashboard/") ) {
+    if (isDashboardSoftNavigation(request)) {
       return supabaseResponse;
     }
 
-    if (isDashboardSoftNavigation(request)) {
+    if (pathname.startsWith("/dashboard/")) {
       return supabaseResponse;
     }
 
