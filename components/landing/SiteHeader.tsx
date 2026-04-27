@@ -51,6 +51,9 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
           <Link href="/blog" style={linkStyle(blogActive)}>
             Blog
           </Link>
+          <Link href="/resources" style={linkStyle(resourcesActive)}>
+            Free Resources
+          </Link>
           <Link
             href="/login"
             style={{
@@ -66,9 +69,6 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
           >
             Sign in
           </Link>
-          <Link href="/resources" style={linkStyle(resourcesActive)}>
-            Free Resources
-          </Link>
           <Link
             href="/onboarding"
             style={{
@@ -81,7 +81,7 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
               textDecoration: "none",
             }}
           >
-            Exclusive Client Access
+            Get Your Blueprint
           </Link>
         </div>
       </div>
