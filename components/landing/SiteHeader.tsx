@@ -4,11 +4,13 @@ import type { CSSProperties } from "react";
 type SiteHeaderProps = {
   /** Highlights "Blog" when true (e.g. on /blog routes). */
   blogActive?: boolean;
+  /** Highlights "FAQ" when true (e.g. on /faq). */
+  faqActive?: boolean;
   /** Highlights "Free Resources" when true (e.g. on /resources). */
   resourcesActive?: boolean;
 };
 
-export function SiteHeader({ blogActive = false, resourcesActive = false }: SiteHeaderProps) {
+export function SiteHeader({ blogActive = false, faqActive = false, resourcesActive = false }: SiteHeaderProps) {
   const linkStyle = (active: boolean): CSSProperties => ({
     fontSize: "14px",
     fontWeight: 500,
@@ -50,6 +52,9 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
         <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Link href="/blog" style={linkStyle(blogActive)}>
             Blog
+          </Link>
+          <Link href="/faq" style={linkStyle(faqActive)}>
+            FAQ
           </Link>
           <Link href="/resources" style={linkStyle(resourcesActive)}>
             Free Resources

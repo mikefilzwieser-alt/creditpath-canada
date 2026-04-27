@@ -289,45 +289,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-        {/* FAQ */}
-        <section className="border-t border-[var(--cp-border)] bg-white py-16 sm:py-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>FAQ</h2>
-            <div className="mt-8 space-y-4">
-              {[
-                {
-                  q: "Will this hurt my credit score?",
-                  a: "Never. We never pull your credit. You upload your own report — zero hard inquiries from us.",
-                },
-                {
-                  q: "Is my data safe?",
-                  a: "Credit Path Canada is a Canadian financial education platform built specifically for Canadians rebuilding their credit. Your bureau data is encrypted, never sold, and never shared. We do not pull your credit — ever.",
-                },
-                {
-                  q: "What if I can't get my Borrowell report?",
-                  a: "Contact us and we will help you get it another way. We have solutions for every situation.",
-                },
-                {
-                  q: "How fast will I see results?",
-                  a: "Most clients see meaningful movement within the first 3 months of following the program consistently. The full 24-month program is designed to take you from where you are today to prime credit territory.",
-                },
-                {
-                  q: "Can I cancel anytime?",
-                  a: "Yes. No contracts, no penalties. Cancel before day 30 and you will never be charged.",
-                },
-              ].map((item) => (
-                <div
-                  key={item.q}
-                  className="rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-5 shadow-sm"
-                >
-                  <h3 className={`text-lg font-bold text-[var(--cp-dark)] ${h}`}>{item.q}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--cp-dark)]/80">{item.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-[var(--cp-border)] bg-white py-8 text-center text-xs text-[var(--cp-muted)] sm:text-sm">
