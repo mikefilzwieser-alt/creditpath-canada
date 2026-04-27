@@ -414,11 +414,22 @@ export function DashboardShell({
                   {firstLoginSlide + 1} / 3
                 </p>
                 <h2 id="first-login-modal-title" className="mt-4 text-xl font-bold leading-snug sm:text-2xl">
-                  {firstLoginSlide === 0
-                    ? "Welcome to Credit Path Canada — here\u2019s how it works"
-                    : firstLoginSlide === 1
-                      ? "Your Blueprint — your personalized credit plan lives here"
-                      : "Your Actions — complete your monthly actions to unlock the next month"}
+                  {firstLoginSlide === 0 ? (
+                    <>
+                      Welcome to <span style={{ color: TEAL }}>Credit Path Canada</span> —{" "}
+                      {"here\u2019s how it works"}
+                    </>
+                  ) : firstLoginSlide === 1 ? (
+                    <>
+                      Your <span style={{ color: TEAL }}>Personalized Blueprint</span> — your personalized credit plan
+                      lives here
+                    </>
+                  ) : (
+                    <>
+                      Your Actions — <span style={{ color: TEAL }}>Complete Your Monthly Actions</span> to unlock the
+                      next month
+                    </>
+                  )}
                 </h2>
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
                   <button
