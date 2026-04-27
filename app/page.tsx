@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
+import { SiteHeader } from "@/components/landing/SiteHeader";
 import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import type { Metadata } from "next";
 
@@ -72,55 +73,7 @@ export default function HomePage() {
     <div
       className={`flex min-h-full flex-col bg-[var(--cp-bg-light)] text-[var(--cp-dark)] ${montserrat.variable}`}
     >
-      <header
-        style={{
-          backgroundColor: "rgba(255,255,255,0.9)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1152px",
-            margin: "0 auto",
-            padding: "12px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "16px",
-          }}
-        >
-          <Link href="/" style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-            <img
-              src="/logo.png"
-              alt="Credit Path Canada"
-              style={{ height: "60px", width: "auto", display: "block" }}
-            />
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <Link href="/login" style={{ fontSize: "14px", fontWeight: 500, color: "#0F1923" }}>
-              Sign in
-            </Link>
-            <Link
-              href="/onboarding"
-              style={{
-                backgroundColor: "#00C9A7",
-                color: "#0F1923",
-                padding: "8px 20px",
-                borderRadius: "12px",
-                fontSize: "14px",
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
-              Get started
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         {/* Hero */}
