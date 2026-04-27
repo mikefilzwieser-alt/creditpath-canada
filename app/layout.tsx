@@ -16,9 +16,7 @@ export const metadata: Metadata = {
   title: "Credit Path Canada",
   description: "Credit rebuilding with a personalized monthly blueprint.",
   icons: {
-    icon: [{ url: "/favicon.png", type: "image/png" }],
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    icon: "/favicon.ico",
   },
 };
 
