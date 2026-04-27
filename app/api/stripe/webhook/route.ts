@@ -121,15 +121,17 @@ export async function POST(request: Request) {
           let appliedPromoCode: string | undefined;
           try {
             const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-              expand: ["total_details.breakdown.discounts"],
+              expand: ["total_details.breakdown.discounts.discount.promotion_code"],
             });
             const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
-            const promoCode =
-              disc && typeof disc === "object"
-                ? (disc as unknown as Stripe.Discount).promotion_code
-                : undefined;
+            const promoCode = disc && typeof disc === "object" ? (disc as any).promotion_code : undefined;
+
             if (promoCode && typeof promoCode === "object" && typeof promoCode.code === "string") {
               appliedPromoCode = normalizeAppliedPromoCode(promoCode.code);
+            } else if (promoCode && typeof promoCode === "string") {
+              // fallback: retrieve the promotion code object directly
+              const promoObj = await stripe.promotionCodes.retrieve(promoCode);
+              appliedPromoCode = normalizeAppliedPromoCode(promoObj.code);
             }
           } catch (e) {
             console.warn("[stripe webhook] checkout.sessions.retrieve (promo) failed", {
