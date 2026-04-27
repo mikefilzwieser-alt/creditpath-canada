@@ -250,7 +250,7 @@ export function DashboardShell({
     const stripParam = () => {
       url.searchParams.delete("payment");
       const q = url.searchParams.toString();
-      router.replace(`${url.pathname}${q ? `?${q}` : ""}`);
+      router.replace(`${window.location.pathname}${q ? `?${q}` : ""}`);
     };
 
     const poll = async () => {
