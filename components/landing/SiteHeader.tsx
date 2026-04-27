@@ -51,11 +51,8 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
           <Link href="/blog" style={linkStyle(blogActive)}>
             Blog
           </Link>
-          <Link href="/login" style={linkStyle(false)}>
-            Sign in
-          </Link>
           <Link
-            href="/resources"
+            href="/login"
             style={{
               border: "2px solid #00C9A7",
               backgroundColor: "transparent",
@@ -64,11 +61,12 @@ export function SiteHeader({ blogActive = false, resourcesActive = false }: Site
               borderRadius: "12px",
               fontSize: "14px",
               fontWeight: 600,
-              textDecoration: resourcesActive ? "underline" : "none",
-              textUnderlineOffset: 4,
-              textDecorationColor: resourcesActive ? "#00C9A7" : "transparent",
+              textDecoration: "none",
             }}
           >
+            Sign in
+          </Link>
+          <Link href="/resources" style={linkStyle(resourcesActive)}>
             Free Resources
           </Link>
           <Link
