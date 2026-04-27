@@ -95,12 +95,20 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  // PERMANENT: sub-routes bypass paywall — do not move this check so it is not accidentally removed in future edits.
   if (user && pathname.startsWith("/dashboard")) {
+    // Always allow sub-routes through immediately — no paywall check
+    if (pathname.startsWith("/dashboard/")) {
+      return supabaseResponse;
+    }
+
+    // Always allow soft navigations through
     if (isDashboardSoftNavigation(request)) {
       return supabaseResponse;
     }
 
-    if (pathname.startsWith("/dashboard/")) {
+    // Only run paywall check on hard navigation to /dashboard root
+    if (pathname !== "/dashboard") {
       return supabaseResponse;
     }
 
