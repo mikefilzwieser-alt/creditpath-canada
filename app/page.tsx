@@ -212,45 +212,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Testimonials</h2>
-            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--cp-muted)]">
-              Real Canadians 🍁 Real score movement
-            </p>
-            <TestimonialCarousel headingClass={h} />
-            <p className="mt-6 text-center text-xs text-[var(--cp-muted)]">
-              Results may vary. Testimonials are illustrative examples of potential outcomes.
-            </p>
-          </div>
-        </section>
-
-        {/* Guarantee */}
-        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-14 sm:py-20">
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-            <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
-              Trusted by Canadians rebuilding their credit
-            </h2>
-            <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
-              Show up every month and your credit will move.
-            </p>
-            <p className="mx-auto mt-8 max-w-3xl text-left text-xs font-bold leading-snug text-[var(--cp-dark)]/75">
-              Guarantee requires: 12 consecutive months of active subscription; completion of all monthly actions with
-              documented proof submitted through the portal; minimum 2 credit cards open and reporting for the full
-              12-month period; zero missed payments across all accounts; zero new collections; all credit card balances
-              maintained under 30% utilization at all times; consistent income level throughout the program period (any
-              reduction in income voids eligibility); credit score improvement measured from enrollment baseline only;
-              guarantee claim must be submitted within 30 days of completing month 12. Credit Path Canada reserves the
-              right to request supporting documentation for any guarantee claim. Results may vary. This guarantee
-              applies to credit score improvement only and does not guarantee approval for any specific credit product or
-              loan.
-            </p>
-          </div>
-        </section>
-
         {/* Pricing */}
-        <section className="py-16 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
           <div className="mx-auto max-w-lg px-4 sm:px-6">
             <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Pricing</h2>
             <div className="mt-10 rounded-2xl border-2 border-[var(--cp-teal)] bg-white p-8 shadow-[0_12px_40px_rgba(15,25,35,0.08)]">
@@ -287,6 +250,43 @@ export default function HomePage() {
                 Start free — 30 days on us
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Guarantee */}
+        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-14 sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+            <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
+              Trusted by Canadians rebuilding their credit
+            </h2>
+            <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
+              Show up every month and your credit will move.
+            </p>
+            <p className="mx-auto mt-8 max-w-3xl text-left text-xs font-bold leading-snug text-[var(--cp-dark)]/75">
+              Guarantee requires: 12 consecutive months of active subscription; completion of all monthly actions with
+              documented proof submitted through the portal; minimum 2 credit cards open and reporting for the full
+              12-month period; zero missed payments across all accounts; zero new collections; all credit card balances
+              maintained under 30% utilization at all times; consistent income level throughout the program period (any
+              reduction in income voids eligibility); credit score improvement measured from enrollment baseline only;
+              guarantee claim must be submitted within 30 days of completing month 12. Credit Path Canada reserves the
+              right to request supporting documentation for any guarantee claim. Results may vary. This guarantee
+              applies to credit score improvement only and does not guarantee approval for any specific credit product or
+              loan.
+            </p>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Testimonials</h2>
+            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--cp-muted)]">
+              Real Canadians 🍁 Real score movement
+            </p>
+            <TestimonialCarousel headingClass={h} />
+            <p className="mt-6 text-center text-xs text-[var(--cp-muted)]">
+              Results may vary. Testimonials are illustrative examples of potential outcomes.
+            </p>
           </div>
         </section>
       </main>
