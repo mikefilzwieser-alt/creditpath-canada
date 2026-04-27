@@ -880,17 +880,18 @@ export default function VaAdminPage() {
                               </th>
                             );
                           }
-                          const active = opsSortKey === col.sortKey;
+                          const sortKey = col.sortKey;
+                          const active = opsSortKey === sortKey;
                           return (
                             <th
-                              key={col.sortKey}
+                              key={sortKey}
                               scope="col"
                               className={col.className}
                               aria-sort={active ? (opsSortDir === "asc" ? "ascending" : "descending") : undefined}
                             >
                               <button
                                 type="button"
-                                onClick={() => onOpsSortHeaderClick(col.sortKey)}
+                                onClick={() => onOpsSortHeaderClick(sortKey)}
                                 className="inline-flex max-w-full items-baseline gap-0.5 text-left uppercase tracking-wide opacity-100 transition-opacity hover:opacity-80"
                               >
                                 <span className="min-w-0 break-words">{col.label}</span>
