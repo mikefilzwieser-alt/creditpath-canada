@@ -15,88 +15,6 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/**
- * Resolves the customer-facing promotion code from a completed Checkout Session.
- * Uses an expanded retrieve so `total_details.breakdown.discounts` and top-level `discounts`
- * include nested `promotion_code` objects when present.
- */
-async function extractCheckoutSessionPromoCode(
-  stripe: Stripe,
-  session: Stripe.Checkout.Session,
-): Promise<string | null> {
-  async function codeFromPromotionCodeRef(
-    ref: string | Stripe.PromotionCode | null | undefined,
-  ): Promise<string | null> {
-    if (ref == null) return null;
-    if (typeof ref === "object" && typeof ref.code === "string" && ref.code.trim()) {
-      return normalizeAppliedPromoCode(ref.code);
-    }
-    const id =
-      typeof ref === "string"
-        ? ref
-        : typeof ref === "object" && ref && "id" in ref && typeof (ref as { id?: unknown }).id === "string"
-          ? (ref as { id: string }).id
-          : null;
-    if (!id) return null;
-    try {
-      const pc = await stripe.promotionCodes.retrieve(id);
-      return pc.code ? normalizeAppliedPromoCode(pc.code) : null;
-    } catch (e) {
-      console.warn("[stripe webhook] promotionCodes.retrieve failed", {
-        promotionCodeId: id,
-        message: e instanceof Error ? e.message : String(e),
-      });
-      return null;
-    }
-  }
-
-  let full: Stripe.Checkout.Session = session;
-  try {
-    full = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: [
-        "discounts.promotion_code",
-        "total_details.breakdown.discounts.discount",
-        "total_details.breakdown.discounts.discount.promotion_code",
-      ],
-    });
-  } catch (e) {
-    console.warn("[stripe webhook] checkout.sessions.retrieve (promo expand) failed", {
-      sessionId: session.id,
-      message: e instanceof Error ? e.message : String(e),
-    });
-  }
-
-  const seen = new Set<string>();
-  const takeFirst = (code: string | null): string | null => {
-    if (!code) return null;
-    if (seen.has(code)) return null;
-    seen.add(code);
-    return code;
-  };
-
-  if (full.discounts?.length) {
-    for (const d of full.discounts) {
-      const c = await codeFromPromotionCodeRef(d.promotion_code);
-      const t = takeFirst(c);
-      if (t) return t;
-    }
-  }
-
-  const breakdownDiscounts = full.total_details?.breakdown?.discounts;
-  if (breakdownDiscounts?.length) {
-    for (const row of breakdownDiscounts) {
-      const disc = row.discount;
-      if (!disc || typeof disc === "string") continue;
-      const billingDiscount = disc as unknown as Stripe.Discount;
-      const c = await codeFromPromotionCodeRef(billingDiscount.promotion_code);
-      const t = takeFirst(c);
-      if (t) return t;
-    }
-  }
-
-  return null;
-}
-
 async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -200,7 +118,25 @@ export async function POST(request: Request) {
         const customerRaw = session.customer;
         const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
         if (userId && customerId) {
-          const appliedPromoCode = await extractCheckoutSessionPromoCode(stripe, session);
+          let appliedPromoCode: string | undefined;
+          try {
+            const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+              expand: ["total_details.breakdown.discounts"],
+            });
+            const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
+            const promoCode =
+              disc && typeof disc === "object"
+                ? (disc as unknown as Stripe.Discount).promotion_code
+                : undefined;
+            if (promoCode && typeof promoCode === "object" && typeof promoCode.code === "string") {
+              appliedPromoCode = normalizeAppliedPromoCode(promoCode.code);
+            }
+          } catch (e) {
+            console.warn("[stripe webhook] checkout.sessions.retrieve (promo) failed", {
+              sessionId: session.id,
+              message: e instanceof Error ? e.message : String(e),
+            });
+          }
 
           const updatePayload: {
             subscription_status: string;
@@ -217,6 +153,12 @@ export async function POST(request: Request) {
           }
 
           await admin.from("clients").update(updatePayload).eq("id", userId);
+          if (appliedPromoCode && customerId) {
+            await admin
+              .from("clients")
+              .update({ applied_promo_code: appliedPromoCode })
+              .eq("stripe_customer_id", customerId);
+          }
           void sendCheckoutWelcomeEmail(admin, userId).catch((err) => {
             console.warn("[stripe webhook] welcome email unexpected error", {
               userId,
