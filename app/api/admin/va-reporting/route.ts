@@ -4,7 +4,7 @@ import { isValidVaPortalPassword } from "@/lib/va-portal";
 
 export const runtime = "nodejs";
 
-const MRR_PER_CLIENT = 8.88;
+const MRR_PER_CLIENT = 17.76;
 
 type Body = { portal_password?: string };
 
@@ -200,6 +200,7 @@ export async function POST(request: Request) {
     full_name: string | null;
     assigned_va: string | null;
     subscription_status: string | null;
+    applied_promo_code: string | null;
     current_month: number | null;
     last_bureau_at: string | null;
     last_login_at: string | null;
@@ -231,11 +232,17 @@ export async function POST(request: Request) {
     const tClient = createdAt ? new Date(createdAt).getTime() : 0;
     const sortTs = Math.max(tLogin, tBp, tClient);
 
+    const appliedPromo =
+      typeof (c as { applied_promo_code?: string | null }).applied_promo_code === "string"
+        ? (c as { applied_promo_code: string }).applied_promo_code.trim() || null
+        : null;
+
     return {
       id,
       full_name: (c as { full_name?: string | null }).full_name ?? null,
       assigned_va: (c as { assigned_va?: string | null }).assigned_va ?? null,
       subscription_status: (c as { subscription_status?: string | null }).subscription_status ?? null,
+      applied_promo_code: appliedPromo,
       current_month: currentMonth,
       last_bureau_at: lastBureau,
       last_login_at: lastLogin,

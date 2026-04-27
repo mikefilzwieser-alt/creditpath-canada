@@ -8,6 +8,10 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["500", "600", "700"
 
 const NAVY = "#0F1923";
 const TEAL = "#00C9A7";
+const ACCESS_BADGE_LIFETIME_PURPLE = "#7c3aed";
+const ACCESS_BADGE_ACTIVE_GREEN = "#16a34a";
+const ACCESS_BADGE_TRIAL_GRAY_BG = "#e5e7eb";
+const ACCESS_BADGE_TRIAL_GRAY_TEXT = "#374151";
 const BG = "#F5F7FA";
 const PROGRESS_TRACK = "#E8EBEF";
 const PROGRESS_TO_90_MS = 25_000;
@@ -59,6 +63,7 @@ type OpsReportRow = {
   full_name: string | null;
   assigned_va: string | null;
   subscription_status: string | null;
+  applied_promo_code?: string | null;
   current_month: number | null;
   last_bureau_at: string | null;
   last_login_at: string | null;
@@ -66,6 +71,65 @@ type OpsReportRow = {
   actions_completed_this_month: number;
   stuck_month1: boolean;
 };
+
+type OpsAccessFilterId = "active" | "trial" | "lifetime" | "first_nations" | "other";
+
+function opsRowAccessFilterId(row: OpsReportRow): OpsAccessFilterId {
+  const promo = (row.applied_promo_code ?? "").trim();
+  if (promo === "FIRSTNATIONS") return "first_nations";
+  if (promo === "CCVIP2026") return "lifetime";
+  const sub = (row.subscription_status ?? "").trim().toLowerCase();
+  if (sub === "trial") return "trial";
+  if (sub === "active") return "active";
+  return "other";
+}
+
+function OpsAccessTypeBadge({ row }: { row: OpsReportRow }) {
+  const promo = (row.applied_promo_code ?? "").trim();
+  const sub = (row.subscription_status ?? "").trim().toLowerCase();
+
+  if (promo === "FIRSTNATIONS") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-[#0F1923]"
+        style={{ backgroundColor: TEAL }}
+      >
+        🍁 First Nations
+      </span>
+    );
+  }
+  if (promo === "CCVIP2026") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+        style={{ backgroundColor: ACCESS_BADGE_LIFETIME_PURPLE }}
+      >
+        🎟️ Lifetime
+      </span>
+    );
+  }
+  if (sub === "trial") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+        style={{ backgroundColor: ACCESS_BADGE_TRIAL_GRAY_BG, color: ACCESS_BADGE_TRIAL_GRAY_TEXT }}
+      >
+        🔄 Trial
+      </span>
+    );
+  }
+  if (sub === "active") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+        style={{ backgroundColor: ACCESS_BADGE_ACTIVE_GREEN }}
+      >
+        ✅ Active
+      </span>
+    );
+  }
+  return <span className="text-xs opacity-50">—</span>;
+}
 
 type OpsSortKey =
   | "client"
@@ -155,6 +219,18 @@ function opsRowMatchesMineAssignedVa(row: OpsReportRow, identifiers: string[]): 
   return identifiers.includes(av);
 }
 
+const VA_OPS_TABLE_COLUMNS: Array<{ sortKey: OpsSortKey | null; label: string; className: string }> = [
+  { sortKey: "client", label: "Client", className: "py-3 pl-4 pr-3" },
+  { sortKey: null, label: "Access Type", className: "py-3 pr-3 whitespace-nowrap normal-case tracking-normal" },
+  { sortKey: "currentMonth", label: "Current month", className: "py-3 pr-3" },
+  { sortKey: "lastBureau", label: "Last bureau upload", className: "py-3 pr-3" },
+  { sortKey: "lastLogin", label: "Last login", className: "py-3 pr-3" },
+  { sortKey: "blueprint", label: "Blueprint", className: "py-3 pr-3" },
+  { sortKey: "actionsMo", label: "Actions (mo)", className: "py-3 pr-3" },
+  { sortKey: "stuck", label: "Stuck", className: "py-3 pr-3" },
+  { sortKey: "subscription", label: "Subscription", className: "py-3 pr-4" },
+];
+
 type ListRow = {
   id: string;
   full_name: string | null;
@@ -220,6 +296,9 @@ export default function VaAdminPage() {
   const [reportingOpsScope, setReportingOpsScope] = useState<"all" | "mine">("all");
   const [reportingAuthEmail, setReportingAuthEmail] = useState<string | null>(null);
   const [reportingAuthName, setReportingAuthName] = useState<string | null>(null);
+  const [reportingOpsAccessFilter, setReportingOpsAccessFilter] = useState<
+    "all" | "active" | "trial" | "lifetime" | "first_nations"
+  >("all");
   const [opsSortKey, setOpsSortKey] = useState<OpsSortKey | null>(null);
   const [opsSortDir, setOpsSortDir] = useState<"asc" | "desc">("asc");
 
@@ -395,6 +474,9 @@ export default function VaAdminPage() {
       if (ids.length === 0) rows = [];
       else rows = opsReportRows.filter((row) => opsRowMatchesMineAssignedVa(row, ids));
     }
+    if (reportingOpsAccessFilter !== "all") {
+      rows = rows.filter((row) => opsRowAccessFilterId(row) === reportingOpsAccessFilter);
+    }
     if (opsSortKey == null) return rows;
     const asc = opsSortDir === "asc";
     return [...rows].sort((a, b) => compareOpsReportRows(a, b, opsSortKey, asc));
@@ -404,6 +486,7 @@ export default function VaAdminPage() {
     listVaFilter,
     reportingAuthEmail,
     reportingAuthName,
+    reportingOpsAccessFilter,
     opsSortKey,
     opsSortDir,
   ]);
@@ -662,7 +745,7 @@ export default function VaAdminPage() {
           <div className="space-y-10">
             <section>
               <h2 className="text-lg font-bold">Founder summary</h2>
-              <p className="mt-1 text-sm opacity-70">Live counts from the clients table (MRR assumes $8.88 per active client).</p>
+              <p className="mt-1 text-sm opacity-70">Live counts from the clients table (MRR assumes $17.76 per active client).</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {reportingLoading && !founderSummary ? (
                   <p className="col-span-full text-sm opacity-70">Loading summary…</p>
@@ -680,7 +763,7 @@ export default function VaAdminPage() {
                       <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
                         ${founderSummary.mrr.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
-                      <p className="mt-1 text-xs opacity-70">Active × $8.88</p>
+                      <p className="mt-1 text-xs opacity-70">MRR (est.) — Active × $17.76/mo</p>
                     </div>
                     <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
                       <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Trial clients</p>
@@ -760,37 +843,54 @@ export default function VaAdminPage() {
                   My Clients
                 </button>
               </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <label className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide opacity-60">
+                  <span>Access Type</span>
+                  <select
+                    value={reportingOpsAccessFilter}
+                    onChange={(e) =>
+                      setReportingOpsAccessFilter(
+                        e.target.value as "all" | "active" | "trial" | "lifetime" | "first_nations",
+                      )
+                    }
+                    className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal outline-none"
+                    style={{ color: NAVY }}
+                  >
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="trial">Trial</option>
+                    <option value="lifetime">Lifetime</option>
+                    <option value="first_nations">First Nations</option>
+                  </select>
+                </label>
+              </div>
               {reportingError ? <p className="mt-2 text-sm text-red-600">{reportingError}</p> : null}
               {reportingLoading ? (
                 <p className="mt-4 text-sm opacity-70">Loading…</p>
               ) : (
                 <div className="mt-4 overflow-x-auto rounded-2xl border border-black/5 bg-white shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
-                  <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
+                  <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-black/10 text-xs font-semibold uppercase tracking-wide opacity-60">
-                        {(
-                          [
-                            { key: "client" as const, label: "Client", className: "py-3 pl-4 pr-3" },
-                            { key: "currentMonth" as const, label: "Current month", className: "py-3 pr-3" },
-                            { key: "lastBureau" as const, label: "Last bureau upload", className: "py-3 pr-3" },
-                            { key: "lastLogin" as const, label: "Last login", className: "py-3 pr-3" },
-                            { key: "blueprint" as const, label: "Blueprint", className: "py-3 pr-3" },
-                            { key: "actionsMo" as const, label: "Actions (mo)", className: "py-3 pr-3" },
-                            { key: "stuck" as const, label: "Stuck", className: "py-3 pr-3" },
-                            { key: "subscription" as const, label: "Subscription", className: "py-3 pr-4" },
-                          ] as const
-                        ).map((col) => {
-                          const active = opsSortKey === col.key;
+                        {VA_OPS_TABLE_COLUMNS.map((col) => {
+                          if (col.sortKey == null) {
+                            return (
+                              <th key={col.label} scope="col" className={col.className}>
+                                <span className="opacity-100">{col.label}</span>
+                              </th>
+                            );
+                          }
+                          const active = opsSortKey === col.sortKey;
                           return (
                             <th
-                              key={col.key}
+                              key={col.sortKey}
                               scope="col"
                               className={col.className}
                               aria-sort={active ? (opsSortDir === "asc" ? "ascending" : "descending") : undefined}
                             >
                               <button
                                 type="button"
-                                onClick={() => onOpsSortHeaderClick(col.key)}
+                                onClick={() => onOpsSortHeaderClick(col.sortKey)}
                                 className="inline-flex max-w-full items-baseline gap-0.5 text-left uppercase tracking-wide opacity-100 transition-opacity hover:opacity-80"
                               >
                                 <span className="min-w-0 break-words">{col.label}</span>
@@ -808,7 +908,7 @@ export default function VaAdminPage() {
                     <tbody>
                       {reportingDisplayedOpsRows.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="py-8 pl-4 text-center opacity-60">
+                          <td colSpan={9} className="py-8 pl-4 text-center opacity-60">
                             No clients.
                           </td>
                         </tr>
@@ -829,6 +929,9 @@ export default function VaAdminPage() {
                               }
                             >
                               <td className="py-3 pl-4 pr-3 font-semibold">{row.full_name ?? "—"}</td>
+                              <td className="py-3 pr-3">
+                                <OpsAccessTypeBadge row={row} />
+                              </td>
                               <td className="py-3 pr-3 tabular-nums">{row.current_month ?? "—"}</td>
                               <td
                                 className="py-3 pr-3 whitespace-nowrap"
