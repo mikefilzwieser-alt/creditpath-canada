@@ -42,13 +42,23 @@ export function useDashboardAuth(): DashboardAuthContextValue {
   return ctx;
 }
 
-const NAV = [
+const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/blueprint", label: "Blueprint" },
+  { href: "/dashboard/blueprint#monthly-actions", label: "Actions" },
   { href: "/dashboard/upload", label: "Upload" },
   { href: "/dashboard/goals", label: "Goals" },
   { href: "/dashboard/settings", label: "Settings" },
-] as const;
+];
+
+function isNavItemActive(pathname: string, hash: string, href: string): boolean {
+  const [base, fragment] = href.split("#");
+  if (href === "/dashboard") return pathname === "/dashboard";
+  if (!pathname.startsWith(base)) return false;
+  if (fragment) return hash === `#${fragment}`;
+  if (base === "/dashboard/blueprint") return hash !== "#monthly-actions";
+  return true;
+}
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -67,6 +77,20 @@ export function DashboardShell({
   const [loading, setLoading] = useState(true);
   /** False until subscription/promo paywall check finishes (mirrors proxy for client navigations). */
   const [paywallChecked, setPaywallChecked] = useState(false);
+  const [routeHash, setRouteHash] = useState("");
+  const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
+  const [firstLoginSlide, setFirstLoginSlide] = useState(0);
+
+  const markFirstLoginSeen = useCallback(async () => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("clients").update({ first_login_seen: true }).eq("id", user.id);
+    if (error) {
+      console.error("[dashboard] first_login_seen update failed", error.message);
+      return;
+    }
+    setShowFirstLoginModal(false);
+    setFirstLoginSlide(0);
+  }, [user?.id]);
 
   const refreshUser = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
@@ -107,6 +131,14 @@ export function DashboardShell({
   }, [router]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncHash = () => setRouteHash(window.location.hash || "");
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
+
+  useEffect(() => {
     if (loading) return;
     if (!user) {
       queueMicrotask(() => setPaywallChecked(true));
@@ -126,13 +158,26 @@ export function DashboardShell({
     let cancelled = false;
     void (async () => {
       if (paymentSuccess) {
+        if (!cancelled) {
+          const { data: flData } = await supabase
+            .from("clients")
+            .select("first_login_seen")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (!cancelled && flData?.first_login_seen === false) {
+            setFirstLoginSlide(0);
+            setShowFirstLoginModal(true);
+          }
+        }
         if (!cancelled) setPaywallChecked(true);
         return;
       }
 
       const { data, error } = await supabase
         .from("clients")
-        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
+        .select(
+          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen",
+        )
         .eq("id", user.id)
         .maybeSingle();
 
@@ -159,6 +204,10 @@ export function DashboardShell({
       ) {
         router.replace("/pricing");
         return;
+      }
+      if (data?.first_login_seen === false) {
+        setFirstLoginSlide(0);
+        setShowFirstLoginModal(true);
       }
       setPaywallChecked(true);
     })();
@@ -290,10 +339,8 @@ export function DashboardShell({
                 </span>
               </Link>
               <nav className="flex min-w-0 flex-1 flex-row gap-1 md:flex-col md:px-3">
-                {NAV.map((item) => {
-                  const active =
-                    pathname === item.href ||
-                    (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                {NAV_ITEMS.map((item) => {
+                  const active = isNavItemActive(pathname, routeHash, item.href);
                   return (
                     <Link
                       key={item.href}
@@ -327,6 +374,72 @@ export function DashboardShell({
             </div>
           </aside>
           <main className={`min-w-0 flex-1 p-6 md:p-10 ${bodyFontClass}`}>{children}</main>
+
+          {showFirstLoginModal ? (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F1923]/55 p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="first-login-modal-title"
+            >
+              <div
+                className={`w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl sm:p-8 ${headingFontClass}`}
+                style={{ borderColor: "rgba(15, 25, 35, 0.1)", color: NAVY }}
+              >
+                <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
+                  {firstLoginSlide + 1} / 3
+                </p>
+                <h2 id="first-login-modal-title" className="mt-4 text-xl font-bold leading-snug sm:text-2xl">
+                  {firstLoginSlide === 0
+                    ? "Welcome to Credit Path Canada — here\u2019s how it works"
+                    : firstLoginSlide === 1
+                      ? "Your Blueprint — your personalized credit plan lives here"
+                      : "Your Actions — complete your monthly actions to unlock the next month"}
+                </h2>
+                <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void markFirstLoginSeen()}
+                    className="text-sm font-semibold underline decoration-[#0F1923]/25 underline-offset-2"
+                    style={{ color: "rgba(15, 25, 35, 0.55)" }}
+                  >
+                    Skip
+                  </button>
+                  <div className="flex gap-2">
+                    {firstLoginSlide > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setFirstLoginSlide((s) => Math.max(0, s - 1))}
+                        className="rounded-xl border px-4 py-2.5 text-sm font-bold"
+                        style={{ borderColor: "rgba(15, 25, 35, 0.2)", color: NAVY }}
+                      >
+                        Back
+                      </button>
+                    ) : null}
+                    {firstLoginSlide < 2 ? (
+                      <button
+                        type="button"
+                        onClick={() => setFirstLoginSlide((s) => s + 1)}
+                        className="rounded-xl px-5 py-2.5 text-sm font-bold"
+                        style={{ backgroundColor: TEAL, color: NAVY }}
+                      >
+                        Next
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void markFirstLoginSeen()}
+                        className="rounded-xl px-5 py-2.5 text-sm font-bold"
+                        style={{ backgroundColor: TEAL, color: NAVY }}
+                      >
+                        Get started
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </DashboardAuthContext.Provider>

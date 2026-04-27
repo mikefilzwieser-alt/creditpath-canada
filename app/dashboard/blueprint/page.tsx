@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
@@ -710,6 +711,7 @@ function PriorityBadge({ priority }: { priority: string }) {
 const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
 
 export default function BlueprintPage() {
+  const pathname = usePathname();
   const { user, loading: authLoading, headingFontClass: h } = useDashboardAuth();
   const [loading, setLoading] = useState(true);
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
@@ -720,6 +722,20 @@ export default function BlueprintPage() {
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
   const [celebration, setCelebration] = useState<{ month: number; theme: string } | null>(null);
+
+  useEffect(() => {
+    if (pathname !== "/dashboard/blueprint" || typeof window === "undefined") return;
+    const syncActionsHash = () => {
+      if (window.location.hash !== "#monthly-actions") return;
+      setTab("overview");
+      queueMicrotask(() => {
+        document.getElementById("monthly-actions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    syncActionsHash();
+    window.addEventListener("hashchange", syncActionsHash);
+    return () => window.removeEventListener("hashchange", syncActionsHash);
+  }, [pathname]);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -1783,6 +1799,7 @@ export default function BlueprintPage() {
 
             {programMonth >= 5 ? (
               <section
+                id="monthly-actions"
                 className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
                 style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
               >
@@ -1793,6 +1810,7 @@ export default function BlueprintPage() {
               </section>
             ) : (
               <section
+                id="monthly-actions"
                 className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
                 style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
               >
