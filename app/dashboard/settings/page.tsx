@@ -94,6 +94,8 @@ export default function SettingsPage() {
 
   const [loadingClient, setLoadingClient] = useState(true);
   const [client, setClient] = useState<ClientRow | null>(null);
+  /** Latest blueprint `current_month` for cancel retention copy (defaults to 1 if none). */
+  const [blueprintProgramMonth, setBlueprintProgramMonth] = useState(1);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -113,17 +115,35 @@ export default function SettingsPage() {
   const loadClient = useCallback(async () => {
     if (!user) return;
     setLoadingClient(true);
-    const { data, error } = await supabase
-      .from("clients")
-      .select("full_name, email, phone, primary_goal, assigned_va, subscription_status, trial_start, stripe_customer_id")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [clientRes, blueprintRes] = await Promise.all([
+      supabase
+        .from("clients")
+        .select(
+          "full_name, email, phone, primary_goal, assigned_va, subscription_status, trial_start, stripe_customer_id",
+        )
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("blueprints")
+        .select("current_month")
+        .eq("client_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    if (error) {
+    if (clientRes.error) {
       setClient(null);
     } else {
-      setClient(data as ClientRow);
+      setClient(clientRes.data as ClientRow);
     }
+
+    const bp = blueprintRes.data as { current_month?: number | null } | null;
+    const raw = bp?.current_month;
+    const month =
+      typeof raw === "number" && Number.isFinite(raw) ? Math.max(1, Math.floor(raw)) : 1;
+    setBlueprintProgramMonth(month);
+
     setLoadingClient(false);
   }, [user]);
 
@@ -511,7 +531,7 @@ export default function SettingsPage() {
                   Hold on, {clientFirstName(client, user)}.
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
-                  You&apos;re making progress!
+                  You&apos;re making progress already {blueprintProgramMonth} months in!
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-[#0F1923]/80">
                   Are you <span style={{ color: "#00C9A7" }}>100%</span> positive you want to give up on your goals?
@@ -550,8 +570,9 @@ export default function SettingsPage() {
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
                   Are you{" "}
-                  <span style={{ color: "#00C9A7", fontWeight: 700 }}>100%</span> sure you don&apos;t want to hit your
-                  goals?
+                  <span style={{ color: "#00C9A7", fontWeight: 700 }}>100%</span>
+                  {" "}
+                  sure you don&apos;t want to hit your goals?
                 </p>
                 <p style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
                   For less than <span style={{ color: "#00C9A7", fontWeight: 600 }}>50¢ a day</span> — your credit path is

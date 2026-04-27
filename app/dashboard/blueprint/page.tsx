@@ -870,17 +870,24 @@ export default function BlueprintPage() {
     () => computeFocusBulletsForDisplay(plan, parsed, blueprint?.current_month),
     [blueprint?.current_month, plan, parsed],
   );
-  const scoreSummaryText = useMemo(() => normalizeSentenceCapitalization(plan?.score_summary), [plan?.score_summary]);
   const scoreSummaryParts = useMemo(() => {
-    const [visibleRaw, ...detailRest] = scoreSummaryText.split("|||");
+    const raw = plan?.score_summary;
+    const text = typeof raw === "string" ? raw.trim() : formatDisplay(raw);
+    if (!text || text === "—") {
+      return { visible: text || "—", detail: "", hasDetail: false };
+    }
+    const cleaned = text.replace(/\u200b/g, "").replace(/\|\s*\|\s*\|/g, "|||");
+    const [visibleRaw, ...detailRest] = cleaned.split("|||");
     const visible = visibleRaw.trim();
     const detail = detailRest.join("|||").trim();
+    const hasDetail = detail.length > 0;
+    const visibleBase = hasDetail ? visible : visible || text;
     return {
-      visible: visible || scoreSummaryText,
-      detail,
-      hasDetail: detail.length > 0,
+      visible: visibleBase ? normalizeSentenceCapitalization(visibleBase) : "",
+      detail: detail ? normalizeSentenceCapitalization(detail) : "",
+      hasDetail,
     };
-  }, [scoreSummaryText]);
+  }, [plan?.score_summary]);
 
   const programMonth = normalizeProgramMonth(blueprint?.current_month);
 
@@ -1693,18 +1700,21 @@ export default function BlueprintPage() {
                         <button
                           type="button"
                           onClick={() => setShowScoreSummaryDetail((v) => !v)}
-                          className="mt-1 inline-flex items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold"
+                          className="mt-1 inline-flex items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-semibold"
                           style={{ color: TEAL }}
+                          aria-expanded={showScoreSummaryDetail}
+                          aria-label={showScoreSummaryDetail ? "Hide full score summary" : "Show full score summary"}
                         >
                           <span
                             aria-hidden
-                            className={`inline-block transition-transform duration-200 ${
-                              showScoreSummaryDetail ? "rotate-90" : "rotate-0"
-                            }`}
+                            className="inline-flex size-6 items-center justify-center rounded border text-base font-bold leading-none transition-colors"
+                            style={{
+                              borderColor: TEAL,
+                              backgroundColor: showScoreSummaryDetail ? "rgba(0, 201, 167, 0.2)" : "transparent",
+                            }}
                           >
-                            ▸
+                            {showScoreSummaryDetail ? "−" : "+"}
                           </span>
-                          Read more
                         </button>
                         {showScoreSummaryDetail ? (
                           <p className="leading-relaxed text-white/65" style={{ fontSize: 13 }}>

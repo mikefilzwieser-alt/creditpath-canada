@@ -387,6 +387,9 @@ export default function HomePage() {
             info@creditpathcanada.ca
           </a>
         </p>
+        <p className="mt-4 text-[var(--cp-muted)]">
+          34 W 7th Ave #401, Vancouver, BC V5Y 1L6
+        </p>
       </footer>
     </div>
   );
