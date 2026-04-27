@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import Stripe from "stripe";
@@ -89,19 +88,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Webhook not configured." }, { status: 503 });
   }
 
-  const body = await request.text();
-  const headerList = await headers();
-  const sig = headerList.get("stripe-signature");
+  const rawBody = await request.text();
+  const sig = request.headers.get("stripe-signature");
   if (!sig) {
     return NextResponse.json({ error: "Missing stripe-signature." }, { status: 400 });
   }
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, whSecret);
+    event = stripe.webhooks.constructEvent(rawBody, sig, whSecret);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Invalid signature";
-    return NextResponse.json({ error: msg }, { status: 400 });
+    return NextResponse.json({ error: (err as Error).message }, { status: 400 });
   }
 
   const admin = getSupabaseAdmin();
