@@ -84,9 +84,21 @@ export function DashboardShell({
 
   const markFirstLoginSeen = useCallback(async () => {
     if (!user?.id) return;
-    const { error } = await supabase.from("clients").update({ first_login_seen: true }).eq("id", user.id);
+    const { data, error } = await supabase
+      .from("clients")
+      .update({ first_login_seen: true })
+      .eq("id", user.id)
+      .select("first_login_seen")
+      .maybeSingle();
     if (error) {
       console.error("[dashboard] first_login_seen update failed", error.message);
+      return;
+    }
+    if (!data || data.first_login_seen !== true) {
+      console.error("[dashboard] first_login_seen update affected 0 rows or value not persisted", {
+        userId: user.id,
+        returned: data,
+      });
       return;
     }
     setShowFirstLoginModal(false);
@@ -165,7 +177,7 @@ export function DashboardShell({
             .select("first_login_seen")
             .eq("id", user.id)
             .maybeSingle();
-          if (!cancelled && !flErr && flData?.first_login_seen === false) {
+          if (!cancelled && !flErr && flData && flData.first_login_seen === false) {
             setFirstLoginSlide(0);
             setShowFirstLoginModal(true);
           }
@@ -176,7 +188,9 @@ export function DashboardShell({
 
       const { data, error } = await supabase
         .from("clients")
-        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
+        .select(
+          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen",
+        )
         .eq("id", user.id)
         .maybeSingle();
 
@@ -205,12 +219,7 @@ export function DashboardShell({
         return;
       }
 
-      const { data: flData, error: flErr } = await supabase
-        .from("clients")
-        .select("first_login_seen")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (!cancelled && !flErr && flData?.first_login_seen === false) {
+      if (!cancelled && data && data.first_login_seen === false) {
         setFirstLoginSlide(0);
         setShowFirstLoginModal(true);
       }
@@ -220,7 +229,7 @@ export function DashboardShell({
     return () => {
       cancelled = true;
     };
-  }, [user, loading, router]);
+  }, [user?.id, loading]);
 
   useEffect(() => {
     if (!user || typeof window === "undefined") return;
