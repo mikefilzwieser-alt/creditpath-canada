@@ -41,7 +41,29 @@ function parsePhoneDigits(input: string): string {
   return input.replace(/\D/g, "").slice(0, 10);
 }
 
-type TabId = "create" | "clients";
+type TabId = "create" | "clients" | "reporting";
+
+type FounderSummary = {
+  active_total: number;
+  mrr: number;
+  trial_total: number;
+  signups_week: number;
+  signups_month: number;
+  cancelled_month: number;
+  promo_usage: number;
+};
+
+type OpsReportRow = {
+  id: string;
+  full_name: string | null;
+  subscription_status: string | null;
+  current_month: number | null;
+  last_bureau_at: string | null;
+  last_login_at: string | null;
+  blueprint_generated: boolean;
+  actions_completed_this_month: number;
+  stuck_month1: boolean;
+};
 
 type ListRow = {
   id: string;
@@ -100,6 +122,11 @@ export default function VaAdminPage() {
   const [listRows, setListRows] = useState<ListRow[]>([]);
   const [selectedClient, setSelectedClient] = useState<ListRow | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const [reportingLoading, setReportingLoading] = useState(false);
+  const [reportingError, setReportingError] = useState("");
+  const [founderSummary, setFounderSummary] = useState<FounderSummary | null>(null);
+  const [opsReportRows, setOpsReportRows] = useState<OpsReportRow[]>([]);
 
   useEffect(() => {
     try {
@@ -163,6 +190,39 @@ export default function VaAdminPage() {
     }
   }, [portalPassword]);
 
+  const loadReporting = useCallback(async () => {
+    if (!unlocked || !portalPassword) return;
+    setReportingLoading(true);
+    setReportingError("");
+    try {
+      const res = await fetch("/api/admin/va-reporting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ portal_password: portalPassword }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        founder?: FounderSummary;
+        ops?: OpsReportRow[];
+        error?: string;
+      };
+      if (!res.ok) {
+        setReportingError(data.error ?? "Failed to load reporting.");
+        setFounderSummary(null);
+        setOpsReportRows([]);
+        return;
+      }
+      setFounderSummary(data.founder ?? null);
+      setOpsReportRows(data.ops ?? []);
+    } catch {
+      setReportingError("Network error.");
+      setFounderSummary(null);
+      setOpsReportRows([]);
+    } finally {
+      setReportingLoading(false);
+    }
+  }, [portalPassword, unlocked]);
+
   const loadClients = useCallback(async () => {
     if (!unlocked || !portalPassword) return;
     setListLoading(true);
@@ -200,6 +260,11 @@ export default function VaAdminPage() {
     if (!unlocked || tab !== "clients") return;
     void loadClients();
   }, [listVaFilter, unlocked, tab, loadClients]);
+
+  useEffect(() => {
+    if (!unlocked || tab !== "reporting") return;
+    void loadReporting();
+  }, [unlocked, tab, loadReporting]);
 
   useEffect(() => {
     setSelectedClient(null);
@@ -300,6 +365,13 @@ export default function VaAdminPage() {
     },
     [],
   );
+
+  const daysSinceIso = useCallback((iso: string | null) => {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return null;
+    return Math.floor((Date.now() - t) / (24 * 60 * 60 * 1000));
+  }, []);
 
   const formatGoals = useCallback((g: unknown) => {
     if (g == null) return "—";
@@ -409,6 +481,7 @@ export default function VaAdminPage() {
             [
               { id: "create" as const, label: "Create Client" },
               { id: "clients" as const, label: "My Clients" },
+              { id: "reporting" as const, label: "Reporting" },
             ] as const
           ).map((t) => (
             <button
@@ -416,7 +489,10 @@ export default function VaAdminPage() {
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              onClick={() => (t.id === "clients" ? onTabClients() : setTab("create"))}
+              onClick={() => {
+                if (t.id === "clients") onTabClients();
+                else setTab(t.id);
+              }}
               className="rounded-t-lg px-4 py-2.5 text-sm font-semibold transition-colors"
               style={{
                 color: tab === t.id ? NAVY : "rgba(15,25,35,0.55)",
@@ -429,7 +505,157 @@ export default function VaAdminPage() {
           ))}
         </div>
 
-        {tab === "create" ? (
+        {tab === "reporting" ? (
+          <div className="space-y-10">
+            <section>
+              <h2 className="text-lg font-bold">Founder summary</h2>
+              <p className="mt-1 text-sm opacity-70">Live counts from the clients table (MRR assumes $8.88 per active client).</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {reportingLoading && !founderSummary ? (
+                  <p className="col-span-full text-sm opacity-70">Loading summary…</p>
+                ) : founderSummary ? (
+                  <>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Active clients</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.active_total}
+                      </p>
+                      <p className="mt-1 text-xs opacity-70">subscription_status = active</p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">MRR (est.)</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        ${founderSummary.mrr.toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="mt-1 text-xs opacity-70">Active × $8.88</p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Trial clients</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.trial_total}
+                      </p>
+                      <p className="mt-1 text-xs opacity-70">free_trial = true</p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">New signups (this week)</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.signups_week}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">New signups (this month)</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.signups_month}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Cancelled (this month)</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.cancelled_month}
+                      </p>
+                      <p className="mt-1 text-xs opacity-70">Status cancelled, client row updated this month</p>
+                    </div>
+                    <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm sm:col-span-2 lg:col-span-3" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Promo code usage</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {founderSummary.promo_usage}
+                      </p>
+                      <p className="mt-1 text-xs opacity-70">Clients with applied_promo_code set</p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm opacity-70">No summary data.</p>
+                )}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <h2 className="text-lg font-bold">VA ops</h2>
+                <button
+                  type="button"
+                  onClick={() => void loadReporting()}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-[#0F1923]"
+                  style={{ backgroundColor: TEAL }}
+                >
+                  Refresh
+                </button>
+              </div>
+              {reportingError ? <p className="mt-2 text-sm text-red-600">{reportingError}</p> : null}
+              {reportingLoading ? (
+                <p className="mt-4 text-sm opacity-70">Loading…</p>
+              ) : (
+                <div className="mt-4 overflow-x-auto rounded-2xl border border-black/5 bg-white shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                  <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-black/10 text-xs font-semibold uppercase tracking-wide opacity-60">
+                        <th className="py-3 pl-4 pr-3">Client</th>
+                        <th className="py-3 pr-3">Current month</th>
+                        <th className="py-3 pr-3">Last bureau upload</th>
+                        <th className="py-3 pr-3">Last login</th>
+                        <th className="py-3 pr-3">Blueprint</th>
+                        <th className="py-3 pr-3">Actions (mo)</th>
+                        <th className="py-3 pr-3">Stuck</th>
+                        <th className="py-3 pr-4">Subscription</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {opsReportRows.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="py-8 pl-4 text-center opacity-60">
+                            No clients.
+                          </td>
+                        </tr>
+                      ) : (
+                        opsReportRows.map((row) => {
+                          const bureauDays = daysSinceIso(row.last_bureau_at);
+                          const loginDays = daysSinceIso(row.last_login_at);
+                          const bureauStale = bureauDays !== null && bureauDays >= 90;
+                          const loginStale = row.last_login_at == null || (loginDays !== null && loginDays >= 30);
+                          return (
+                            <tr
+                              key={row.id}
+                              className="border-b border-black/5"
+                              style={
+                                row.stuck_month1
+                                  ? { backgroundColor: "rgba(245, 197, 24, 0.18)", boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.5)" }
+                                  : undefined
+                              }
+                            >
+                              <td className="py-3 pl-4 pr-3 font-semibold">{row.full_name ?? "—"}</td>
+                              <td className="py-3 pr-3 tabular-nums">{row.current_month ?? "—"}</td>
+                              <td
+                                className="py-3 pr-3 whitespace-nowrap"
+                                style={bureauStale ? { color: "#b91c1c", fontWeight: 700 } : undefined}
+                              >
+                                {row.last_bureau_at ? formatDate(row.last_bureau_at) : "—"}
+                                {bureauStale ? " · 90d+" : ""}
+                              </td>
+                              <td
+                                className="py-3 pr-3 whitespace-nowrap"
+                                style={loginStale ? { color: "#a16207", fontWeight: 700 } : undefined}
+                              >
+                                {row.last_login_at ? formatDate(row.last_login_at) : "Never"}
+                                {loginStale && row.last_login_at ? " · 30d+" : ""}
+                                {loginStale && !row.last_login_at ? " · follow up" : ""}
+                              </td>
+                              <td className="py-3 pr-3">{row.blueprint_generated ? "Yes" : "No"}</td>
+                              <td className="py-3 pr-3 tabular-nums">{row.actions_completed_this_month}</td>
+                              <td className="py-3 pr-3 font-semibold" style={{ color: row.stuck_month1 ? "#b45309" : "rgba(15,25,35,0.35)" }}>
+                                {row.stuck_month1 ? "Month 1 · 45d+" : "—"}
+                              </td>
+                              <td className="py-3 pr-4">{row.subscription_status ?? "—"}</td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </div>
+        ) : tab === "create" ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <form
               onSubmit={handleCreateSubmit}
