@@ -433,6 +433,27 @@ export default function GoalsPage() {
             </ol>
           </section>
 
+          {goalKey === "auto" || goalKey === "refinance" ? (
+            <div
+              className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm sm:p-8"
+              style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+            >
+              <p className={`text-sm leading-relaxed sm:text-base ${h}`}>
+                🚗 Your vehicle upgrade window opens at Month 8.
+              </p>
+              <p className={`mt-2 text-sm leading-relaxed text-[#0F1923]/75 sm:text-base ${h}`}>
+                Stay on track and we&apos;ll get you into something better.
+              </p>
+              <a
+                href="mailto:michaelf@titaniumford.ca"
+                className={`mt-5 inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Talk to Michael — Titanium Ford Finance Director
+              </a>
+            </div>
+          ) : null}
+
           <section
             className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm sm:p-8"
             style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
