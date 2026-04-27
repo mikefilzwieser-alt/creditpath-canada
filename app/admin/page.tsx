@@ -67,6 +67,69 @@ type OpsReportRow = {
   stuck_month1: boolean;
 };
 
+type OpsSortKey =
+  | "client"
+  | "currentMonth"
+  | "lastBureau"
+  | "lastLogin"
+  | "blueprint"
+  | "actionsMo"
+  | "stuck"
+  | "subscription";
+
+/** Nulls last; `asc` true = ascending comparison for non-null values. */
+function compareOpsReportRows(a: OpsReportRow, b: OpsReportRow, key: OpsSortKey, asc: boolean): number {
+  const mul = asc ? 1 : -1;
+  switch (key) {
+    case "client": {
+      const sa = (a.full_name ?? "").toLowerCase();
+      const sb = (b.full_name ?? "").toLowerCase();
+      return mul * sa.localeCompare(sb);
+    }
+    case "currentMonth": {
+      if (a.current_month == null && b.current_month == null) return 0;
+      if (a.current_month == null) return 1;
+      if (b.current_month == null) return -1;
+      return mul * (a.current_month - b.current_month);
+    }
+    case "lastBureau": {
+      const va = a.last_bureau_at ? Date.parse(a.last_bureau_at) : null;
+      const vb = b.last_bureau_at ? Date.parse(b.last_bureau_at) : null;
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return mul * (va - vb);
+    }
+    case "lastLogin": {
+      const va = a.last_login_at ? Date.parse(a.last_login_at) : null;
+      const vb = b.last_login_at ? Date.parse(b.last_login_at) : null;
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return mul * (va - vb);
+    }
+    case "blueprint": {
+      const na = a.blueprint_generated ? 1 : 0;
+      const nb = b.blueprint_generated ? 1 : 0;
+      return mul * (na - nb);
+    }
+    case "actionsMo":
+      return mul * (a.actions_completed_this_month - b.actions_completed_this_month);
+    case "stuck": {
+      const na = a.stuck_month1 ? 1 : 0;
+      const nb = b.stuck_month1 ? 1 : 0;
+      return mul * (na - nb);
+    }
+    case "subscription": {
+      const sa = (a.subscription_status ?? "").toLowerCase();
+      const sb = (b.subscription_status ?? "").toLowerCase();
+      return mul * sa.localeCompare(sb);
+    }
+    default:
+      return 0;
+  }
+}
+
 function reportingMineIdentifierStrings(vaFilter: string, authEmail: string | null, authFullName: string | null): string[] {
   const set = new Set<string>();
   const add = (s: string | null | undefined) => {
@@ -157,6 +220,8 @@ export default function VaAdminPage() {
   const [reportingOpsScope, setReportingOpsScope] = useState<"all" | "mine">("all");
   const [reportingAuthEmail, setReportingAuthEmail] = useState<string | null>(null);
   const [reportingAuthName, setReportingAuthName] = useState<string | null>(null);
+  const [opsSortKey, setOpsSortKey] = useState<OpsSortKey | null>(null);
+  const [opsSortDir, setOpsSortDir] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     try {
@@ -322,11 +387,37 @@ export default function VaAdminPage() {
   }, [unlocked]);
 
   const reportingDisplayedOpsRows = useMemo(() => {
-    if (reportingOpsScope !== "mine") return opsReportRows;
-    const ids = reportingMineIdentifierStrings(listVaFilter, reportingAuthEmail, reportingAuthName);
-    if (ids.length === 0) return [];
-    return opsReportRows.filter((row) => opsRowMatchesMineAssignedVa(row, ids));
-  }, [reportingOpsScope, opsReportRows, listVaFilter, reportingAuthEmail, reportingAuthName]);
+    let rows: OpsReportRow[];
+    if (reportingOpsScope !== "mine") {
+      rows = opsReportRows;
+    } else {
+      const ids = reportingMineIdentifierStrings(listVaFilter, reportingAuthEmail, reportingAuthName);
+      if (ids.length === 0) rows = [];
+      else rows = opsReportRows.filter((row) => opsRowMatchesMineAssignedVa(row, ids));
+    }
+    if (opsSortKey == null) return rows;
+    const asc = opsSortDir === "asc";
+    return [...rows].sort((a, b) => compareOpsReportRows(a, b, opsSortKey, asc));
+  }, [
+    reportingOpsScope,
+    opsReportRows,
+    listVaFilter,
+    reportingAuthEmail,
+    reportingAuthName,
+    opsSortKey,
+    opsSortDir,
+  ]);
+
+  const onOpsSortHeaderClick = useCallback((key: OpsSortKey) => {
+    setOpsSortKey((prev) => {
+      if (prev !== key) {
+        setOpsSortDir("asc");
+        return key;
+      }
+      setOpsSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      return prev;
+    });
+  }, []);
 
   useEffect(() => {
     setSelectedClient(null);
@@ -677,14 +768,41 @@ export default function VaAdminPage() {
                   <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-black/10 text-xs font-semibold uppercase tracking-wide opacity-60">
-                        <th className="py-3 pl-4 pr-3">Client</th>
-                        <th className="py-3 pr-3">Current month</th>
-                        <th className="py-3 pr-3">Last bureau upload</th>
-                        <th className="py-3 pr-3">Last login</th>
-                        <th className="py-3 pr-3">Blueprint</th>
-                        <th className="py-3 pr-3">Actions (mo)</th>
-                        <th className="py-3 pr-3">Stuck</th>
-                        <th className="py-3 pr-4">Subscription</th>
+                        {(
+                          [
+                            { key: "client" as const, label: "Client", className: "py-3 pl-4 pr-3" },
+                            { key: "currentMonth" as const, label: "Current month", className: "py-3 pr-3" },
+                            { key: "lastBureau" as const, label: "Last bureau upload", className: "py-3 pr-3" },
+                            { key: "lastLogin" as const, label: "Last login", className: "py-3 pr-3" },
+                            { key: "blueprint" as const, label: "Blueprint", className: "py-3 pr-3" },
+                            { key: "actionsMo" as const, label: "Actions (mo)", className: "py-3 pr-3" },
+                            { key: "stuck" as const, label: "Stuck", className: "py-3 pr-3" },
+                            { key: "subscription" as const, label: "Subscription", className: "py-3 pr-4" },
+                          ] as const
+                        ).map((col) => {
+                          const active = opsSortKey === col.key;
+                          return (
+                            <th
+                              key={col.key}
+                              scope="col"
+                              className={col.className}
+                              aria-sort={active ? (opsSortDir === "asc" ? "ascending" : "descending") : undefined}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => onOpsSortHeaderClick(col.key)}
+                                className="inline-flex max-w-full items-baseline gap-0.5 text-left uppercase tracking-wide opacity-100 transition-opacity hover:opacity-80"
+                              >
+                                <span className="min-w-0 break-words">{col.label}</span>
+                                {active ? (
+                                  <span className="shrink-0 tabular-nums" aria-hidden>
+                                    {opsSortDir === "asc" ? "↑" : "↓"}
+                                  </span>
+                                ) : null}
+                              </button>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody>
