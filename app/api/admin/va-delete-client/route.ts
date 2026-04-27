@@ -1,8 +1,31 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
 
 export const runtime = "nodejs";
+
+async function deleteClientAndChildren(admin: SupabaseClient, clientId: string): Promise<{ error: string | null }> {
+  const { error: e1 } = await admin.from("action_completions").delete().eq("client_id", clientId);
+  if (e1) return { error: e1.message };
+
+  const { error: e2 } = await admin.from("monthly_plans").delete().eq("client_id", clientId);
+  if (e2) return { error: e2.message };
+
+  const { error: e3 } = await admin.from("monthly_uploads").delete().eq("client_id", clientId);
+  if (e3) return { error: e3.message };
+
+  const { error: e4 } = await admin.from("blueprints").delete().eq("client_id", clientId);
+  if (e4) return { error: e4.message };
+
+  const { error: e5 } = await admin.from("goals").delete().eq("client_id", clientId);
+  if (e5) return { error: e5.message };
+
+  const { error: e6 } = await admin.from("clients").delete().eq("id", clientId);
+  if (e6) return { error: e6.message };
+
+  return { error: null };
+}
 
 type Body = {
   portal_password?: string;
@@ -31,9 +54,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server is not configured for admin database access." }, { status: 503 });
   }
 
-  const { error: delClientErr } = await admin.from("clients").delete().eq("id", clientId);
-  if (delClientErr) {
-    return NextResponse.json({ error: delClientErr.message }, { status: 400 });
+  const { error: cascadeErr } = await deleteClientAndChildren(admin, clientId);
+  if (cascadeErr) {
+    return NextResponse.json({ error: cascadeErr }, { status: 400 });
   }
 
   const { error: delUserErr } = await admin.auth.admin.deleteUser(clientId);
