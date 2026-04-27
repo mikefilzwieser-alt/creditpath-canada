@@ -116,38 +116,12 @@ export async function POST(request: Request) {
         const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
         if (userId && customerId) {
           let appliedPromoCode: string | undefined;
-          try {
-            const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-              expand: ["total_details.breakdown.discounts"],
-            });
+          const sessionObj = event.data.object as Stripe.Checkout.Session;
+          const promoCodeId = (sessionObj as any).discounts?.[0]?.promotion_code;
 
-            console.log(
-              "[stripe webhook] expanded session total_details",
-              JSON.stringify(expandedSession.total_details, null, 2),
-            );
-            console.log(
-              "[stripe webhook] discounts array",
-              JSON.stringify(expandedSession.total_details?.breakdown?.discounts, null, 2),
-            );
-
-            const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
-            const promoCodeRaw = disc && typeof disc === "object" ? (disc as any).promotion_code : undefined;
-
-            if (promoCodeRaw) {
-              if (typeof promoCodeRaw === "string") {
-                // It's a string ID — retrieve the full object
-                const promoObj = await stripe.promotionCodes.retrieve(promoCodeRaw);
-                appliedPromoCode = normalizeAppliedPromoCode(promoObj.code);
-              } else if (typeof promoCodeRaw === "object" && typeof promoCodeRaw.code === "string") {
-                // Already expanded
-                appliedPromoCode = normalizeAppliedPromoCode(promoCodeRaw.code);
-              }
-            }
-          } catch (e) {
-            console.warn("[stripe webhook] checkout.sessions.retrieve (promo) failed", {
-              sessionId: session.id,
-              message: e instanceof Error ? e.message : String(e),
-            });
+          if (promoCodeId && typeof promoCodeId === "string") {
+            const promoObj = await stripe.promotionCodes.retrieve(promoCodeId);
+            appliedPromoCode = normalizeAppliedPromoCode(promoObj.code);
           }
 
           const updatePayload: {
