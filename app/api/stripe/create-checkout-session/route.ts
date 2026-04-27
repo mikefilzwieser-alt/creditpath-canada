@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { normalizeAppliedPromoCode } from "@/lib/dashboard-access";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getStripe } from "@/lib/stripe-server";
 
@@ -31,6 +33,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "You must be signed in to start checkout." }, { status: 401 });
   }
 
+  let promoCode: string | undefined;
+  try {
+    const body = (await request.json()) as { promoCode?: unknown };
+    if (typeof body?.promoCode === "string" && body.promoCode.trim()) {
+      promoCode = body.promoCode.trim();
+    }
+  } catch {
+    // Optional JSON body (e.g. pricing page POST with no body).
+  }
+
   const email = user.email?.trim() || undefined;
   const origin = appOrigin(request);
 
@@ -54,6 +66,15 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    if (promoCode) {
+      const supabaseAdmin = getSupabaseAdmin();
+      if (supabaseAdmin) {
+        await supabaseAdmin.from("clients").update({
+          applied_promo_code: normalizeAppliedPromoCode(promoCode),
+        }).eq("id", user.id);
+      }
+    }
 
     if (!session.url) {
       return NextResponse.json({ error: "Checkout session did not return a URL." }, { status: 502 });

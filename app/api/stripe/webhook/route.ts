@@ -124,6 +124,15 @@ export async function POST(request: Request) {
               expand: ["total_details.breakdown.discounts"],
             });
 
+            console.log(
+              "[stripe webhook] expanded session total_details",
+              JSON.stringify(expandedSession.total_details, null, 2),
+            );
+            console.log(
+              "[stripe webhook] discounts array",
+              JSON.stringify(expandedSession.total_details?.breakdown?.discounts, null, 2),
+            );
+
             const disc = expandedSession.total_details?.breakdown?.discounts?.[0]?.discount;
             const promoCodeRaw = disc && typeof disc === "object" ? (disc as any).promotion_code : undefined;
 
