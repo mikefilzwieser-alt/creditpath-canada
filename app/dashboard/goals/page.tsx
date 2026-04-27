@@ -360,7 +360,8 @@ export default function GoalsPage() {
               style={{ borderColor: TEAL }}
             >
               <p className={`text-sm leading-relaxed sm:text-base ${h}`}>
-                🚗 Your vehicle upgrade window opens at Month 8.
+                🚗 Your vehicle upgrade window opens at{" "}
+                <span style={{ color: TEAL }}>Month 8</span>.
               </p>
               <p className={`mt-2 text-sm leading-relaxed text-[#0F1923]/75 sm:text-base ${h}`}>
                 Stay on track and we&apos;ll get you into something better.
