@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeAppliedPromoCode } from "@/lib/dashboard-access";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
 
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
   const weekStart = startOfWeekMonday(now);
 
   let activeTotal = 0;
+  let mrrEligibleActiveTotal = 0;
   let trialTotal = 0;
   let signupsWeek = 0;
   let signupsMonth = 0;
@@ -74,7 +76,17 @@ export async function POST(request: Request) {
 
   for (const c of list) {
     const status = String((c as { subscription_status?: string | null }).subscription_status ?? "").toLowerCase();
-    if (status === "active") activeTotal += 1;
+    const promoRaw = (c as { applied_promo_code?: string | null }).applied_promo_code;
+    const promoNorm = normalizeAppliedPromoCode(
+      typeof promoRaw === "string" ? promoRaw : null,
+    );
+
+    if (status === "active") {
+      activeTotal += 1;
+      if (promoNorm === "") {
+        mrrEligibleActiveTotal += 1;
+      }
+    }
     if (Boolean((c as { free_trial?: boolean }).free_trial)) trialTotal += 1;
 
     const created = (c as { created_at?: string }).created_at;
@@ -94,11 +106,10 @@ export async function POST(request: Request) {
       }
     }
 
-    const promo = (c as { applied_promo_code?: string | null }).applied_promo_code;
-    if (typeof promo === "string" && promo.trim().length > 0) promoTotal += 1;
+    if (typeof promoRaw === "string" && promoRaw.trim().length > 0) promoTotal += 1;
   }
 
-  const mrr = Math.round(activeTotal * MRR_PER_CLIENT * 100) / 100;
+  const mrr = Math.round(mrrEligibleActiveTotal * MRR_PER_CLIENT * 100) / 100;
 
   const ids = list.map((c) => c.id as string).filter(Boolean);
   const lastSignInById = new Map<string, string | null>();

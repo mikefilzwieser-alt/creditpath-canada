@@ -2,6 +2,7 @@
 
 import { Montserrat } from "next/font/google";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { normalizeAppliedPromoCode } from "@/lib/dashboard-access";
 import { supabase } from "@/lib/supabase";
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["500", "600", "700"] });
@@ -75,20 +76,20 @@ type OpsReportRow = {
 type OpsAccessFilterId = "active" | "trial" | "lifetime" | "first_nations" | "other";
 
 function opsRowAccessFilterId(row: OpsReportRow): OpsAccessFilterId {
-  const promo = (row.applied_promo_code ?? "").trim();
-  if (promo === "FIRSTNATIONS") return "first_nations";
-  if (promo === "CCVIP2026") return "lifetime";
+  const promoNorm = normalizeAppliedPromoCode(row.applied_promo_code);
+  if (promoNorm === "FIRSTNATIONS") return "first_nations";
+  if (promoNorm === "CCVIP2026") return "lifetime";
   const sub = (row.subscription_status ?? "").trim().toLowerCase();
-  if (sub === "trial") return "trial";
   if (sub === "active") return "active";
+  if (sub === "trial") return "trial";
   return "other";
 }
 
 function OpsAccessTypeBadge({ row }: { row: OpsReportRow }) {
-  const promo = (row.applied_promo_code ?? "").trim();
+  const promoNorm = normalizeAppliedPromoCode(row.applied_promo_code);
   const sub = (row.subscription_status ?? "").trim().toLowerCase();
 
-  if (promo === "FIRSTNATIONS") {
+  if (promoNorm === "FIRSTNATIONS") {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-[#0F1923]"
@@ -98,23 +99,13 @@ function OpsAccessTypeBadge({ row }: { row: OpsReportRow }) {
       </span>
     );
   }
-  if (promo === "CCVIP2026") {
+  if (promoNorm === "CCVIP2026") {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
         style={{ backgroundColor: ACCESS_BADGE_LIFETIME_PURPLE }}
       >
         🎟️ Lifetime
-      </span>
-    );
-  }
-  if (sub === "trial") {
-    return (
-      <span
-        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-        style={{ backgroundColor: ACCESS_BADGE_TRIAL_GRAY_BG, color: ACCESS_BADGE_TRIAL_GRAY_TEXT }}
-      >
-        🔄 Trial
       </span>
     );
   }
@@ -125,6 +116,16 @@ function OpsAccessTypeBadge({ row }: { row: OpsReportRow }) {
         style={{ backgroundColor: ACCESS_BADGE_ACTIVE_GREEN }}
       >
         ✅ Active
+      </span>
+    );
+  }
+  if (sub === "trial") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+        style={{ backgroundColor: ACCESS_BADGE_TRIAL_GRAY_BG, color: ACCESS_BADGE_TRIAL_GRAY_TEXT }}
+      >
+        🔄 Trial
       </span>
     );
   }
