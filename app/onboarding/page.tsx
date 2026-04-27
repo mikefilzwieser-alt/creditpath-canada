@@ -18,8 +18,7 @@ const GOAL_OPTIONS: GoalOption[] = [
   { id: "refi_lower_rate", label: "Refinance at a Lower Rate" },
   { id: "mortgage", label: "Mortgage Readiness" },
   { id: "score_increase", label: "Increase My Credit Score" },
-  { id: "start_business", label: "Build Business Credit" },
-  { id: "emergency_loc", label: "Emergency Line of Credit" },
+  { id: "other_specify", label: "Other — Please Specify" },
 ];
 
 const TOTAL_STEPS = 4;
@@ -65,6 +64,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [otherGoalText, setOtherGoalText] = useState("");
   const [draggedGoalId, setDraggedGoalId] = useState<string | null>(null);
   const [borrowellConfirmed, setBorrowellConfirmed] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -83,7 +83,9 @@ export default function OnboardingPage() {
   const accountSetupProgressTargetRef = useRef(0);
 
   const primaryGoal = selectedGoals[0] ?? "";
-  const canContinueGoals = selectedGoals.length > 0;
+  const canContinueGoals =
+    selectedGoals.length > 0 &&
+    (!selectedGoals.includes("other_specify") || otherGoalText.trim().length > 0);
   const canContinueBorrowell = borrowellConfirmed;
   const canContinueUpload = Boolean(pdfFile);
   const canCreateAccount =
@@ -123,6 +125,7 @@ export default function OnboardingPage() {
     setAccountError("");
     setUploadMessage("");
     setSelectedGoals((prev) => prev.filter((goal) => goal !== goalId));
+    if (goalId === "other_specify") setOtherGoalText("");
   };
 
   const handleGoalDrop = (targetGoalId: string) => {
@@ -145,6 +148,22 @@ export default function OnboardingPage() {
     () => Object.fromEntries(GOAL_OPTIONS.map((goal) => [goal.id, goal.label])),
     [],
   );
+
+  const goalDisplayLabel = (goalId: string) => {
+    if (goalId === "other_specify") {
+      const t = otherGoalText.trim();
+      return t ? `Other — ${t}` : goalLabelById.other_specify ?? "Other — Please Specify";
+    }
+    return goalLabelById[goalId] ?? goalId;
+  };
+
+  const goalsForSubmit = selectedGoals.map((id) =>
+    id === "other_specify" ? `Other — ${otherGoalText.trim()}` : id,
+  );
+  const primaryGoalForSubmit =
+    primaryGoal === "other_specify"
+      ? `Other — ${otherGoalText.trim()}`
+      : goalLabelById[primaryGoal] ?? primaryGoal;
 
   const handlePdfSelection = (file: File | null) => {
     setUploadMessage("");
@@ -197,8 +216,8 @@ export default function OnboardingPage() {
           data: {
             full_name: fullName.trim(),
             phone: phoneDigits,
-            goals: selectedGoals,
-            primary_goal: goalLabelById[primaryGoal] ?? primaryGoal,
+            goals: goalsForSubmit,
+            primary_goal: primaryGoalForSubmit,
           },
         },
       });
@@ -231,8 +250,8 @@ export default function OnboardingPage() {
           full_name: fullName.trim(),
           email: email.trim(),
           phone: phoneDigits,
-          goals: selectedGoals,
-          primary_goal: goalLabelById[primaryGoal] ?? primaryGoal,
+          goals: goalsForSubmit,
+          primary_goal: primaryGoalForSubmit,
         }),
       });
 
@@ -384,6 +403,26 @@ export default function OnboardingPage() {
               })}
             </div>
 
+            {selectedGoals.includes("other_specify") ? (
+              <div className="mt-4">
+                <label htmlFor="onboarding-other-goal" className={`${montserrat.className} text-sm font-semibold text-[var(--cp-dark)]`}>
+                  Please specify
+                </label>
+                <input
+                  id="onboarding-other-goal"
+                  type="text"
+                  value={otherGoalText}
+                  onChange={(event) => {
+                    setAccountError("");
+                    setUploadMessage("");
+                    setOtherGoalText(event.target.value);
+                  }}
+                  placeholder="Describe your goal"
+                  className="mt-2 w-full rounded-xl border border-[var(--cp-border)] bg-white px-4 py-3 text-sm text-[var(--cp-dark)]"
+                />
+              </div>
+            ) : null}
+
             {/* Ranked list — only shows when goals selected */}
             {selectedGoals.length > 1 && (
               <div className="mt-5">
@@ -413,7 +452,7 @@ export default function OnboardingPage() {
                         {index + 1}
                       </span>
                       <span className="flex-1 text-sm font-semibold text-[var(--cp-dark)]">
-                        {goalLabelById[goalId] ?? goalId}
+                        {goalDisplayLabel(goalId)}
                         {index === 0 && (
                           <span className="ml-2 text-xs font-normal text-[var(--cp-teal)]">Primary</span>
                         )}

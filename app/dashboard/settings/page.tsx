@@ -549,8 +549,13 @@ export default function SettingsPage() {
                   Last chance.
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
-                  Cancelling now means losing your blueprint, your progress tracking, and your monthly coaching plan. This
-                  takes 30 seconds to reverse if you change your mind.
+                  Are you{" "}
+                  <span style={{ color: "#00C9A7", fontWeight: 700 }}>100%</span> sure you don&apos;t want to hit your
+                  goals?
+                </p>
+                <p style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
+                  For less than <span style={{ color: "#00C9A7", fontWeight: 600 }}>50¢ a day</span> — your credit path is
+                  still open. 🚗
                 </p>
                 {cancelError ? (
                   <p className="mt-3 text-sm font-semibold text-red-700" role="alert">

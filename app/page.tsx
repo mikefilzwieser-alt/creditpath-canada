@@ -156,7 +156,7 @@ export default function HomePage() {
                   </Link>
                 </div>
                 <div className={`mt-10 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
-                  <p className="font-semibold leading-snug">✓ Trusted by Canadians rebuilding their credit.</p>
+                  <p className="font-semibold leading-snug">✓ Trusted by Canadians rebuilding their credit</p>
                   <p className="font-medium leading-snug">✓ Less than a coffee per week — $4.44</p>
                   <p className="font-medium leading-snug">✓ First 30 days free</p>
                   <p className="font-medium leading-snug">✓ Cancel anytime</p>
@@ -277,7 +277,7 @@ export default function HomePage() {
         <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-14 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
-              Trusted by Canadians rebuilding their credit.
+              Trusted by Canadians rebuilding their credit
             </h2>
             <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
               Show up every month and your credit will move.
