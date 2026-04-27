@@ -50,7 +50,9 @@ export async function POST(request: Request) {
 
   const { data: clients, error: cErr } = await admin
     .from("clients")
-    .select("id, full_name, email, subscription_status, free_trial, created_at, applied_promo_code, access_until")
+    .select(
+      "id, full_name, email, subscription_status, free_trial, created_at, applied_promo_code, access_until, assigned_va",
+    )
     .order("created_at", { ascending: false });
 
   if (cErr) {
@@ -196,6 +198,7 @@ export async function POST(request: Request) {
   type OpsRow = {
     id: string;
     full_name: string | null;
+    assigned_va: string | null;
     subscription_status: string | null;
     current_month: number | null;
     last_bureau_at: string | null;
@@ -231,6 +234,7 @@ export async function POST(request: Request) {
     return {
       id,
       full_name: (c as { full_name?: string | null }).full_name ?? null,
+      assigned_va: (c as { assigned_va?: string | null }).assigned_va ?? null,
       subscription_status: (c as { subscription_status?: string | null }).subscription_status ?? null,
       current_month: currentMonth,
       last_bureau_at: lastBureau,

@@ -2,6 +2,7 @@
 
 import { Montserrat } from "next/font/google";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
@@ -56,6 +57,7 @@ type FounderSummary = {
 type OpsReportRow = {
   id: string;
   full_name: string | null;
+  assigned_va: string | null;
   subscription_status: string | null;
   current_month: number | null;
   last_bureau_at: string | null;
@@ -64,6 +66,31 @@ type OpsReportRow = {
   actions_completed_this_month: number;
   stuck_month1: boolean;
 };
+
+function reportingMineIdentifierStrings(vaFilter: string, authEmail: string | null, authFullName: string | null): string[] {
+  const set = new Set<string>();
+  const add = (s: string | null | undefined) => {
+    const t = (s ?? "").trim().toLowerCase();
+    if (!t) return;
+    set.add(t);
+    const at = t.indexOf("@");
+    if (at > 0) set.add(t.slice(0, at));
+  };
+  add(vaFilter);
+  add(authEmail);
+  add(authFullName);
+  if (authFullName?.trim()) {
+    const first = authFullName.trim().split(/\s+/)[0];
+    if (first) add(first);
+  }
+  return [...set];
+}
+
+function opsRowMatchesMineAssignedVa(row: OpsReportRow, identifiers: string[]): boolean {
+  const av = (row.assigned_va ?? "").trim().toLowerCase();
+  if (!av) return false;
+  return identifiers.includes(av);
+}
 
 type ListRow = {
   id: string;
@@ -127,6 +154,9 @@ export default function VaAdminPage() {
   const [reportingError, setReportingError] = useState("");
   const [founderSummary, setFounderSummary] = useState<FounderSummary | null>(null);
   const [opsReportRows, setOpsReportRows] = useState<OpsReportRow[]>([]);
+  const [reportingOpsScope, setReportingOpsScope] = useState<"all" | "mine">("all");
+  const [reportingAuthEmail, setReportingAuthEmail] = useState<string | null>(null);
+  const [reportingAuthName, setReportingAuthName] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -265,6 +295,38 @@ export default function VaAdminPage() {
     if (!unlocked || tab !== "reporting") return;
     void loadReporting();
   }, [unlocked, tab, loadReporting]);
+
+  useEffect(() => {
+    if (!unlocked) {
+      setReportingAuthEmail(null);
+      setReportingAuthName(null);
+      return;
+    }
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (cancelled) return;
+      const em = user?.email?.trim();
+      setReportingAuthEmail(em ? em : null);
+      const md = user?.user_metadata as { full_name?: unknown; name?: unknown } | undefined;
+      const fn =
+        typeof md?.full_name === "string"
+          ? md.full_name.trim()
+          : typeof md?.name === "string"
+            ? md.name.trim()
+            : "";
+      setReportingAuthName(fn ? fn : null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [unlocked]);
+
+  const reportingDisplayedOpsRows = useMemo(() => {
+    if (reportingOpsScope !== "mine") return opsReportRows;
+    const ids = reportingMineIdentifierStrings(listVaFilter, reportingAuthEmail, reportingAuthName);
+    if (ids.length === 0) return [];
+    return opsReportRows.filter((row) => opsRowMatchesMineAssignedVa(row, ids));
+  }, [reportingOpsScope, opsReportRows, listVaFilter, reportingAuthEmail, reportingAuthName]);
 
   useEffect(() => {
     setSelectedClient(null);
@@ -581,6 +643,32 @@ export default function VaAdminPage() {
                   Refresh
                 </button>
               </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReportingOpsScope("all")}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                  style={{
+                    backgroundColor: reportingOpsScope === "all" ? TEAL : "#fff",
+                    color: reportingOpsScope === "all" ? NAVY : "rgba(15,25,35,0.65)",
+                    border: `1px solid ${reportingOpsScope === "all" ? TEAL : "rgba(15,25,35,0.12)"}`,
+                  }}
+                >
+                  All Clients
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportingOpsScope("mine")}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                  style={{
+                    backgroundColor: reportingOpsScope === "mine" ? TEAL : "#fff",
+                    color: reportingOpsScope === "mine" ? NAVY : "rgba(15,25,35,0.65)",
+                    border: `1px solid ${reportingOpsScope === "mine" ? TEAL : "rgba(15,25,35,0.12)"}`,
+                  }}
+                >
+                  My Clients
+                </button>
+              </div>
               {reportingError ? <p className="mt-2 text-sm text-red-600">{reportingError}</p> : null}
               {reportingLoading ? (
                 <p className="mt-4 text-sm opacity-70">Loading…</p>
@@ -600,14 +688,14 @@ export default function VaAdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {opsReportRows.length === 0 ? (
+                      {reportingDisplayedOpsRows.length === 0 ? (
                         <tr>
                           <td colSpan={8} className="py-8 pl-4 text-center opacity-60">
                             No clients.
                           </td>
                         </tr>
                       ) : (
-                        opsReportRows.map((row) => {
+                        reportingDisplayedOpsRows.map((row) => {
                           const bureauDays = daysSinceIso(row.last_bureau_at);
                           const loginDays = daysSinceIso(row.last_login_at);
                           const bureauStale = bureauDays !== null && bureauDays >= 90;
