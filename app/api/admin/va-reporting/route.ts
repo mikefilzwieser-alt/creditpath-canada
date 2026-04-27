@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
   const { data: clients, error: cErr } = await admin
     .from("clients")
-    .select("id, full_name, email, subscription_status, free_trial, created_at, updated_at, applied_promo_code")
+    .select("id, full_name, email, subscription_status, free_trial, created_at, applied_promo_code, access_until")
     .order("created_at", { ascending: false });
 
   if (cErr) {
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
   const list = clients ?? [];
   const now = new Date();
   const monthStart = startOfMonth(now);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
   const weekStart = startOfWeekMonday(now);
 
   let activeTotal = 0;
@@ -84,10 +85,10 @@ export async function POST(request: Request) {
     }
 
     if (status === "cancelled") {
-      const upd = (c as { updated_at?: string }).updated_at;
-      if (upd) {
-        const ud = new Date(upd);
-        if (!Number.isNaN(ud.getTime()) && ud >= monthStart) cancelledMonth += 1;
+      const au = (c as { access_until?: string | null }).access_until;
+      if (au) {
+        const aud = new Date(au);
+        if (!Number.isNaN(aud.getTime()) && aud >= monthStart && aud < nextMonthStart) cancelledMonth += 1;
       }
     }
 
@@ -223,9 +224,8 @@ export async function POST(request: Request) {
 
     const tLogin = lastLogin ? new Date(lastLogin).getTime() : 0;
     const tBp = bp?.updated_at ? new Date(bp.updated_at).getTime() : 0;
-    const tClient = (c as { updated_at?: string }).updated_at
-      ? new Date((c as { updated_at: string }).updated_at).getTime()
-      : 0;
+    const createdAt = (c as { created_at?: string }).created_at;
+    const tClient = createdAt ? new Date(createdAt).getTime() : 0;
     const sortTs = Math.max(tLogin, tBp, tClient);
 
     return {
