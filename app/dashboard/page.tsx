@@ -344,6 +344,26 @@ export default function DashboardPage() {
         </span>
       </header>
 
+      <section
+        className="rounded-2xl border-2 p-5 shadow-sm sm:p-6"
+        style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}
+        aria-label="Vehicle upgrade"
+      >
+        <p className={`text-base font-bold leading-snug sm:text-lg ${h}`}>
+          🚗 Your vehicle upgrade window opens at Month 8.
+        </p>
+        <p className={`mt-2 text-sm leading-relaxed text-white/85 sm:text-base ${h}`}>
+          Stay on track with your monthly actions and we&apos;ll get you into something better.
+        </p>
+        <a
+          href="mailto:michaelf@titaniumford.ca"
+          className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-center text-sm font-bold transition-opacity hover:opacity-92 sm:w-auto ${h}`}
+          style={{ backgroundColor: TEAL, color: NAVY }}
+        >
+          Talk to Michael — Titanium Ford Finance Director
+        </a>
+      </section>
+
       {allMonthlyActionsComplete ? (
         <section
           className="rounded-2xl border-2 bg-white p-5 shadow-sm sm:p-6"
