@@ -11,15 +11,21 @@ const CARD_BORDER = "rgba(15, 25, 35, 0.08)";
 
 type ResourceItem = { name: string; description: string; href: string };
 
+const FEATURED_PLANNING: { title: string; items: ResourceItem[] } = {
+  title: "Free Financial Planning",
+  items: [
+    {
+      name: "Safe Wealth Planners — Brandon Kirk",
+      description: "Book a free session with a licensed financial planner.",
+      href: "https://calendly.com/brandonkirk/",
+    },
+  ],
+};
+
 const SECTIONS: { title: string; items: ResourceItem[] }[] = [
   {
     title: "Government & Official",
     items: [
-      {
-        name: "FCAC Credit Counselling Search",
-        description: "Find accredited credit counselling services in Canada.",
-        href: "https://itools-ioutils.fcac-acfc.gc.ca/CCS-SCC/CCS-SCC-eng.aspx",
-      },
       {
         name: "FCAC Financial Literacy",
         description: "Official guidance from the Financial Consumer Agency of Canada.",
@@ -97,16 +103,6 @@ const SECTIONS: { title: string; items: ResourceItem[] }[] = [
       },
     ],
   },
-  {
-    title: "Free Financial Planning",
-    items: [
-      {
-        name: "Safe Wealth Planners — Brandon Kirk",
-        description: "Book a free session with a licensed financial planner.",
-        href: "https://calendly.com/brandonkirk/",
-      },
-    ],
-  },
 ];
 
 export default function ResourcesPage() {
@@ -137,6 +133,33 @@ export default function ResourcesPage() {
           Trusted links for credit, monitoring, products, and planning. Opens in a new tab.
         </p>
       </header>
+
+      <section className="space-y-4">
+        <h2 className={`text-lg font-bold ${h}`}>{FEATURED_PLANNING.title}</h2>
+        <ul className="grid gap-4 sm:grid-cols-1">
+          {FEATURED_PLANNING.items.map((item) => (
+            <li
+              key={item.href + item.name}
+              className="flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+              style={{ borderColor: CARD_BORDER }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className={`font-bold ${h}`}>{item.name}</p>
+                <p className={`mt-1 text-sm leading-relaxed opacity-75 ${h}`}>{item.description}</p>
+              </div>
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Visit →
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {SECTIONS.map((section) => (
         <section key={section.title} className="space-y-4">
