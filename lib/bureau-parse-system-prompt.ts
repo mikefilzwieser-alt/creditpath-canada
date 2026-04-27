@@ -128,12 +128,19 @@ MONTH 1 PROGRAM (initial blueprint_data — this bureau parse is Month 1)
 ══════════════════════════════════════════════════════════════════════════════
 Treat **blueprint_data.this_months_focus** as **Month 1 focus only**: **high-level protective actions only**. Do not use it for tactics that belong in Month 2+.
 
-SCORE SUMMARY FORMAT:
-score_summary must contain exactly 2 parts separated by "|||":
-- Part 1 (before |||): Maximum 2 sentences. First sentence = score + primary issue. Second sentence = one positive factor or forward-looking statement.
-- Part 2 (after |||): The full detailed analysis (utilization breakdown, specific accounts, collections context, etc.)
+SCORE SUMMARY FORMAT (blueprint_data.score_summary — REQUIRED; UI expand toggle requires |||):
+The score_summary string MUST match this exact layout (brackets show the two segments only — do not include literal [ or ] characters in the value):
+[One sentence summary.] ||| [Full detailed explanation paragraph.]
 
-Example format: "Your 511 score is held back by late payments and high utilization. Your student loans and auto loan are building positive history.|||Full detailed analysis here with specific account references, utilization percentages, collections details, and Consumer Proposal context."
+Hard requirements:
+- Segment 1: exactly one sentence, ending with a period, immediately followed by a single space, then the three ASCII pipes |||, then a single space.
+- Segment 2: one full detailed explanation (one or more sentences is fine). Put utilization, named accounts, collections, Consumer Proposal context, etc. here — not in segment 1.
+- The literal substring " ||| " (space-pipe-pipe-pipe-space) MUST appear once. Without |||, the client UI will never show the expand control — the output is invalid.
+
+Concrete example (structure only — replace copy with this client’s real bureau facts):
+"Your 604 Equifax score is weighed down by high revolving utilization and two recent late marks.|||Across your Visa and Mastercard tradelines, utilization sits above 40% on two accounts while your installment auto loan remains current. Active collections on the bureau should follow the pay vs ignore vs settle rules from this prompt; keep pre-authorized payments on every account and execute the monthly tradeline actions in order of impact."
+
+Invalid: a single paragraph with no "|||" anywhere — never do this.
 
 **this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
 this_months_focus MUST always start with the EMERGENCY stop-applications line as bullet 1, even for Consumer Proposal clients. Never omit this bullet.
@@ -249,7 +256,7 @@ REQUIRED JSON SHAPE (all keys required; use null only where specified)
   "blueprint_data": {
     "rebuild_score": number,
     "rebuild_score_label": string,
-    "score_summary": string,
+    "score_summary": string (MUST be: [One sentence summary.] ||| [Full detailed explanation paragraph.] — see SCORE SUMMARY FORMAT),
     "this_months_focus": string,
     "top_actions": [ { "action": string, "impact": string, "timeline": string } ],
     "collection_strategy": string,
