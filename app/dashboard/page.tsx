@@ -143,6 +143,8 @@ export default function DashboardPage() {
   const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
   const [brandonDismissed, setBrandonDismissed] = useState(false);
   const [eqDismissed, setEqDismissed] = useState(false);
+  const [paywallUnlockBusy, setPaywallUnlockBusy] = useState(false);
+  const [paywallUnlockError, setPaywallUnlockError] = useState("");
 
   const loadBlueprint = useCallback(async () => {
     if (!user) return;
@@ -233,6 +235,31 @@ export default function DashboardPage() {
     };
   }, [user, router]);
 
+  const startPaywallCheckout = useCallback(async () => {
+    setPaywallUnlockError("");
+    setPaywallUnlockBusy(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok) {
+        setPaywallUnlockError(data.error ?? "Could not start checkout.");
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setPaywallUnlockError("Checkout did not return a URL.");
+    } catch {
+      setPaywallUnlockError("Network error.");
+    } finally {
+      setPaywallUnlockBusy(false);
+    }
+  }, []);
+
   const parsed = blueprint?.raw_parse_data as ParsedBureau | null | undefined;
   const plan = blueprint?.blueprint_data as BlueprintPlan | null | undefined;
   const consumerProposal = parsed?.consumer_proposal === true;
@@ -241,6 +268,13 @@ export default function DashboardPage() {
     () => getMonthlyProgramActionCount((blueprint as { current_month?: number } | null)?.current_month),
     [blueprint],
   );
+
+  const enrollmentDays = useMemo(() => {
+    if (!enrolledAt) return 0;
+    const created = new Date(enrolledAt).getTime();
+    if (!Number.isFinite(created)) return 0;
+    return Math.max(0, Math.floor((Date.now() - created) / (24 * 60 * 60 * 1000)));
+  }, [enrolledAt]);
 
   const tradelines = Array.isArray(parsed?.tradelines) ? parsed.tradelines : [];
   const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
@@ -290,6 +324,19 @@ export default function DashboardPage() {
     );
   }
 
+  if (!hasDashboardAccess && blueprintLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading your dashboard…</p>
+      </div>
+    );
+  }
+
   const createdAt = blueprint?.created_at ? new Date(blueprint.created_at) : null;
 
   const monthsElapsed =
@@ -331,12 +378,6 @@ export default function DashboardPage() {
 
   const allMonthlyActionsComplete =
     hasBlueprint && topActionsTotal > 0 && completedActionsCount === topActionsTotal;
-  const enrollmentDays = useMemo(() => {
-    if (!enrolledAt) return 0;
-    const created = new Date(enrolledAt).getTime();
-    if (!Number.isFinite(created)) return 0;
-    return Math.max(0, Math.floor((Date.now() - created) / (24 * 60 * 60 * 1000)));
-  }, [enrolledAt]);
   const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
   const showEqCard = enrollmentDays >= 7 && !eqDismissed && !consumerProposal;
   const rebuildScoreNumber =
@@ -463,12 +504,20 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm font-semibold leading-relaxed">
               First 30 days free. Cancel anytime. Less than a coffee a week.
             </p>
-            <Link
-              href="/onboarding"
-              className={`mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#0F1923] px-5 py-3 text-center text-sm font-bold text-white transition-opacity hover:opacity-90 ${h}`}
+            {paywallUnlockError ? (
+              <p className="mt-3 text-center text-sm text-red-600">{paywallUnlockError}</p>
+            ) : null}
+            <button
+              type="button"
+              disabled={paywallUnlockBusy}
+              onClick={() => void startPaywallCheckout()}
+              className={`mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#0F1923] px-5 py-3 text-center text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${h}`}
             >
-              Unlock My Blueprint — Free for 30 Days
-            </Link>
+              {paywallUnlockBusy ? "Redirecting…" : "Unlock My Blueprint — Free for 30 Days"}
+            </button>
+            <p className="mt-2 text-center text-xs font-medium text-[#0F1923]/80">
+              You&apos;ll be sent to Stripe&apos;s secure checkout.
+            </p>
           </div>
           <div className="h-40" aria-hidden />
         </section>
