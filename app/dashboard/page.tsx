@@ -59,6 +59,7 @@ function firstNameFromUser(
 }
 
 type ParsedBureau = {
+  consumer_proposal?: boolean;
   tradelines?: Array<{
     creditor_name?: string;
     network?: string;
@@ -139,10 +140,15 @@ export default function DashboardPage() {
   const [blueprintLoading, setBlueprintLoading] = useState(true);
   const [timelineModalMonth, setTimelineModalMonth] = useState<number | null>(null);
   const [completedActionsCount, setCompletedActionsCount] = useState(0);
+  const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
+  const [brandonDismissed, setBrandonDismissed] = useState(false);
+  const [eqDismissed, setEqDismissed] = useState(false);
 
   const loadBlueprint = useCallback(async () => {
     if (!user) return;
     setBlueprintLoading(true);
+    const { data: clientData } = await supabase.from("clients").select("created_at").eq("id", user.id).maybeSingle();
+    setEnrolledAt(typeof clientData?.created_at === "string" ? clientData.created_at : null);
     const { data, error } = await supabase
       .from("blueprints")
       .select(
@@ -194,6 +200,12 @@ export default function DashboardPage() {
   }, [loadBlueprint]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    setBrandonDismissed(window.localStorage.getItem("brandon_card_dismissed") === "true");
+    setEqDismissed(window.localStorage.getItem("eq_card_dismissed") === "true");
+  }, []);
+
+  useEffect(() => {
     if (!user || typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") !== "success") return;
@@ -223,6 +235,7 @@ export default function DashboardPage() {
 
   const parsed = blueprint?.raw_parse_data as ParsedBureau | null | undefined;
   const plan = blueprint?.blueprint_data as BlueprintPlan | null | undefined;
+  const consumerProposal = parsed?.consumer_proposal === true;
 
   const topActionsTotal = useMemo(
     () => getMonthlyProgramActionCount((blueprint as { current_month?: number } | null)?.current_month),
@@ -318,6 +331,14 @@ export default function DashboardPage() {
 
   const allMonthlyActionsComplete =
     hasBlueprint && topActionsTotal > 0 && completedActionsCount === topActionsTotal;
+  const enrollmentDays = useMemo(() => {
+    if (!enrolledAt) return 0;
+    const created = new Date(enrolledAt).getTime();
+    if (!Number.isFinite(created)) return 0;
+    return Math.max(0, Math.floor((Date.now() - created) / (24 * 60 * 60 * 1000)));
+  }, [enrolledAt]);
+  const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
+  const showEqCard = enrollmentDays >= 7 && !eqDismissed && !consumerProposal;
   const rebuildScoreNumber =
     typeof plan?.rebuild_score === "number" && Number.isFinite(plan.rebuild_score) ? Math.round(plan.rebuild_score) : null;
   const monthOneActions = (Array.isArray(plan?.top_actions) ? plan.top_actions : [])
@@ -332,6 +353,72 @@ export default function DashboardPage() {
           <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${h}`}>Welcome back, {firstName}</h1>
           <p className="text-sm text-[#0F1923]/70">Your blueprint preview is ready.</p>
         </header>
+        {showBrandonCard ? (
+          <section
+            className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+          >
+            <p className={`text-base font-bold leading-snug ${h}`}>📅 Not sure what this all means for your financial picture?</p>
+            <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+              Book a free session with Brandon Kirk — licensed financial specialist and Credit Path Canada partner. No cost, no obligation.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <a
+                href="https://calendly.com/brandonkirk/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Book Free Session →
+              </a>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+                onClick={() => {
+                  setBrandonDismissed(true);
+                  if (typeof window !== "undefined") window.localStorage.setItem("brandon_card_dismissed", "true");
+                }}
+              >
+                No thanks
+              </button>
+            </div>
+          </section>
+        ) : null}
+        {showEqCard ? (
+          <section
+            className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+          >
+            <p className={`text-base font-bold leading-snug ${h}`}>
+              💳 Did you know? One of the fastest ways to build your credit history is adding a card that reports to both bureaus.
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+              EQ Bank&apos;s card has no credit check required and reports to both Equifax and TransUnion. It takes 5 minutes to apply.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <a
+                href="https://join.eqbank.ca/?code=MICHAEL1577"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Get EQ Bank Card →
+              </a>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+                onClick={() => {
+                  setEqDismissed(true);
+                  if (typeof window !== "undefined") window.localStorage.setItem("eq_card_dismissed", "true");
+                }}
+              >
+                No thanks
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         <section className="grid gap-4 sm:grid-cols-2">
           <div
@@ -418,6 +505,74 @@ export default function DashboardPage() {
           Month {currentMonth} of {TOTAL_MONTHS}
         </span>
       </header>
+
+      {showBrandonCard ? (
+        <section
+          className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+          style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+        >
+          <p className={`text-base font-bold leading-snug ${h}`}>📅 Not sure what this all means for your financial picture?</p>
+          <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+            Book a free session with Brandon Kirk — licensed financial specialist and Credit Path Canada partner. No cost, no obligation.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <a
+              href="https://calendly.com/brandonkirk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+              style={{ backgroundColor: TEAL, color: NAVY }}
+            >
+              Book Free Session →
+            </a>
+            <button
+              type="button"
+              className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+              onClick={() => {
+                setBrandonDismissed(true);
+                if (typeof window !== "undefined") window.localStorage.setItem("brandon_card_dismissed", "true");
+              }}
+            >
+              No thanks
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {showEqCard ? (
+        <section
+          className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+          style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+        >
+          <p className={`text-base font-bold leading-snug ${h}`}>
+            💳 Did you know? One of the fastest ways to build your credit history is adding a card that reports to both bureaus.
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+            EQ Bank&apos;s card has no credit check required and reports to both Equifax and TransUnion. It takes 5 minutes to apply.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <a
+              href="https://join.eqbank.ca/?code=MICHAEL1577"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+              style={{ backgroundColor: TEAL, color: NAVY }}
+            >
+              Get EQ Bank Card →
+            </a>
+            <button
+              type="button"
+              className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+              onClick={() => {
+                setEqDismissed(true);
+                if (typeof window !== "undefined") window.localStorage.setItem("eq_card_dismissed", "true");
+              }}
+            >
+              No thanks
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section
         className="rounded-2xl border-2 p-5 shadow-sm sm:p-6"
