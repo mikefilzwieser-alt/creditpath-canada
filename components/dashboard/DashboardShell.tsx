@@ -447,20 +447,24 @@ export function DashboardShell({
                 <div className="mt-4 space-y-3 text-sm leading-relaxed" style={{ color: "rgba(15, 25, 35, 0.82)" }}>
                   {firstLoginSlide === 0 ? (
                     <p>
-                      You just made the most important decision for your financial future. Over the next 8-12 months
-                      we&apos;re going to move your credit score — month by month — based on your actual file. No
-                      generic tips. No guesswork. A real plan built for you.
+                      You just made the most important decision for your financial future. Over the next{" "}
+                      <span style={{ color: TEAL }}>8-12 months</span> we&apos;re going to move your credit score — month
+                      by month — based on your actual file. No generic tips. No guesswork.{" "}
+                      <span style={{ color: TEAL }}>A real plan built for you</span>.
                     </p>
                   ) : firstLoginSlide === 1 ? (
                     <p>
-                      Every recommendation is built from your actual Equifax bureau — your tradelines, your
-                      collections, your inquiries. Nothing generic. Log in anytime to see exactly where you stand and
-                      what to do next.
+                      Every recommendation is built from your <span style={{ color: TEAL }}>actual Equifax bureau</span>{" "}
+                      — your tradelines, your collections, your inquiries. Nothing generic. Log in anytime to see{" "}
+                      <span style={{ color: TEAL }}>exactly where you stand</span> and{" "}
+                      <span style={{ color: TEAL }}>what to do next</span>.
                     </p>
                   ) : (
                     <p>
-                      Each month you get 3 clear actions ranked by score impact. Complete them, wait 28 days, and your
-                      next month unlocks automatically. The clients who follow through are the ones who get approved.
+                      Each month you get <span style={{ color: TEAL }}>3 clear actions</span> ranked by score impact.
+                      Complete them, wait <span style={{ color: TEAL }}>28 days</span>, and your next month unlocks
+                      automatically.{" "}
+                      <span style={{ color: TEAL }}>The clients who follow through are the ones who get approved.</span>
                     </p>
                   )}
                 </div>

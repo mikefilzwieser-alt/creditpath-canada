@@ -966,9 +966,9 @@ export default function BlueprintPage() {
     if (!allCurrentMonthActionsDone) return;
     if (programMonth <= 0 || programMonth >= 5) return;
     const key = `celebration_shown_month_${programMonth}`;
-    const alreadyShown = window.localStorage.getItem(key) === "1";
-    if (alreadyShown) return;
-    window.localStorage.setItem(key, "1");
+    if (window.localStorage.getItem(key) === "1") return;
+    // Do not write localStorage here: React Strict Mode remounts reset overlay state while an early setItem would make
+    // the second run skip opening — persist only when the user dismisses the celebration.
     setShowMonthCompletionOverlay(true);
   }, [allCurrentMonthActionsDone, programMonth]);
 
@@ -2246,7 +2246,12 @@ export default function BlueprintPage() {
               type="button"
               className={`mt-8 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold ${h}`}
               style={{ backgroundColor: TEAL, color: NAVY }}
-              onClick={() => setShowMonthCompletionOverlay(false)}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(`celebration_shown_month_${programMonth}`, "1");
+                }
+                setShowMonthCompletionOverlay(false);
+              }}
             >
               Keep going →
             </button>
