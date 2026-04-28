@@ -59,6 +59,11 @@ const valueCards = [
     tag: "Priceless",
     body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he's ready to get you approved.",
   },
+  {
+    title: "Personal Loan Access",
+    tag: "No hard credit check",
+    body: "Pre-qualify for a personal loan without a hard inquiry touching your score. We connect you with trusted lending partners when the timing is right for your file.",
+  },
 ] as const;
 
 const testimonials = [
@@ -87,6 +92,11 @@ const testimonials = [
       "Michael went above and beyond. From the moment the deal started to the moment I had my keys — it was an impeccable experience. When you call, ask for Michael.",
     by: "— Emmanuel O., BC",
   },
+  {
+    quote:
+      "Michael, Michaela, the two gentlemen we met in Saskatoon, and everyone else involved did absolutely amazing helping us get set up with a Christmas Miracle of the perfect car for my family. Can't thank you enough!",
+    by: "— Kels O., Saskatchewan",
+  },
 ] as const;
 
 export default function LandingV2Page() {
@@ -97,7 +107,7 @@ export default function LandingV2Page() {
       <SiteHeader />
       <main>
         <section className="border-b border-black/10 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-6xl border-l-4 border-[#00C9A7] px-4 py-14 pl-6 sm:px-6 sm:py-20 sm:pl-8">
             <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
               CANADA&apos;S CREDIT EDUCATION PLATFORM
             </p>
@@ -175,8 +185,7 @@ export default function LandingV2Page() {
                     </p>
                   ) : step.title === "Step 2 — Tell us what you're rebuilding toward" ? (
                     <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
-                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your{" "}
-                      <span style={{ color: "#00C9A7" }}>rebuilding toward</span> goal —{" "}
+                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal —{" "}
                       <span style={{ color: "#00C9A7" }}>not a one-size-fits-all template.</span>
                     </p>
                   ) : step.title === "Step 3 — Get your personalized blueprint" ? (
@@ -234,7 +243,10 @@ export default function LandingV2Page() {
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <h2 className={`text-center text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Less than a coffee a week.</h2>
             <p className="mx-auto mt-5 max-w-3xl text-center text-sm leading-relaxed text-[#0F1923]/80 sm:text-base">
-              What does staying where you are actually cost you? A 580 credit score vs a 680 credit score on a $30,000 auto loan is the difference between 12% and 6% interest. That&apos;s over $9,000 out of your pocket over the life of the loan. Credit Path Canada costs $4.44 a week.
+              What does staying where you are actually cost you? A <span style={{ color: "#00C9A7" }}>580</span> credit score vs a{" "}
+              <span style={{ color: "#00C9A7" }}>680</span> credit score on a $30,000 auto loan is the difference between 12% and
+              6% interest. That&apos;s over <span style={{ color: "#00C9A7" }}>$9,000</span> out of your pocket over the life of the
+              loan. Credit Path Canada costs $4.44 a week.
             </p>
             <div className="mx-auto mt-8 max-w-xl rounded-2xl border-2 border-[#00C9A7] bg-white p-7 shadow-sm">
               <p className={`text-center text-3xl font-bold text-[#0F1923] ${h}`}>$4.44/week · CAD</p>
