@@ -162,42 +162,43 @@ export default function LandingV2Page() {
             <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>
               Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
             </h2>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2">
-              {steps.map((step) => (
-                <article key={step.title} className="rounded-2xl border border-black/10 bg-[#F8FAFC] p-6 shadow-sm">
-                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>
-                    {step.title === "Step 4 — Hit your goals" ? (
-                      <>
-                        Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
-                      </>
-                    ) : step.title === "Step 3 — Get your personalized blueprint" ? (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((step, idx) => (
+                <div key={step.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]">
+                  <span className={`inline-flex size-10 items-center justify-center rounded-full bg-[#00C9A7] text-sm font-bold text-[#0F1923] ${h}`}>
+                    {idx + 1}
+                  </span>
+                  <h3 className={`mt-4 text-lg font-bold text-[#0F1923] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>
+                    {step.title === "Step 3 — Get your personalized blueprint" ? (
                       <>
                         Step 3 — Get your <span style={{ color: "#00C9A7" }}>personalized blueprint</span>
+                      </>
+                    ) : step.title === "Step 4 — Hit your goals" ? (
+                      <>
+                        Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
                       </>
                     ) : (
                       step.title
                     )}
                   </h3>
                   {step.title === "Step 1 — Upload your credit report" ? (
-                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       We analyze your actual Equifax bureau —{" "}
                       <span style={{ color: "#00C9A7" }}>every tradeline, every collection, every inquiry.</span> Nothing generic. Everything built from your real file.
                     </p>
                   ) : step.title === "Step 2 — Tell us what you're rebuilding toward" ? (
-                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal —{" "}
                       <span style={{ color: "#00C9A7" }}>not a one-size-fits-all template.</span>
                     </p>
-                  ) : step.title === "Step 3 — Get your personalized blueprint" ? (
-                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
-                      Your file analyzed and turned into a clear <span style={{ color: "#00C9A7" }}>month-by-month action plan.</span> 3 actions per month, ranked by score impact. You always know what matters most right now.
-                    </p>
-                  ) : (
-                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                  ) : step.title === "Step 4 — Hit your goals" ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       Complete your monthly actions, unlock the next month, <span style={{ color: "#00C9A7" }}>watch your score move</span>. Month by month. No guesswork. No wasted moves.
                     </p>
+                  ) : (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
                   )}
-                </article>
+                </div>
               ))}
             </div>
           </div>
