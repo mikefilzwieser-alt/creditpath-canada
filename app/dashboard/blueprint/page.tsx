@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
 import {
@@ -723,6 +723,8 @@ export default function BlueprintPage() {
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
   const [celebration, setCelebration] = useState<{ month: number; theme: string } | null>(null);
+  const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   useEffect(() => {
     if (pathname !== "/dashboard/blueprint" || typeof window === "undefined") return;
@@ -951,6 +953,45 @@ export default function BlueprintPage() {
     const daysRemaining = Math.max(0, Math.ceil((unlockAtMs - Date.now()) / (24 * 60 * 60 * 1000)));
     return { daysRemaining, unlockAtMs, nextMonth: programMonth + 1 };
   }, [blueprint, programMonth]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!allCurrentMonthActionsDone) return;
+    if (programMonth <= 0 || programMonth >= 5) return;
+    const key = `celebration_shown_month_${programMonth}`;
+    const alreadyShown = window.localStorage.getItem(key) === "1";
+    if (alreadyShown) return;
+    window.localStorage.setItem(key, "1");
+    setShowMonthCompletionOverlay(true);
+  }, [allCurrentMonthActionsDone, programMonth]);
+
+  const nextUnlockBadgeText = useMemo(() => {
+    const nextMonth = nextUnlockMeta.nextMonth;
+    const unlockAtMs = nextUnlockMeta.unlockAtMs;
+    if (nextMonth == null || unlockAtMs == null) return "";
+
+    const remainingMs = unlockAtMs - nowMs;
+    if (remainingMs > 0) {
+      const totalMinutes = Math.floor(remainingMs / (60 * 1000));
+      const days = Math.floor(totalMinutes / (60 * 24));
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+      const minutes = totalMinutes % 60;
+      return `Month ${nextMonth} unlocks in: ${days}d ${hours}h ${minutes}m`;
+    }
+    if (allCurrentMonthActionsDone) {
+      return `Month ${nextMonth} is ready. Check your blueprint.`;
+    }
+    return `Complete your actions to unlock Month ${nextMonth}.`;
+  }, [allCurrentMonthActionsDone, nextUnlockMeta.nextMonth, nextUnlockMeta.unlockAtMs, nowMs]);
 
   const runSyncProgress = useCallback(async () => {
     if (!user?.id) return;
@@ -1835,20 +1876,6 @@ export default function BlueprintPage() {
                   </p>
                 ) : null}
 
-                {allCurrentMonthActionsDone &&
-                nextUnlockMeta.daysRemaining != null &&
-                nextUnlockMeta.daysRemaining > 0 &&
-                nextUnlockMeta.nextMonth != null ? (
-                  <p
-                    className={`mt-3 rounded-xl border-2 px-4 py-3 text-sm font-semibold leading-relaxed ${h}`}
-                    style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.1)", color: NAVY }}
-                    role="status"
-                  >
-                    {nextUnlockMeta.daysRemaining} day{nextUnlockMeta.daysRemaining === 1 ? "" : "s"} remaining until
-                    Month {nextUnlockMeta.nextMonth} unlocks
-                  </p>
-                ) : null}
-
                 {programMonth >= 2 && programMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
                   <p className="mt-4 text-sm text-[#0F1923]/65">
                     Your personalized plan for this month is being prepared. Refresh the page in a moment — if this
@@ -1916,43 +1943,13 @@ export default function BlueprintPage() {
                       {monthlyProgramActions.length === 1 ? "action" : "actions"} completed this month
                     </p>
                     {completedSet.size === monthlyProgramActions.length ? (
-                      <div
-                        className="mt-4 rounded-2xl border-2 p-5 shadow-sm"
-                        style={{
-                          borderColor: TEAL,
-                          backgroundColor: "rgba(0, 201, 167, 0.12)",
-                          color: NAVY,
-                        }}
+                      <p
+                        className={`mt-4 inline-flex w-full items-center justify-center rounded-full border-2 px-4 py-3 text-center text-sm font-semibold leading-relaxed ${h}`}
+                        style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.1)", color: NAVY }}
                         role="status"
                       >
-                        <div className="flex gap-4">
-                          <div
-                            className="flex size-12 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
-                            style={{ backgroundColor: TEAL }}
-                            aria-hidden
-                          >
-                            <svg
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M20 6 9 17l-5-5" />
-                            </svg>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className={`text-lg font-bold ${h}`}>You crushed it this month 🏆.</p>
-                            <p className={`mt-2 text-sm leading-relaxed opacity-90 ${h}`}>
-                              Every action completed. Your progress has been recorded. Keep this momentum going into
-                              next month.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        {nextUnlockBadgeText}
+                      </p>
                     ) : null}
                   </>
                 ) : null}
@@ -2204,6 +2201,72 @@ export default function BlueprintPage() {
           </ul>
         )}
       </div>
+      {showMonthCompletionOverlay ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center px-6 py-10"
+          style={{ backgroundColor: "rgba(15, 25, 35, 0.94)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Month completion celebration"
+        >
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+            {Array.from({ length: 28 }, (_, i) => (
+              <span
+                key={i}
+                className="cp-confetti"
+                style={
+                  {
+                    left: `${(i * 3.7) % 100}%`,
+                    animationDelay: `${(i % 12) * 0.18}s`,
+                    animationDuration: `${4.8 + (i % 6) * 0.35}s`,
+                    backgroundColor: i % 2 === 0 ? "#00C9A7" : "#FFFFFF",
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+          <div className="relative z-10 mx-auto w-full max-w-xl text-center">
+            <p className={`text-6xl ${h}`} style={{ lineHeight: 1.1, color: TEAL }}>
+              🏆
+            </p>
+            <p className={`mt-5 text-3xl font-bold ${h}`} style={{ color: "#FFFFFF" }}>
+              🏆 You crushed Month {programMonth}.
+            </p>
+            <p className={`mx-auto mt-4 max-w-lg text-base leading-relaxed ${h}`} style={{ color: "rgba(255,255,255,0.86)" }}>
+              Every action complete. Your progress is locked in. Keep this momentum going.
+            </p>
+            <button
+              type="button"
+              className={`mt-8 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold ${h}`}
+              style={{ backgroundColor: TEAL, color: NAVY }}
+              onClick={() => setShowMonthCompletionOverlay(false)}
+            >
+              Keep going →
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <style jsx>{`
+        .cp-confetti {
+          position: absolute;
+          top: -12%;
+          width: 8px;
+          height: 14px;
+          border-radius: 999px;
+          opacity: 0.95;
+          animation-name: cp-fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        @keyframes cp-fall {
+          0% {
+            transform: translate3d(0, -10vh, 0) rotate(0deg);
+          }
+          100% {
+            transform: translate3d(0, 112vh, 0) rotate(420deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
