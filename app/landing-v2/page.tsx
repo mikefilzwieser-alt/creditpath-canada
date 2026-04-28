@@ -114,7 +114,7 @@ export default function LandingV2Page() {
       <main>
         <section className="border-b border-black/10 bg-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <div className="border-l-4 border-[#00C9A7] pl-6 sm:pl-8">
+            <div className="border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
               <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
                 CANADA&apos;S CREDIT EDUCATION PLATFORM
               </p>
@@ -125,7 +125,8 @@ export default function LandingV2Page() {
                 Not generic tips. Not a score app. A real plan.
               </p>
               <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
-                Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month. Watch your score move.
+                Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month.{" "}
+                <span style={{ color: "#00C9A7" }}>Watch your score move.</span>
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-5">
                 <Link
@@ -346,23 +347,29 @@ export default function LandingV2Page() {
               <span style={{ color: "#00C9A7" }}>because nobody gave them a clear plan.</span>
             </p>
             <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
-              I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved a roadmap.
+              I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved{" "}
+              <span style={{ color: "#00C9A7" }}>a roadmap.</span>
             </p>
-            <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+            <div className="mt-8 border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
               <img
                 src={signatureSrc}
                 alt="Michael Filzwieser signature"
                 onError={() => setSignatureSrc("/michael-signature.jpg")}
                 style={{ width: 120, height: "auto", display: "block", marginBottom: 14, border: "0", background: "transparent" }}
               />
-              <p className={`text-lg font-bold text-[#0F1923] ${h}`}>— Michael Filzwieser</p>
+              <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Michael Filzwieser</p>
+              <p className="mt-1 text-sm text-[#0F1923]/80">
+                Founder, Credit Path Canada · Finance Director · Titanium Ford
+              </p>
               <p className="mt-1 text-xs text-[#0F1923]/50">
                 As seen at Titanium Ford — Steve Marshall Auto Group · Serving BC for 60 years
               </p>
               <p className="mt-1 text-sm text-[#0F1923]/80">
-                Founder, Credit Path Canada · Finance Director · Titanium Ford
+                (604) 442-0894 ·{" "}
+                <a href="mailto:info@creditpathcanada.ca" style={{ color: "#0F1923", textDecoration: "underline" }}>
+                  info@creditpathcanada.ca
+                </a>
               </p>
-              <p className="mt-1 text-sm text-[#0F1923]/80">(604) 442-0894 · info@creditpathcanada.ca</p>
             </div>
           </div>
         </section>
