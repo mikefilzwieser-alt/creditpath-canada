@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import { SiteHeader } from "@/components/landing/SiteHeader";
+import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -118,26 +119,26 @@ export default function LandingV2Page() {
               <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
                 Not generic tips. Not a score app. A real plan.
               </p>
-            </div>
-            <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
-              Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month. Watch your score move.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-5">
-              <Link
-                href="/onboarding"
-                className={`inline-flex rounded-xl bg-[#00C9A7] px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-[#0F1923] shadow-[0_10px_32px_rgba(0,201,167,0.35)] ${h}`}
-              >
-                GET MY BLUEPRINT →
-              </Link>
-              <Link href="/login" className={`text-base font-semibold text-[#0F1923] ${h}`}>
-                Sign in →
-              </Link>
-            </div>
-            <div className={`mt-8 space-y-2.5 text-sm text-[#00C9A7] ${h}`}>
-              <p className="font-semibold">✓ Trusted by Canadians rebuilding their credit</p>
-              <p className="font-medium">✓ Less than a coffee a week — $4.44</p>
-              <p className="font-medium">✓ First 30 days free</p>
-              <p className="font-medium">✓ Cancel anytime</p>
+              <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
+                Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month. Watch your score move.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <Link
+                  href="/onboarding"
+                  className={`inline-flex rounded-xl bg-[#00C9A7] px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-[#0F1923] shadow-[0_10px_32px_rgba(0,201,167,0.35)] ${h}`}
+                >
+                  GET MY BLUEPRINT →
+                </Link>
+                <Link href="/login" className={`text-base font-semibold text-[#0F1923] ${h}`}>
+                  Sign in →
+                </Link>
+              </div>
+              <div className={`mt-8 space-y-2.5 pb-1 text-sm text-[#00C9A7] ${h}`}>
+                <p className="font-semibold">✓ Trusted by Canadians rebuilding their credit</p>
+                <p className="font-medium">✓ Less than a coffee a week — $4.44</p>
+                <p className="font-medium">✓ First 30 days free</p>
+                <p className="font-medium">✓ Cancel anytime</p>
+              </div>
             </div>
           </div>
         </section>
@@ -163,9 +164,7 @@ export default function LandingV2Page() {
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[#0F1923] ${h}`}>How it works</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">
-              Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
-            </p>
+            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">Four steps. One clear path forward.</p>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, idx) => (
                 <div key={step.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]">
@@ -173,11 +172,7 @@ export default function LandingV2Page() {
                     {idx + 1}
                   </span>
                   <h3 className={`mt-4 text-lg font-bold text-[#0F1923] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>
-                    {idx === 2 ? (
-                      <>
-                        Step 3 — Get your <span style={{ color: "#00C9A7" }}>personalized blueprint</span>
-                      </>
-                    ) : idx === 3 ? (
+                    {idx === 3 ? (
                       <>
                         Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
                       </>
@@ -187,18 +182,18 @@ export default function LandingV2Page() {
                   </h3>
                   {idx === 0 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      We analyze your actual Equifax bureau —{" "}
-                      <span style={{ color: "#00C9A7" }}>every tradeline, every collection, every inquiry</span>. Nothing generic. Everything built from your real file.
+                      We analyze your actual Equifax bureau — every tradeline, every collection, every inquiry. Nothing generic. Everything built from your real file.
                     </p>
                   ) : idx === 1 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal —{" "}
-                      <span style={{ color: "#00C9A7" }}>not a one-size-fits-all template.</span>
+                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal — not a one-size-fits-all template.
+                    </p>
+                  ) : idx === 2 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      Your file analyzed and turned into a <span style={{ color: "#00C9A7" }}>clear month-by-month action plan</span>. 3 actions per month, ranked by score impact. You always know what matters most right now.
                     </p>
                   ) : idx === 3 ? (
-                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      Complete your monthly actions, unlock the next month, watch your score <span style={{ color: "#00C9A7" }}>move the score up</span>. Month by month. No guesswork. No wasted moves.
-                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
                   ) : (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
                   )}
@@ -223,23 +218,10 @@ export default function LandingV2Page() {
               ))}
             </div>
             <div className="mt-8 rounded-2xl border-2 border-[#00C9A7] bg-white p-6 shadow-sm md:mx-auto md:max-w-xl">
-              <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Total value: $1,000+</p>
+              <p className={`text-2xl font-extrabold text-[#0F1923] sm:text-3xl ${h}`}>
+                Total value: <span style={{ color: "#00C9A7" }}>$1,000+</span>
+              </p>
               <p className={`mt-1 text-xl font-extrabold text-[#00C9A7] ${h}`}>Your price: $4.44/week.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Real Canadians. Real outcomes. 🍁</h2>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((t) => (
-                <article key={t.quote} className="rounded-2xl border border-black/10 bg-[#F8FAFC] p-6 shadow-sm">
-                  <p className="text-sm font-bold tracking-wide text-[#00C9A7]">⭐⭐⭐⭐⭐</p>
-                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/85">&ldquo;{t.quote}&rdquo;</p>
-                  <p className={`mt-4 text-sm font-bold text-[#0F1923] ${h}`}>{t.by}</p>
-                </article>
-              ))}
             </div>
           </div>
         </section>
@@ -274,6 +256,13 @@ export default function LandingV2Page() {
           </div>
         </section>
 
+        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 className={`text-center text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Real Canadians. Real outcomes. 🍁</h2>
+            <TestimonialCarousel headingClass={h} />
+          </div>
+        </section>
+
         <section className="border-b border-black/10 bg-[#00C9A7] py-14 sm:py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <p className={`text-xl font-bold leading-relaxed text-[#0F1923] sm:text-2xl ${h}`}>
@@ -297,7 +286,15 @@ export default function LandingV2Page() {
               I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved a roadmap.
             </p>
             <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+              <img
+                src="/michael-signature.png"
+                alt="Michael Filzwieser signature"
+                style={{ width: 120, height: "auto", display: "block", marginBottom: 14 }}
+              />
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>— Michael Filzwieser</p>
+              <p className="mt-1 text-xs text-[#0F1923]/50">
+                As seen at Titanium Ford — Steve Marshall Auto Group · Serving BC for 60 years
+              </p>
               <p className="mt-1 text-sm text-[#0F1923]/80">
                 Finance Director · Titanium Ford · Founder, Credit Path Canada
               </p>

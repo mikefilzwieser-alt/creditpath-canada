@@ -68,10 +68,19 @@ export default function FaqPage() {
             key={item.q}
             className="group rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-5 shadow-sm"
           >
-            <summary className={`cursor-pointer list-none pr-6 text-lg font-bold text-[var(--cp-dark)] ${h}`}>
-              {item.q}
+            <summary className={`flex cursor-pointer list-none items-center justify-between gap-4 pr-0 text-lg font-bold text-[var(--cp-dark)] ${h}`}>
+              <span>{item.q}</span>
+              <span
+                aria-hidden
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-[var(--cp-teal)] text-base font-bold leading-none text-[var(--cp-teal)]"
+              >
+                <span className="group-open:hidden">+</span>
+                <span className="hidden group-open:inline">−</span>
+              </span>
             </summary>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--cp-dark)]/80">{item.a}</p>
+            <div className="grid transition-all duration-300 [grid-template-rows:0fr] group-open:[grid-template-rows:1fr]">
+              <p className="mt-2 overflow-hidden text-sm leading-relaxed text-[var(--cp-teal)]">{item.a}</p>
+            </div>
           </details>
         ))}
       </div>
