@@ -92,15 +92,6 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
           className="hidden md:flex"
           style={{ alignItems: "center", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}
         >
-          <Link href="/blog" style={linkStyle(blogActive)}>
-            Blog
-          </Link>
-          <Link href="/faq" style={linkStyle(faqActive)}>
-            FAQ
-          </Link>
-          <Link href="/resources" style={linkStyle(resourcesActive)}>
-            Free Resources
-          </Link>
           <Link
             href="/login"
             style={{
@@ -159,15 +150,6 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Link href="/blog" style={linkStyle(blogActive)} onClick={() => setMobileMenuOpen(false)}>
-              Blog
-            </Link>
-            <Link href="/faq" style={linkStyle(faqActive)} onClick={() => setMobileMenuOpen(false)}>
-              FAQ
-            </Link>
-            <Link href="/resources" style={linkStyle(resourcesActive)} onClick={() => setMobileMenuOpen(false)}>
-              Free Resources
-            </Link>
             <Link
               href="/login"
               onClick={() => setMobileMenuOpen(false)}
