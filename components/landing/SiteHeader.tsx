@@ -20,9 +20,10 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
     if (!mobileMenuOpen) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!mobileMenuRef.current) return;
-      if (!mobileMenuRef.current.contains(event.target as Node)) {
-        setMobileMenuOpen(false);
-      }
+      const target = event.target as HTMLElement;
+      if (mobileMenuRef.current.contains(target)) return;
+      if (target.closest?.(".cp-site-header__menu-btn")) return;
+      setMobileMenuOpen(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => {
@@ -50,6 +51,41 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
         zIndex: 50,
       }}
     >
+      <style>{`
+        .cp-site-header__menu-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        @media (min-width: 768px) {
+          .cp-site-header__menu-btn {
+            display: none !important;
+          }
+        }
+        .cp-site-header__desktop-nav {
+          display: none;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        @media (min-width: 768px) {
+          .cp-site-header__desktop-nav {
+            display: flex;
+          }
+        }
+        .cp-site-header__mobile-only {
+          position: fixed;
+          inset: 0;
+          z-index: 40;
+        }
+        @media (min-width: 768px) {
+          .cp-site-header__mobile-only {
+            display: none !important;
+            pointer-events: none;
+          }
+        }
+      `}</style>
       <div
         style={{
           maxWidth: "1152px",
@@ -70,7 +106,7 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
         </Link>
         <button
           type="button"
-          className="md:hidden"
+          className="cp-site-header__menu-btn"
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileMenuOpen}
           onClick={() => setMobileMenuOpen((v) => !v)}
@@ -88,10 +124,16 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
         >
           ☰
         </button>
-        <div
-          className="hidden md:flex"
-          style={{ alignItems: "center", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}
-        >
+        <div className="cp-site-header__desktop-nav">
+          <Link href="/blog" style={linkStyle(blogActive)}>
+            Blog
+          </Link>
+          <Link href="/faq" style={linkStyle(faqActive)}>
+            FAQ
+          </Link>
+          <Link href="/resources" style={linkStyle(resourcesActive)}>
+            Free Resources
+          </Link>
           <Link
             href="/login"
             style={{
@@ -125,8 +167,7 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
       </div>
       {mobileMenuOpen ? (
         <div
-          className="md:hidden"
-          style={{ position: "fixed", inset: 0, zIndex: 40 }}
+          className="cp-site-header__mobile-only"
           aria-hidden
           onClick={() => setMobileMenuOpen(false)}
         >
@@ -150,6 +191,27 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            <Link
+              href="/blog"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ ...linkStyle(blogActive), padding: "6px 0", textAlign: "center" }}
+            >
+              Blog
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ ...linkStyle(faqActive), padding: "6px 0", textAlign: "center" }}
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/resources"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ ...linkStyle(resourcesActive), padding: "6px 0", textAlign: "center" }}
+            >
+              Free Resources
+            </Link>
             <Link
               href="/login"
               onClick={() => setMobileMenuOpen(false)}
