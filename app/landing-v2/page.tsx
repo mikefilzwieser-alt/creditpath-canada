@@ -102,7 +102,7 @@ export default function LandingV2Page() {
               CANADA&apos;S CREDIT EDUCATION PLATFORM
             </p>
             <h1 className={`mt-4 max-w-5xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
-              What if you knew exactly what to do with your credit — every single month — based on your actual file?
+              What if you knew exactly what to do with your credit — every month — based on your actual file?
             </h1>
             <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
               Not generic tips. Not a score app. A real plan.
@@ -135,23 +135,59 @@ export default function LandingV2Page() {
             <h2 className={`text-3xl font-bold leading-tight sm:text-4xl ${h}`}>
               You&apos;ve probably been told no more than once.
             </h2>
-            <p className="mt-6 whitespace-pre-line text-base leading-relaxed text-white/90">
-              {`Maybe it was a car loan. A credit card. A mortgage pre-approval. Each rejection comes with a hard inquiry that damages your score further — and nobody tells you what to actually do about it.
-You're not irresponsible. You're not a lost cause. You were just never given a roadmap.
-Every month you wait, your score isn't moving. Every application you fire off without a plan is another inquiry stacking up. The problem was never you — it was that nobody sat down with your actual file and told you exactly what to do next.
-That changes today.`}
+            <p className="mt-6 text-base leading-relaxed text-white/90">
+              Maybe it was a car loan. A credit card. A mortgage pre-approval. Each rejection comes with a hard inquiry that damages your score — and nobody tells you what to actually do about it.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-white/90">
+              You&apos;re not irresponsible. You&apos;re not a lost cause. You were just never given a roadmap.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-white/90">
+              Every month you wait, your score isn&apos;t moving. Every application without a plan is another inquiry stacking up. That changes today.
             </p>
           </div>
         </section>
 
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Four steps. One clear path forward.</h2>
+            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>
+              Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
+            </h2>
             <div className="mt-10 grid gap-5 sm:grid-cols-2">
               {steps.map((step) => (
                 <article key={step.title} className="rounded-2xl border border-black/10 bg-[#F8FAFC] p-6 shadow-sm">
-                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>{step.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">{step.body}</p>
+                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>
+                    {step.title === "Step 4 — Hit your goals" ? (
+                      <>
+                        Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
+                      </>
+                    ) : step.title === "Step 3 — Get your personalized blueprint" ? (
+                      <>
+                        Step 3 — Get your <span style={{ color: "#00C9A7" }}>personalized blueprint</span>
+                      </>
+                    ) : (
+                      step.title
+                    )}
+                  </h3>
+                  {step.title === "Step 1 — Upload your credit report" ? (
+                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                      We analyze your actual Equifax bureau —{" "}
+                      <span style={{ color: "#00C9A7" }}>every tradeline, every collection, every inquiry.</span> Nothing generic. Everything built from your real file.
+                    </p>
+                  ) : step.title === "Step 2 — Tell us what you're rebuilding toward" ? (
+                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your{" "}
+                      <span style={{ color: "#00C9A7" }}>rebuilding toward</span> goal —{" "}
+                      <span style={{ color: "#00C9A7" }}>not a one-size-fits-all template.</span>
+                    </p>
+                  ) : step.title === "Step 3 — Get your personalized blueprint" ? (
+                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                      Your file analyzed and turned into a clear <span style={{ color: "#00C9A7" }}>month-by-month action plan.</span> 3 actions per month, ranked by score impact. You always know what matters most right now.
+                    </p>
+                  ) : (
+                    <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">
+                      Complete your monthly actions, unlock the next month, <span style={{ color: "#00C9A7" }}>watch your score move</span>. Month by month. No guesswork. No wasted moves.
+                    </p>
+                  )}
                 </article>
               ))}
             </div>
@@ -224,7 +260,7 @@ That changes today.`}
         <section className="border-b border-black/10 bg-[#00C9A7] py-14 sm:py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <p className={`text-xl font-bold leading-relaxed text-[#0F1923] sm:text-2xl ${h}`}>
-              If you follow the program for 12 months — complete your monthly actions, keep your accounts in good standing, and stay the course — your credit score will move. If it doesn&apos;t, we&apos;ll work with you for free until it does.
+              Follow the program for 12 months and your score will move. If it doesn&apos;t — we work with you for free until it does.
             </p>
             <p className="mt-4 text-sm font-semibold text-[#0F1923]/75">Full guarantee terms available on request.</p>
           </div>
@@ -233,10 +269,14 @@ That changes today.`}
         <section className="py-14 sm:py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Built by someone who sees this every day.</h2>
-            <p className="mt-6 whitespace-pre-line text-base leading-relaxed text-[#0F1923]/85">
-              {`I'm Michael Filzwieser — Finance Director at Titanium Ford, part of the Steve Marshall Auto Group. I've been in automotive finance for years. I see 30 credit applications a day. Twenty-nine get declined.
-For a long time I watched good people walk away with nothing — not because they couldn't be helped, but because nobody gave them a clear plan. They'd come back a year later in the same spot, sometimes worse.
-I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved a roadmap.`}
+            <p className="mt-6 text-base leading-relaxed text-[#0F1923]/85">
+              I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of the Steve Marshall Auto Group. I see 30 credit applications a day. Twenty-nine get declined.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
+              For a long time I watched good people walk away with nothing — not because they couldn&apos;t be helped, but because nobody gave them a clear plan.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
+              I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved a roadmap.
             </p>
             <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>— Michael Filzwieser</p>
