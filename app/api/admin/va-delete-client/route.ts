@@ -6,7 +6,7 @@ import { isValidVaPortalPassword } from "@/lib/va-portal";
 
 export const runtime = "nodejs";
 
-const SUCCESS_MESSAGE = "Client fully deleted from Supabase and Stripe";
+const SUCCESS_MESSAGE = "Client deleted from Supabase, auth, and Stripe";
 
 async function deleteClientAndChildren(admin: SupabaseClient, clientId: string): Promise<{ error: string | null }> {
   const { error: e1 } = await admin.from("action_completions").delete().eq("client_id", clientId);
@@ -85,18 +85,30 @@ export async function POST(request: Request) {
   }
 
   if (stripeCustomerId) {
-    const stripe = getStripe();
-    if (!stripe) {
-      return NextResponse.json(
-        { error: "STRIPE_SECRET_KEY is not configured; Stripe customer was not deleted." },
-        { status: 503 },
+    const stripeSecretAvailable = Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+    if (!stripeSecretAvailable) {
+      console.error(
+        "[va-delete-client] STRIPE_SECRET_KEY is not set; skipping Stripe customer deletion.",
+        { clientId, stripeCustomerId },
       );
-    }
-    try {
-      await stripe.customers.del(stripeCustomerId);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      return NextResponse.json({ error: `Stripe customer delete failed: ${msg}` }, { status: 502 });
+    } else {
+      const stripe = getStripe();
+      if (!stripe) {
+        console.error(
+          "[va-delete-client] getStripe() returned null; skipping Stripe customer deletion.",
+          { clientId, stripeCustomerId },
+        );
+      } else {
+        try {
+          await stripe.customers.del(stripeCustomerId);
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[va-delete-client] stripe.customers.del failed:", msg, {
+            clientId,
+            stripeCustomerId,
+          });
+        }
+      }
     }
   }
 
