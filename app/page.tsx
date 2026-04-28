@@ -78,15 +78,15 @@ export default function HomePage() {
       <main className="flex-1">
         {/* Hero */}
         <section className="border-b border-[var(--cp-border)] bg-white">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] md:items-center md:gap-12 md:py-24">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] md:items-center md:gap-12 md:py-24">
             <div className="border-l-4 border-[var(--cp-teal)] pl-6 md:pl-8">
               <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[var(--cp-teal)] ${h}`}>
                 Canada&apos;s Credit Education Platform
               </p>
-              <h1 className={`mt-4 text-4xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
+              <h1 className={`mt-4 text-3xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
                 Your personalized path back to strong credit.
               </h1>
-              <p className={`mt-4 text-lg font-semibold text-[var(--cp-dark)] sm:text-xl ${h}`}>
+              <p className={`mt-4 hidden text-lg font-semibold text-[var(--cp-dark)] sm:block sm:text-xl ${h}`}>
                 <span style={{ color: "#00C9A7" }}>Your Credit. Your Path. Your Future.</span>
               </p>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--cp-dark)]/80">
@@ -128,7 +128,7 @@ export default function HomePage() {
         </section>
 
         {/* Pain */}
-        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-dark)] py-16 text-white sm:py-24">
+        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-dark)] py-12 text-white sm:py-24">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <h2 className={`text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl ${h}`}>
               Tired of being told no?
@@ -145,7 +145,7 @@ export default function HomePage() {
         </section>
 
         {/* How it works */}
-        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[var(--cp-dark)] ${h}`}>How it works</h2>
             <p className="mt-2 max-w-2xl text-sm text-[var(--cp-muted)]">
@@ -171,7 +171,7 @@ export default function HomePage() {
         </section>
 
         {/* What you get */}
-        <section className="border-b border-[var(--cp-border)] bg-white py-16 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] bg-white py-12 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[var(--cp-dark)] ${h}`}>What you get</h2>
             <p className="mt-2 max-w-2xl text-sm text-[var(--cp-muted)]">
@@ -213,7 +213,7 @@ export default function HomePage() {
         </section>
 
         {/* Pricing */}
-        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
           <div className="mx-auto max-w-lg px-4 sm:px-6">
             <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Pricing</h2>
             <div className="mt-10 rounded-2xl border-2 border-[var(--cp-teal)] bg-white p-8 shadow-[0_12px_40px_rgba(15,25,35,0.08)]">
@@ -254,7 +254,7 @@ export default function HomePage() {
         </section>
 
         {/* Guarantee */}
-        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-14 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-12 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
               Trusted by Canadians rebuilding their credit
@@ -277,7 +277,7 @@ export default function HomePage() {
         </section>
 
         {/* Testimonials */}
-        <section className="border-b border-[var(--cp-border)] py-16 sm:py-20">
+        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Testimonials</h2>
             <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--cp-muted)]">
@@ -291,7 +291,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-[var(--cp-border)] bg-white py-8 text-center text-xs text-[var(--cp-muted)] sm:text-sm">
+      <footer className="border-t border-[var(--cp-border)] bg-white py-6 text-center text-xs text-[var(--cp-muted)] sm:py-8 sm:text-sm">
         <p className="font-medium text-[var(--cp-dark)]/80">
           Your Credit. Your Path. Your Future. · creditpathcanada.ca · © 2026 Credit Path Canada
         </p>
