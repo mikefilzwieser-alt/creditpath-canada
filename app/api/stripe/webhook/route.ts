@@ -117,6 +117,12 @@ export async function POST(request: Request) {
         const userId = session.client_reference_id ?? session.metadata?.supabase_user_id ?? null;
         const customerRaw = session.customer;
         const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
+        console.log("[webhook] checkout.session.completed fired", {
+          userId,
+          customerId,
+          hasUserId: Boolean(userId),
+          hasCustomerId: Boolean(customerId),
+        });
         if (userId && customerId) {
           let appliedPromoCode: string | undefined;
           const sessionObj = event.data.object as Stripe.Checkout.Session;
@@ -148,12 +154,13 @@ export async function POST(request: Request) {
               .update({ applied_promo_code: appliedPromoCode })
               .eq("stripe_customer_id", customerId);
           }
-          void sendCheckoutWelcomeEmail(admin, userId).catch((err) => {
-            console.warn("[stripe webhook] welcome email unexpected error", {
-              userId,
-              message: err instanceof Error ? err.message : String(err),
-            });
-          });
+          console.log("[webhook] calling sendCheckoutWelcomeEmail for", userId);
+          try {
+            await sendCheckoutWelcomeEmail(admin, userId);
+            console.log("[webhook] welcome email sent successfully");
+          } catch (err) {
+            console.error("[webhook] welcome email failed", err);
+          }
         }
         break;
       }

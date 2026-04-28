@@ -1135,10 +1135,20 @@ export default function BlueprintPage() {
         completionsRef.current.delete(index);
         return;
       }
-      setCompletedSet((prev) => new Set([...prev, index]));
+      setCompletedSet((prev) => {
+        const next = new Set([...prev, index]);
+        const allDoneNow = [0, 1, 2].every((i) => next.has(i)) && monthlyProgramActions.length >= 3;
+        if (allDoneNow && pm > 0 && pm < 5 && typeof window !== "undefined") {
+          const key = `celebration_shown_month_${pm}`;
+          if (window.localStorage.getItem(key) !== "1") {
+            setShowMonthCompletionOverlay(true);
+          }
+        }
+        return next;
+      });
       void runSyncProgress();
     },
-    [blueprint, user, runSyncProgress],
+    [blueprint, user, runSyncProgress, monthlyProgramActions.length],
   );
 
   const handleDownloadPdf = useCallback(() => {

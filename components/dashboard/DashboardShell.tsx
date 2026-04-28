@@ -448,7 +448,7 @@ export function DashboardShell({
                   {firstLoginSlide === 0 ? (
                     <p>
                       You just made the most important decision for your financial future. Over the next{" "}
-                      <span style={{ color: TEAL }}>8-12 months</span> we&apos;re going to move your credit score — month
+                      <span style={{ color: TEAL }}>8-12 months</span>{" "}we&apos;re going to move your credit score — month
                       by month — based on your actual file. No generic tips. No guesswork.{" "}
                       <span style={{ color: TEAL }}>A real plan built for you</span>.
                     </p>
