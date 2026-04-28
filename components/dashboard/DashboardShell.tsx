@@ -437,22 +437,33 @@ export function DashboardShell({
                 </p>
                 <h2 id="first-login-modal-title" className="mt-4 text-xl font-bold leading-snug sm:text-2xl">
                   {firstLoginSlide === 0 ? (
-                    <>
-                      Welcome to <span style={{ color: TEAL }}>Credit Path Canada</span> —{" "}
-                      {"here\u2019s how it works"}
-                    </>
+                    <>Welcome to Credit Path Canada.</>
                   ) : firstLoginSlide === 1 ? (
-                    <>
-                      Your <span style={{ color: TEAL }}>Personalized Blueprint</span> — your personalized credit plan
-                      lives here
-                    </>
+                    <>Your Blueprint is your roadmap.</>
                   ) : (
-                    <>
-                      Your Actions — <span style={{ color: TEAL }}>Complete Your Monthly Actions</span> to unlock the
-                      next month
-                    </>
+                    <>3 actions. Every month. That&apos;s it.</>
                   )}
                 </h2>
+                <div className="mt-4 space-y-3 text-sm leading-relaxed" style={{ color: "rgba(15, 25, 35, 0.82)" }}>
+                  {firstLoginSlide === 0 ? (
+                    <p>
+                      You just made the most important decision for your financial future. Over the next 8-12 months
+                      we&apos;re going to move your credit score — month by month — based on your actual file. No
+                      generic tips. No guesswork. A real plan built for you.
+                    </p>
+                  ) : firstLoginSlide === 1 ? (
+                    <p>
+                      Every recommendation is built from your actual Equifax bureau — your tradelines, your
+                      collections, your inquiries. Nothing generic. Log in anytime to see exactly where you stand and
+                      what to do next.
+                    </p>
+                  ) : (
+                    <p>
+                      Each month you get 3 clear actions ranked by score impact. Complete them, wait 28 days, and your
+                      next month unlocks automatically. The clients who follow through are the ones who get approved.
+                    </p>
+                  )}
+                </div>
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
                   <button
                     type="button"

@@ -11,16 +11,10 @@ const CARD_BORDER = "rgba(15, 25, 35, 0.08)";
 
 type ResourceItem = { name: string; description: string; href: string };
 
-const FEATURED_PLANNING: { title: string; items: ResourceItem[] } = {
-  title: "Free Financial Planning",
-  items: [
-    {
-      name: "Safe Wealth Planners — Brandon Kirk",
-      description: "Book a free session with a licensed financial planner.",
-      href: "https://calendly.com/brandonkirk/",
-    },
-  ],
-};
+const BRANDON_FEATURED = {
+  label: "Free Financial Planning Session — Brandon Kirk, Safe Wealth Planners",
+  href: "https://calendly.com/brandonkirk/",
+} as const;
 
 const SECTIONS: { title: string; items: ResourceItem[] }[] = [
   {
@@ -135,30 +129,31 @@ export default function ResourcesPage() {
       </header>
 
       <section className="space-y-4">
-        <h2 className={`text-lg font-bold ${h}`}>{FEATURED_PLANNING.title}</h2>
-        <ul className="grid gap-4 sm:grid-cols-1">
-          {FEATURED_PLANNING.items.map((item) => (
-            <li
-              key={item.href + item.name}
-              className="flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-              style={{ borderColor: CARD_BORDER }}
-            >
-              <div className="min-w-0 flex-1">
-                <p className={`font-bold ${h}`}>{item.name}</p>
-                <p className={`mt-1 text-sm leading-relaxed opacity-75 ${h}`}>{item.description}</p>
-              </div>
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${h}`}
-                style={{ backgroundColor: TEAL, color: NAVY }}
-              >
-                Visit →
-              </a>
-            </li>
-          ))}
-        </ul>
+        <h2 className={`text-lg font-bold ${h}`}>Featured</h2>
+        <div
+          className="rounded-2xl border-2 bg-white p-5 shadow-sm"
+          style={{ borderColor: TEAL, boxShadow: "0 8px 28px rgba(0, 201, 167, 0.12)" }}
+        >
+          <p
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${h}`}
+            style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.12)", color: NAVY }}
+          >
+            ⭐ Featured
+          </p>
+          <p className={`mt-3 text-base font-bold leading-snug sm:text-lg ${h}`}>{BRANDON_FEATURED.label}</p>
+          <p className={`mt-2 text-sm leading-relaxed opacity-80 ${h}`}>
+            Book a free session with a licensed financial specialist — no cost, no obligation.
+          </p>
+          <a
+            href={BRANDON_FEATURED.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition-opacity hover:opacity-90 sm:w-auto ${h}`}
+            style={{ backgroundColor: TEAL, color: NAVY }}
+          >
+            Book Now →
+          </a>
+        </div>
       </section>
 
       {SECTIONS.map((section) => (

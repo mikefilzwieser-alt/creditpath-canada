@@ -80,17 +80,37 @@ GOAL-MATCHED RECOMMENDATIONS (weave into blueprint_data.score_summary and top_ac
 • In score_summary and all client-facing strings, avoid specific month-range predictions (e.g., "4-8 months", "6-12 months"). Use general phrasing such as "with consistent monthly action."
 
 ══════════════════════════════════════════════════════════════════════════════
+TOP_ACTIONS EMOJI PREFIX (mandatory for every blueprint_data.top_actions[].action)
+══════════════════════════════════════════════════════════════════════════════
+Every **top_actions[].action** string MUST begin with **exactly one** emoji from the mapping below (emoji first, then a single space, then the action text). Infer the best-matching category from the action’s primary intent. If multiple categories could apply, pick the **first** match from this list (top to bottom):
+
+• ⏸️ Pause credit applications / stop applying / inquiry discipline before contacting Credit Path Canada
+• ✅ Set up pre-authorized payments / auto-pay / PAD habits
+• 💳 Pay down / reduce utilization on a specific card (named account or dollar target on one card)
+• 📈 Add a credit card / build tradelines / reach 3 network cards (unsecured path)
+• 🔍 Dispute an error on bureau / inaccuracies / errors_detected follow-ups
+• 📋 Deal with a collection account / collector / settlement or fall-off education tied to a collection
+• 🏦 Open a secured credit product / Neo or Koho secured / authorized user on someone else’s card
+• ⏳ Wait period / let time work / fall-off timing / “after 28 days” style gates without a different primary verb
+• 📞 Contact a creditor / call the lender / reach out to issuer (not collection agency unless clearly creditor servicer)
+• 🤝 Consumer Proposal related action / secured-only paths while in proposal / insolvency-framed habits
+• 💰 Pay down debt / balance reduction on installment or multiple accounts / past-due “bring current” when the main lever is dollars owed (not only one card’s utilization)
+• 📊 Monitor credit / check bureau / soft pull / Borrowell-style monitoring
+
+Do not stack multiple emojis. Do not omit the emoji on any top_actions entry.
+
+══════════════════════════════════════════════════════════════════════════════
 PERMANENT TOP ACTION #1 (all blueprints, no exceptions)
 ══════════════════════════════════════════════════════════════════════════════
-The first top action must ALWAYS be exactly:
-"Our clients rebuilding credit typically see the best outcomes by checking with Credit Path Canada before any credit application. Every application is a hard inquiry that damages your score and can delay your approval timeline significantly."
+The first top action must ALWAYS be exactly (including the ⏸️ prefix):
+"⏸️ Our clients rebuilding credit typically see the best outcomes by checking with Credit Path Canada before any credit application. Every application is a hard inquiry that damages your score and can delay your approval timeline significantly."
 This is mandatory for every client file, regardless of bureau contents.
 
 ══════════════════════════════════════════════════════════════════════════════
 PRIORITY ACTION #2 (when applicable — overrides standard Month 1 logic)
 ══════════════════════════════════════════════════════════════════════════════
 If ANY tradeline currently shows past due amount (PDA > 0) OR rating digit ≥2 (R2/I2/O2 or worse) on an OPEN account that is NOT written off (R9/I9):
-- top_actions[1] MUST be: "Our clients with past-due open accounts have typically seen the fastest score stabilization by bringing balances current when they are able to do so. [creditor name] is currently behind — catching up this account is often the single fastest way to limit further score damage. We recommend prioritizing the minimum payment plus the past-due amount this week after reviewing your budget or speaking with a licensed professional if you are unsure."
+- top_actions[1] MUST be: "💰 Our clients with past-due open accounts have typically seen the fastest score stabilization by bringing balances current when they are able to do so. [creditor name] is currently behind — catching up this account is often the single fastest way to limit further score damage. We recommend prioritizing the minimum payment plus the past-due amount this week after reviewing your budget or speaking with a licensed professional if you are unsure."
 - This replaces the standard pre-auth action as priority #2
 - The pre-auth action moves to priority #3
 - Reference the specific creditor name from the bureau data
@@ -119,7 +139,7 @@ When counting how many **credit cards are currently reporting** toward the 3-net
 7. **blueprint_data.credit_cards_reporting (integer):** Must equal the **exact** count of revolving tradelines that pass **ALL** rules in items **1–4** above — Visa/Mastercard/Amex network only, open and active (including description exclusions), rating **R1** or **R2** only, **not** excluded by **stale DLA** or **zero/missing balance + no activity in 3 months**. Tradelines that pass the count but trigger item **5** must still appear in this integer; item **5** governs narrative only.
 
 When recommending a secured credit card in top_actions, the action text must be concise. Use this exact format:
-"Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
+"🏦 Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
 Never include "on the Visa or Mastercard network" or "so you can" phrasing in this action.
 Count ONLY Visa/Mastercard/Amex network R-rated revolving cards that pass **all** rules in items **1–4** above toward the minimum of 3.
 • **Existing cards and utilization:** In blueprint narrative (especially **score_summary** segment 2 and utilization-related **top_actions**), **always** recommend using **existing** qualifying cards where applicable and keeping **revolving utilization under 30%** on all cards. Avoid implying that meeting the 3-card count removes the need for utilization discipline.
@@ -134,7 +154,7 @@ PRE-AUTH (blueprint_data)
 If ANY tradeline has rating digit ≥2 OR late_30 > 0 OR late_60 > 0 OR late_90 > 0:
   - blueprint_data.pre_auth_required: true
   - Include this pre-auth action immediately after the permanent hard-inquiry warning (i.e., as next priority action):
-    "Our clients in similar situations have typically seen the most progress when pre-authorized payments are set up on every account as soon as they are able to do so. This is often the single most important habit for protecting the score you are rebuilding. One missed payment can undo months of progress."
+    "✅ Our clients in similar situations have typically seen the most progress when pre-authorized payments are set up on every account as soon as they are able to do so. This is often the single most important habit for protecting the score you are rebuilding. One missed payment can undo months of progress."
 
 ══════════════════════════════════════════════════════════════════════════════
 UTILIZATION (summary + tradelines)
@@ -171,7 +191,7 @@ FORMATTING RULE: this_months_focus must be formatted as exactly 3 short separate
 
 **Avoid in this_months_focus for Month 1:** specific dollar paydown amounts; per-creditor paydown targets; **detailed collections strategy** (fall-off timing, resolution vs wait framing, CRA insolvency routing, etc.); account-level sequencing; or other tactical detail reserved for later program months.
 
-**blueprint_data.top_actions** in this initial JSON is also **Month 1**. **Specific paydown dollar amounts, detailed collections strategy, and account-level paydown plans should not appear in top_actions** here — reserve those for **Month 2+** program outputs (outside this parse). You **must** still output **top_actions[0]** as the **PERMANENT TOP ACTION #1** string verbatim, and when **pre_auth_required** is true, include the **PRE-AUTH** verbatim string as the next priority action as already specified (those are allowed because they are protective, not paydown math). Any additional **top_actions** entries must stay **high-level** (e.g. on-time habit, general utilization discipline, inquiry discipline) **without** creditor names plus dollar targets or line-by-line collections playbooks.
+**blueprint_data.top_actions** in this initial JSON is also **Month 1**. **Specific paydown dollar amounts, detailed collections strategy, and account-level paydown plans should not appear in top_actions** here — reserve those for **Month 2+** program outputs (outside this parse). You **must** still output **top_actions[0]** as the **PERMANENT TOP ACTION #1** string verbatim, and when **pre_auth_required** is true, include the **PRE-AUTH** verbatim string as the next priority action as already specified (those are allowed because they are protective, not paydown math). Any additional **top_actions** entries must stay **high-level** (e.g. on-time habit, general utilization discipline, inquiry discipline) **without** creditor names plus dollar targets or line-by-line collections playbooks. **Every** top_actions entry's **action** field must follow **TOP_ACTIONS EMOJI PREFIX** (including the mandatory verbatim strings, which already include their emoji).
 
 **Elsewhere in JSON:** **tradelines[].action_recommended**, **collections[].recommendation**, and **collection_strategy** should still follow their respective sections (structured / ops detail). Keep **this_months_focus** and **top_actions** for Month 1 free of copied collections tactics or per-account dollar paydown plans — use educational framing in structured fields as specified in COLLECTIONS STRATEGY.
 

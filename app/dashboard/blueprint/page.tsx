@@ -939,7 +939,7 @@ export default function BlueprintPage() {
   }, [monthlyProgramActions.length, completedSet]);
 
   const nextUnlockMeta = useMemo(() => {
-    if (!blueprint || programMonth >= 5) {
+    if (!blueprint || programMonth >= 4) {
       return { daysRemaining: null as number | null, unlockAtMs: null as number | null, nextMonth: null as number | null };
     }
     const unlockedAt = blueprint.month_unlocked_at ?? blueprint.created_at;
@@ -1868,7 +1868,7 @@ export default function BlueprintPage() {
                   {getProgramMonthThemeSubtitle(programMonth)}
                 </p>
 
-                {nextUnlockMeta.nextMonth != null && programMonth < 5 ? (
+                {nextUnlockMeta.nextMonth != null && programMonth < 4 ? (
                   <p className="mt-4 rounded-xl border border-black/10 bg-[#F5F7FA] px-4 py-3 text-sm leading-relaxed text-[#0F1923]/75">
                     Month {nextUnlockMeta.nextMonth} unlocks when all actions are complete and 28 days have passed.
                   </p>
@@ -1946,7 +1946,7 @@ export default function BlueprintPage() {
                   </>
                 ) : null}
 
-                {programMonth < 5 && nextUnlockBadgeText ? (
+                {programMonth < 4 && nextUnlockBadgeText ? (
                   <div
                     className={`mt-4 inline-flex w-full max-w-full flex-wrap items-center justify-center gap-1 rounded-full border px-4 py-3 text-center text-sm font-semibold leading-snug sm:text-base ${h}`}
                     style={{
