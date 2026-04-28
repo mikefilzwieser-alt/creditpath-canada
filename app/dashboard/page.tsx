@@ -84,6 +84,7 @@ type ParsedBureau = {
 };
 
 type BlueprintPlan = {
+  rebuild_score?: number;
   rebuild_score_label?: string;
   score_summary?: string;
   this_months_focus?: string;
@@ -130,7 +131,7 @@ function isNetworkCard(tradeline: NonNullable<ParsedBureau["tradelines"]>[number
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading: authLoading, headingFontClass } = useDashboardAuth();
+  const { user, loading: authLoading, headingFontClass, hasDashboardAccess } = useDashboardAuth();
   const firstName = firstNameFromUser(user);
   const h = headingFontClass;
   const [checkoutActivating, setCheckoutActivating] = useState(false);
@@ -317,6 +318,76 @@ export default function DashboardPage() {
 
   const allMonthlyActionsComplete =
     hasBlueprint && topActionsTotal > 0 && completedActionsCount === topActionsTotal;
+  const rebuildScoreNumber =
+    typeof plan?.rebuild_score === "number" && Number.isFinite(plan.rebuild_score) ? Math.round(plan.rebuild_score) : null;
+  const monthOneActions = (Array.isArray(plan?.top_actions) ? plan.top_actions : [])
+    .map((a) => (typeof a?.action === "string" ? a.action.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (!hasDashboardAccess && hasBlueprint) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6" style={{ color: NAVY }}>
+        <header className="space-y-2">
+          <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${h}`}>Welcome back, {firstName}</h1>
+          <p className="text-sm text-[#0F1923]/70">Your blueprint preview is ready.</p>
+        </header>
+
+        <section className="grid gap-4 sm:grid-cols-2">
+          <div
+            className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/60">Equifax Score</p>
+            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
+              {equifaxScore ?? "—"}
+            </p>
+          </div>
+          <div
+            className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/60">Rebuild Score</p>
+            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
+              {rebuildScoreNumber ?? "—"}
+            </p>
+          </div>
+        </section>
+
+        <section
+          className="relative overflow-hidden rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+        >
+          <h2 className={`text-lg font-bold ${h}`}>Your 3 Month 1 actions are ready</h2>
+          <ul className="mt-4 space-y-3">
+            {(monthOneActions.length > 0 ? monthOneActions : ["Action 1", "Action 2", "Action 3"]).map((action, idx) => (
+              <li
+                key={`${idx}-${action}`}
+                className="rounded-xl border border-black/10 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold leading-relaxed text-[#0F1923]"
+                style={{ filter: "blur(4px)", userSelect: "none" }}
+                aria-hidden
+              >
+                {action}
+              </li>
+            ))}
+          </ul>
+          <div className="absolute inset-x-4 bottom-4 rounded-2xl border-2 p-5 shadow-lg" style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.95)", color: NAVY }}>
+            <p className={`text-lg font-bold leading-snug ${h}`}>Your blueprint is built. Activate your free trial to unlock it.</p>
+            <p className="mt-2 text-sm font-semibold leading-relaxed">
+              First 30 days free. Cancel anytime. Less than a coffee a week.
+            </p>
+            <Link
+              href="/onboarding"
+              className={`mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#0F1923] px-5 py-3 text-center text-sm font-bold text-white transition-opacity hover:opacity-90 ${h}`}
+            >
+              Unlock My Blueprint — Free for 30 Days
+            </Link>
+          </div>
+          <div className="h-40" aria-hidden />
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-8" style={{ color: NAVY }}>

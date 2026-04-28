@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runBlueprintGenerationForBlueprint } from "@/lib/blueprint-run-generation";
 import { parsePdfBufferAndSaveBlueprintForUser } from "@/lib/parse-bureau-save-for-user";
-import { sendCpcWelcomeEmail } from "@/lib/send-cpc-welcome-email";
+import { sendBlueprintReadyEmail } from "@/lib/send-blueprint-ready-email";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
 
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: genResult.error }, { status: 502 });
   }
 
-  const emailResult = await sendCpcWelcomeEmail(email, full_name, temporaryPassword);
+  const emailResult = await sendBlueprintReadyEmail(email, full_name);
 
   return NextResponse.json({
     ok: true,

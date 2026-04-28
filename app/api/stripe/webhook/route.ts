@@ -41,32 +41,35 @@ async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): 
 
   const greetingName = fullNameRaw ? escapeHtml(fullNameRaw) : "there";
 
-  const html = `
-  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0F1923;">
-    <div style="background: #00C9A7; padding: 24px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Credit Path Canada</h1>
-    </div>
-    <div style="padding: 32px;">
-      <p>Hi ${greetingName},</p>
-      <p>You're officially enrolled in Canada's Credit Education Program — and your journey starts today.</p>
-      <p>Over the next 12–24 months we're going to work together to strengthen your credit profile, month by month, with a clear personalized plan built specifically for you.</p>
-      <p>Your first blueprint is ready. Log in anytime to see your Month 1 actions and track your progress.</p>
-      <p style="text-align: center; margin: 32px 0;">
-        <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold;">View My Blueprint</a>
-      </p>
-      <p>If you have any questions at any point, reply to this email or reach out directly — we're with you every step of the way.</p>
-      <p>— Michael Filzwieser<br>Founder, Credit Path Canada<br>(604) 442-0894</p>
-    </div>
-    <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-      Credit Path Canada · <a href="https://www.creditpathcanada.ca">creditpathcanada.ca</a>
-    </div>
+  const html = `<div style="font-family: 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; color: #0F1923;">
+  <div style="background: #00C9A7; padding: 24px; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 22px;">You're In. Let's Build.</h1>
   </div>
-`.trim();
+  <div style="padding: 32px;">
+    <p>Hi ${greetingName},</p>
+    <p>Welcome to Credit Path Canada. Your blueprint is unlocked and your Month 1 plan is live. Before you dive in — two rules that protect everything we're about to build together:</p>
+    <div style="background: #fff3cd; border-left: 4px solid #f0a500; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
+      <p style="margin: 0;"><strong>🚫 Rule 1 — Do not apply for credit anywhere without contacting us first.</strong> Every application is a hard inquiry that damages your score and could delay your approval. Call or text us before you act. We are your credit specialist.</p>
+    </div>
+    <div style="background: #e8f8f5; border-left: 4px solid #00C9A7; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
+      <p style="margin: 0;"><strong>✅ Rule 2 — Set up pre-authorized payments on every account today.</strong> Payment history is the single biggest factor in your score. One missed payment undoes months of work. Set up autopay on every account — cards, loans, phone bills — this week. Not next week. Today.</p>
+    </div>
+    <p>Those two actions protect everything. Now log in and check your Month 1 plan.</p>
+    <p style="text-align: center; margin: 32px 0;">
+      <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">View My Blueprint</a>
+    </p>
+    <p>Any questions — reply to this email or call me directly.</p>
+    <p style="margin-top: 32px;">— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Finance Director · Titanium Ford · Founder, Credit Path Canada<br>(604) 442-0894 · info@creditpathcanada.ca</span></p>
+  </div>
+  <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
+    Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color: #00C9A7;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6
+  </div>
+</div>`;
 
   const { error } = await resend.emails.send({
     from,
     to: [authData.user.email.trim()],
-    subject: "Welcome to Credit Path Canada",
+    subject: "Welcome to Credit Path Canada — Read This First",
     html,
   });
 

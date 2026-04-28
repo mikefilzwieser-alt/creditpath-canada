@@ -25,6 +25,7 @@ export type DashboardAuthContextValue = {
   loading: boolean;
   refreshUser: () => Promise<void>;
   headingFontClass: string;
+  hasDashboardAccess: boolean;
 };
 
 const DashboardAuthContext = createContext<DashboardAuthContextValue | null>(null);
@@ -38,6 +39,7 @@ export function useDashboardAuth(): DashboardAuthContextValue {
       loading: true,
       refreshUser: async () => {},
       headingFontClass: "",
+      hasDashboardAccess: true,
     };
   }
   return ctx;
@@ -79,6 +81,7 @@ export function DashboardShell({
   const [loading, setLoading] = useState(true);
   /** False until subscription/promo paywall check finishes (mirrors proxy for client navigations). */
   const [paywallChecked, setPaywallChecked] = useState(false);
+  const [hasDashboardAccess, setHasDashboardAccess] = useState(true);
   const [routeHash, setRouteHash] = useState("");
   const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
   const [firstLoginSlide, setFirstLoginSlide] = useState(0);
@@ -168,6 +171,7 @@ export function DashboardShell({
     let cancelled = false;
     void (async () => {
       if (paymentSuccess) {
+        setHasDashboardAccess(true);
         if (!cancelled) {
           const { data: flData, error: flErr } = await supabase
             .from("clients")
@@ -221,9 +225,26 @@ export function DashboardShell({
           accessUntil: data?.access_until,
         })
       ) {
+        const { data: existingBlueprint } = await supabase
+          .from("blueprints")
+          .select("id")
+          .eq("client_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (cancelled) return;
+        if (existingBlueprint?.id) {
+          setHasDashboardAccess(false);
+          setPaywallChecked(true);
+          if (pathname !== "/dashboard") {
+            router.replace("/dashboard");
+          }
+          return;
+        }
         router.replace("/pricing");
         return;
       }
+      setHasDashboardAccess(true);
 
       if (!cancelled && data?.first_login_seen === true) {
         firstLoginDismissedRef.current = true;
@@ -239,7 +260,7 @@ export function DashboardShell({
     return () => {
       cancelled = true;
     };
-  }, [user?.id, loading]);
+  }, [user?.id, loading, pathname, router]);
 
   useEffect(() => {
     if (!user || typeof window === "undefined") return;
@@ -289,8 +310,9 @@ export function DashboardShell({
       loading,
       refreshUser,
       headingFontClass,
+      hasDashboardAccess,
     }),
-    [user, loading, refreshUser, headingFontClass],
+    [user, loading, refreshUser, headingFontClass, hasDashboardAccess],
   );
 
   const blockingLoader = loading || (Boolean(user) && !paywallChecked);
