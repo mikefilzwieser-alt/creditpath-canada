@@ -942,10 +942,8 @@ export default function BlueprintPage() {
     if (!blueprint || programMonth >= 5) {
       return { daysRemaining: null as number | null, unlockAtMs: null as number | null, nextMonth: null as number | null };
     }
-    const createdMs = new Date(blueprint.created_at).getTime();
     const unlockedAt = blueprint.month_unlocked_at ?? blueprint.created_at;
-    const unlockedMs = new Date(unlockedAt).getTime();
-    const gateMs = programMonth === 1 ? createdMs : unlockedMs;
+    const gateMs = new Date(unlockedAt).getTime();
     if (!Number.isFinite(gateMs)) {
       return { daysRemaining: null, unlockAtMs: null, nextMonth: programMonth + 1 };
     }
@@ -1945,16 +1943,22 @@ export default function BlueprintPage() {
                       {completedSet.size} of {monthlyProgramActions.length}{" "}
                       {monthlyProgramActions.length === 1 ? "action" : "actions"} completed this month
                     </p>
-                    {completedSet.size === monthlyProgramActions.length ? (
-                      <p
-                        className={`mt-4 inline-flex w-full items-center justify-center rounded-full border-2 px-4 py-3 text-center text-sm font-semibold leading-relaxed ${h}`}
-                        style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.1)", color: NAVY }}
-                        role="status"
-                      >
-                        {nextUnlockBadgeText}
-                      </p>
-                    ) : null}
                   </>
+                ) : null}
+
+                {programMonth < 5 && nextUnlockBadgeText ? (
+                  <div
+                    className={`mt-4 inline-flex w-full max-w-full flex-wrap items-center justify-center gap-1 rounded-full border px-4 py-3 text-center text-sm font-semibold leading-snug sm:text-base ${h}`}
+                    style={{
+                      borderColor: TEAL,
+                      backgroundColor: "rgba(0, 201, 167, 0.18)",
+                      color: NAVY,
+                    }}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {nextUnlockBadgeText}
+                  </div>
                 ) : null}
 
                 <div className="mt-6 border-t border-black/10 pt-5">
