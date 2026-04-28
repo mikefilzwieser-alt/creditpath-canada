@@ -286,6 +286,7 @@ export default function VaAdminPage() {
   const [listVaFilter, setListVaFilter] = useState<string>("");
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
   const [listRows, setListRows] = useState<ListRow[]>([]);
   const [selectedClient, setSelectedClient] = useState<ListRow | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -623,20 +624,23 @@ export default function VaAdminPage() {
       if (!window.confirm("Are you sure you want to delete this client?")) return;
       setDeletingId(row.id);
       setListError("");
+      setDeleteSuccess("");
       try {
         const res = await fetch("/api/admin/va-delete-client", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ portal_password: portalPassword, client_id: row.id }),
         });
-        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; warning?: string };
+        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
         if (!res.ok || !data.ok) {
           setListError(data.error ?? "Delete failed.");
           return;
         }
-        if (data.warning) {
-          console.warn(data.warning);
-        }
+        setDeleteSuccess(
+          typeof data.message === "string" && data.message.trim()
+            ? data.message.trim()
+            : "Client fully deleted from Supabase and Stripe",
+        );
         setSelectedClient((prev) => (prev?.id === row.id ? null : prev));
         await loadClients();
       } catch {
@@ -1175,6 +1179,7 @@ export default function VaAdminPage() {
                   </button>
                 </div>
               </div>
+              {deleteSuccess ? <p className="text-sm font-semibold text-emerald-700">{deleteSuccess}</p> : null}
               {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
               {listLoading ? (
                 <p className="text-sm opacity-70">Loading…</p>
