@@ -157,6 +157,20 @@ export async function middleware(request: NextRequest) {
     });
 
     if (shouldRedirectToPricing(effectiveRow, readError, paymentSuccess)) {
+      const { data: existingBlueprint } = await supabase
+        .from("blueprints")
+        .select("id")
+        .eq("client_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existingBlueprint?.id) {
+        console.log("[dashboard paywall] unpaid user with blueprint → allow /dashboard teaser", {
+          userId: user.id,
+          blueprint_id: existingBlueprint.id,
+        });
+        return supabaseResponse;
+      }
       console.log("[dashboard paywall] redirect → /pricing", {
         userId: user.id,
         subscription_status: statusRead,

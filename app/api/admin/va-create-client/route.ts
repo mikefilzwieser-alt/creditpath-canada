@@ -134,7 +134,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: genResult.error }, { status: 502 });
   }
 
+  console.info("[va-create-client] blueprint ready email send start", {
+    userId,
+    email,
+    blueprint_id: parseResult.blueprintId,
+  });
   const emailResult = await sendBlueprintReadyEmail(email, full_name);
+  console.info("[va-create-client] blueprint ready email send result", {
+    userId,
+    sent: emailResult.sent,
+    reason: emailResult.sent ? null : emailResult.reason,
+    detail: emailResult.sent ? null : emailResult.detail ?? null,
+  });
 
   return NextResponse.json({
     ok: true,

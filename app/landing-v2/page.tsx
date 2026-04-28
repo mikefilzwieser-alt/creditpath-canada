@@ -1,13 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import { SiteHeader } from "@/components/landing/SiteHeader";
-import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Credit Path Canada — Landing V2",
-  description: "Standalone landing page sandbox for comparison.",
-};
+import { useEffect, useState } from "react";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -102,6 +98,15 @@ const testimonials = [
 
 export default function LandingV2Page() {
   const h = montserrat.className;
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [signatureSrc, setSignatureSrc] = useState("/michael-signature.png");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, []);
 
   return (
     <div className={`min-h-full bg-[#F5F7FA] text-[#0F1923] ${montserrat.variable}`}>
@@ -164,7 +169,9 @@ export default function LandingV2Page() {
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[#0F1923] ${h}`}>How it works</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">Four steps. One clear path forward.</p>
+            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">
+              Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
+            </p>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, idx) => (
                 <div key={step.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]">
@@ -182,18 +189,20 @@ export default function LandingV2Page() {
                   </h3>
                   {idx === 0 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      We analyze your actual Equifax bureau — every tradeline, every collection, every inquiry. Nothing generic. Everything built from your real file.
+                      We <span style={{ color: "#00C9A7" }}>analyze your actual Equifax bureau</span> — every tradeline, every collection, every inquiry. Nothing generic. Everything built from your real file.
                     </p>
                   ) : idx === 1 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal — not a one-size-fits-all template.
+                      A vehicle. A mortgage. A clean slate. Your blueprint stays <span style={{ color: "#00C9A7" }}>focused on your goal</span> — not a one-size-fits-all template.
                     </p>
                   ) : idx === 2 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       Your file analyzed and turned into a <span style={{ color: "#00C9A7" }}>clear month-by-month action plan</span>. 3 actions per month, ranked by score impact. You always know what matters most right now.
                     </p>
                   ) : idx === 3 ? (
-                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      Complete your monthly actions, unlock the next month, <span style={{ color: "#00C9A7" }}>watch your score move</span>. Month by month. No guesswork. No wasted moves.
+                    </p>
                   ) : (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
                   )}
@@ -259,7 +268,61 @@ export default function LandingV2Page() {
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className={`text-center text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Real Canadians. Real outcomes. 🍁</h2>
-            <TestimonialCarousel headingClass={h} />
+            <div className="relative mx-auto mt-10 max-w-4xl">
+              <button
+                type="button"
+                aria-label="Previous testimonials"
+                onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                className={`absolute left-0 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full text-[#0F1923] shadow-md transition-opacity hover:opacity-90 md:flex ${h}`}
+                style={{ backgroundColor: "#00C9A7" }}
+              >
+                <span className="text-xl font-bold leading-none" aria-hidden="true">
+                  ‹
+                </span>
+              </button>
+              <button
+                type="button"
+                aria-label="Next testimonials"
+                onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                className={`absolute right-0 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full text-[#0F1923] shadow-md transition-opacity hover:opacity-90 md:flex ${h}`}
+                style={{ backgroundColor: "#00C9A7" }}
+              >
+                <span className="text-xl font-bold leading-none" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+              <article className="mx-auto rounded-2xl border border-black/10 bg-[#F8FAFC] p-6 shadow-sm md:mx-14">
+                <p className="text-sm font-bold tracking-wide text-[#00C9A7]">⭐⭐⭐⭐⭐</p>
+                <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/85">
+                  &ldquo;{testimonials[activeTestimonial]?.quote}&rdquo;
+                </p>
+                <p className={`mt-4 text-sm font-bold text-[#0F1923] ${h}`}>{testimonials[activeTestimonial]?.by}</p>
+              </article>
+              <div className="mt-4 flex justify-center gap-3 md:hidden">
+                <button
+                  type="button"
+                  aria-label="Previous testimonials"
+                  onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                  className={`inline-flex size-11 items-center justify-center rounded-full text-[#0F1923] shadow-md ${h}`}
+                  style={{ backgroundColor: "#00C9A7" }}
+                >
+                  <span className="text-xl font-bold leading-none" aria-hidden="true">
+                    ‹
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next testimonials"
+                  onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                  className={`inline-flex size-11 items-center justify-center rounded-full text-[#0F1923] shadow-md ${h}`}
+                  style={{ backgroundColor: "#00C9A7" }}
+                >
+                  <span className="text-xl font-bold leading-none" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -287,16 +350,17 @@ export default function LandingV2Page() {
             </p>
             <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
               <img
-                src="/michael-signature.png"
+                src={signatureSrc}
                 alt="Michael Filzwieser signature"
-                style={{ width: 120, height: "auto", display: "block", marginBottom: 14 }}
+                onError={() => setSignatureSrc("/michael-signature.jpg")}
+                style={{ width: 120, height: "auto", display: "block", marginBottom: 14, border: "0", background: "transparent" }}
               />
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>— Michael Filzwieser</p>
               <p className="mt-1 text-xs text-[#0F1923]/50">
                 As seen at Titanium Ford — Steve Marshall Auto Group · Serving BC for 60 years
               </p>
               <p className="mt-1 text-sm text-[#0F1923]/80">
-                Finance Director · Titanium Ford · Founder, Credit Path Canada
+                Founder, Credit Path Canada · Finance Director · Titanium Ford
               </p>
               <p className="mt-1 text-sm text-[#0F1923]/80">(604) 442-0894 · info@creditpathcanada.ca</p>
             </div>
