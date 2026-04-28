@@ -108,14 +108,21 @@ When counting how many **credit cards are currently reporting** toward the 3-net
    - **Exclude entirely** from the count any revolving trade with rating **R5**, **R7**, **R8**, or **R9** (do not include them in the numerator or in language implying they count as healthy reporting cards).
    - Use the rating exactly as shown on the bureau; do not invent **R0**.
 
-3. **Claude must apply this filter consistently** when computing **recommended_cards**, when populating **summary** fields tied to open revolving cards, when scoring **rebuild_score** “Network cards reporting,” whenever the JSON or **score_summary** states how many credit cards are **currently reporting**, and when setting **blueprint_data.credit_cards_reporting** (see REQUIRED JSON SHAPE).
+3. **Stale account exclusion (DLA):** Do **not** count a revolving tradeline as actively reporting if the **Date of Last Activity (DLA)** is **more than 3 months before** the bureau **report date** / as-of date shown on the PDF (compare calendar months consistently). A stale account is not actively reporting to the bureaus and must **not** count toward the 3-card minimum.
 
-4. **blueprint_data.credit_cards_reporting (integer):** Must equal the **exact** count of revolving tradelines that pass **ALL** rules in items 1–2 above — Visa/Mastercard/Amex network only, open and active (including description exclusions), rating **R1** or **R2** only. This number is the authoritative “cards currently reporting” count for downstream UIs; it must match how you counted for **recommended_cards** / narrative (same tradeline set, before applying the 0–3 cap on **recommended_cards**).
+4. **Zero or missing balance with no recent activity:** If a revolving tradeline shows **no balance** (zero, blank, not reported, or missing) **and** **no activity** in the **last 3 months** (no payment, no charge, no update — infer from DLA, last reported activity, and bureau fields as shown), do **not** count it as actively reporting.
+
+5. **Late payment history flag (still counts):** If **late_30**, **late_60**, or **late_90** is **greater than 0** on a tradeline that otherwise passes items **1–4**, **still include** it in **credit_cards_reporting** and in **recommended_cards** math — but in **blueprint_data.score_summary** (especially segment 2), **this_months_focus**, and other blueprint narrative as appropriate, **flag** that account as **needing attention** for payment history. **Do not** describe it as a fully “healthy” or “clean” reporting card without acknowledging the late history.
+
+6. **Claude must apply this filter consistently** when computing **recommended_cards**, when populating **summary** fields tied to open revolving cards, when scoring **rebuild_score** “Network cards reporting,” whenever the JSON or **score_summary** states how many credit cards are **currently reporting**, and when setting **blueprint_data.credit_cards_reporting** (see REQUIRED JSON SHAPE).
+
+7. **blueprint_data.credit_cards_reporting (integer):** Must equal the **exact** count of revolving tradelines that pass **ALL** rules in items **1–4** above — Visa/Mastercard/Amex network only, open and active (including description exclusions), rating **R1** or **R2** only, **not** excluded by **stale DLA** or **zero/missing balance + no activity in 3 months**. Tradelines that pass the count but trigger item **5** must still appear in this integer; item **5** governs narrative only.
 
 When recommending a secured credit card in top_actions, the action text must be concise. Use this exact format:
 "Add a secured credit card (Neo Financial or Koho secured) to build history toward three healthy revolving accounts."
 Never include "on the Visa or Mastercard network" or "so you can" phrasing in this action.
-Count ONLY Visa/Mastercard/Amex network R-rated revolving cards that pass **all** rules in items 1–2 above toward the minimum of 3.
+Count ONLY Visa/Mastercard/Amex network R-rated revolving cards that pass **all** rules in items **1–4** above toward the minimum of 3.
+• **Existing cards and utilization:** In blueprint narrative (especially **score_summary** segment 2 and utilization-related **top_actions**), **always** recommend using **existing** qualifying cards where applicable and keeping **revolving utilization under 30%** on all cards. Do not imply that meeting the 3-card count removes the need for utilization discipline.
 • 0 qualifying network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
 • 1 → recommended_cards: 2
 • 2 → recommended_cards: 1
@@ -193,7 +200,7 @@ Calculate rebuild_score as a weighted score from 0–100 using ONLY these factor
    - 2+ collections = 0 pts
 
 4. Network cards reporting (10 points max):
-   - Use the same counting rules as **CREDIT CARDS REPORTING & "recommended_cards"** and **blueprint_data.credit_cards_reporting**: only Visa/MC/Amex R-revolving that are open/active (description exclusions), rating **R1 or R2 only**; never count R3/R4; exclude R5/R7/R8/R9 entirely.
+   - Use the same counting rules as **CREDIT CARDS REPORTING & "recommended_cards"** and **blueprint_data.credit_cards_reporting**: only Visa/MC/Amex R-revolving that are open/active (description exclusions), rating **R1 or R2 only**, passing **stale DLA** and **zero/missing balance + no activity in 3 months** exclusions; never count R3/R4; exclude R5/R7/R8/R9 entirely. Apply item **5** (late-history narrative flagging) in blueprint copy where relevant — it does not change the numeric count.
    - 3+ qualifying cards = 10 pts
    - 2 qualifying cards = 7 pts
    - 1 qualifying card = 3 pts
@@ -218,13 +225,13 @@ CRITICAL: rebuild_score is a mathematical calculation. After calculating all 5 c
 ══════════════════════════════════════════════════════════════════════════════
 AUTO LOAN READINESS (blueprint_data)
 ══════════════════════════════════════════════════════════════════════════════
-• Compute readiness_percentage: number 0–100 from: current Equifax score vs 640 target, months of clean payment history, utilization trend on R-revolving, collections status (resolved vs active), count of **qualifying** network cards reporting (same R1/R2 + open/description rules as **CREDIT CARDS REPORTING**).
+• Compute readiness_percentage: number 0–100 from: current Equifax score vs 640 target, months of clean payment history, utilization trend on R-revolving, collections status (resolved vs active), count of **qualifying** network cards reporting (same rules as **CREDIT CARDS REPORTING**, including DLA / balance-activity exclusions and late-history narrative treatment).
 • When readiness_percentage >= 75, set blueprint_data.auto_ready_alert to true (alerts ops / email pipeline server-side).
 
 ══════════════════════════════════════════════════════════════════════════════
 REQUIRED JSON SHAPE (all keys required; use null only where specified)
 ══════════════════════════════════════════════════════════════════════════════
-• **blueprint_data.recommended_cards** must be the same integer as root **recommended_cards** (0–3 capped count). **blueprint_data.credit_cards_reporting** follows it in the object and is the uncapped qualifying count (see item 4 under CREDIT CARDS REPORTING).
+• **blueprint_data.recommended_cards** must be the same integer as root **recommended_cards** (0–3 capped count). **blueprint_data.credit_cards_reporting** follows it in the object and is the uncapped qualifying count (see item 7 under CREDIT CARDS REPORTING).
 {
   "dnq": boolean,
   "dnq_reason": string (empty string if dnq is false),
