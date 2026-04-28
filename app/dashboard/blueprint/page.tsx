@@ -1911,6 +1911,9 @@ export default function BlueprintPage() {
                                 height: 24,
                                 borderColor: done ? TEAL : "var(--cp-border)",
                                 backgroundColor: done ? TEAL : "transparent",
+                                color: done ? "#FFFFFF" : NAVY,
+                                WebkitAppearance: "none",
+                                appearance: "none",
                               }}
                               disabled={!canSave}
                               aria-label={done ? "Mark action not complete" : "Mark action complete"}
