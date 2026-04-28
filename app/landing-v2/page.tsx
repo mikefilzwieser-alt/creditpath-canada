@@ -107,16 +107,18 @@ export default function LandingV2Page() {
       <SiteHeader />
       <main>
         <section className="border-b border-black/10 bg-white">
-          <div className="mx-auto max-w-6xl border-l-4 border-[#00C9A7] px-4 py-14 pl-6 sm:px-6 sm:py-20 sm:pl-8">
-            <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
-              CANADA&apos;S CREDIT EDUCATION PLATFORM
-            </p>
-            <h1 className={`mt-4 max-w-5xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
-              What if you knew exactly what to do with your credit — every month — based on your actual file?
-            </h1>
-            <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
-              Not generic tips. Not a score app. A real plan.
-            </p>
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+            <div className="border-l-4 border-[#00C9A7] pl-6 sm:pl-8">
+              <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
+                CANADA&apos;S CREDIT EDUCATION PLATFORM
+              </p>
+              <h1 className={`mt-4 max-w-5xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
+                What if you knew exactly what to do with your credit — every month — based on your actual file?
+              </h1>
+              <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
+                Not generic tips. Not a score app. A real plan.
+              </p>
+            </div>
             <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
               Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month. Watch your score move.
             </p>
@@ -149,7 +151,8 @@ export default function LandingV2Page() {
               Maybe it was a car loan. A credit card. A mortgage pre-approval. Each rejection comes with a hard inquiry that damages your score — and nobody tells you what to actually do about it.
             </p>
             <p className="mt-5 text-base leading-relaxed text-white/90">
-              You&apos;re not irresponsible. You&apos;re not a lost cause. You were just never given a roadmap.
+              You&apos;re not irresponsible. You&apos;re not a lost cause.{" "}
+              <span style={{ color: "#00C9A7" }}>You were just never given a roadmap.</span>
             </p>
             <p className="mt-5 text-base leading-relaxed text-white/90">
               Every month you wait, your score isn&apos;t moving. Every application without a plan is another inquiry stacking up. That changes today.
@@ -159,9 +162,10 @@ export default function LandingV2Page() {
 
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>
+            <h2 className={`text-3xl font-bold text-[#0F1923] ${h}`}>How it works</h2>
+            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">
               Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
-            </h2>
+            </p>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, idx) => (
                 <div key={step.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]">
@@ -169,11 +173,11 @@ export default function LandingV2Page() {
                     {idx + 1}
                   </span>
                   <h3 className={`mt-4 text-lg font-bold text-[#0F1923] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>
-                    {step.title === "Step 3 — Get your personalized blueprint" ? (
+                    {idx === 2 ? (
                       <>
                         Step 3 — Get your <span style={{ color: "#00C9A7" }}>personalized blueprint</span>
                       </>
-                    ) : step.title === "Step 4 — Hit your goals" ? (
+                    ) : idx === 3 ? (
                       <>
                         Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
                       </>
@@ -181,19 +185,19 @@ export default function LandingV2Page() {
                       step.title
                     )}
                   </h3>
-                  {step.title === "Step 1 — Upload your credit report" ? (
+                  {idx === 0 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       We analyze your actual Equifax bureau —{" "}
-                      <span style={{ color: "#00C9A7" }}>every tradeline, every collection, every inquiry.</span> Nothing generic. Everything built from your real file.
+                      <span style={{ color: "#00C9A7" }}>every tradeline, every collection, every inquiry</span>. Nothing generic. Everything built from your real file.
                     </p>
-                  ) : step.title === "Step 2 — Tell us what you're rebuilding toward" ? (
+                  ) : idx === 1 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
                       A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal —{" "}
                       <span style={{ color: "#00C9A7" }}>not a one-size-fits-all template.</span>
                     </p>
-                  ) : step.title === "Step 4 — Hit your goals" ? (
+                  ) : idx === 3 ? (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-                      Complete your monthly actions, unlock the next month, <span style={{ color: "#00C9A7" }}>watch your score move</span>. Month by month. No guesswork. No wasted moves.
+                      Complete your monthly actions, unlock the next month, watch your score <span style={{ color: "#00C9A7" }}>move the score up</span>. Month by month. No guesswork. No wasted moves.
                     </p>
                   ) : (
                     <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
@@ -218,7 +222,7 @@ export default function LandingV2Page() {
                 </article>
               ))}
             </div>
-            <div className="mt-8 rounded-2xl border-2 border-[#00C9A7] bg-white p-6 shadow-sm">
+            <div className="mt-8 rounded-2xl border-2 border-[#00C9A7] bg-white p-6 shadow-sm md:mx-auto md:max-w-xl">
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Total value: $1,000+</p>
               <p className={`mt-1 text-xl font-extrabold text-[#00C9A7] ${h}`}>Your price: $4.44/week.</p>
             </div>
@@ -286,7 +290,8 @@ export default function LandingV2Page() {
               I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of the Steve Marshall Auto Group. I see 30 credit applications a day. Twenty-nine get declined.
             </p>
             <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
-              For a long time I watched good people walk away with nothing — not because they couldn&apos;t be helped, but because nobody gave them a clear plan.
+              For a long time I watched good people walk away with nothing — not because they couldn&apos;t be helped, but{" "}
+              <span style={{ color: "#00C9A7" }}>because nobody gave them a clear plan.</span>
             </p>
             <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
               I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved a roadmap.
