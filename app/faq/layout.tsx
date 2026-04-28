@@ -23,6 +23,7 @@ export default function FaqLayout({ children }: Readonly<{ children: React.React
             info@creditpathcanada.ca
           </a>
         </p>
+        <p className="mt-3">34 W 7th Ave #401, Vancouver, BC V5Y 1L6</p>
       </footer>
     </div>
   );
