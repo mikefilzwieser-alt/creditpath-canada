@@ -1,14 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import { SiteHeader } from "@/components/landing/SiteHeader";
-import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Credit Path Canada — Rebuild Your Credit in 24 Months",
-  description:
-    "Canada's personalized credit rebuilding platform. Upload your bureau, get a custom 24-month Blueprint, and follow monthly actions to rebuild your score. First 30 days free.",
-};
+import { useEffect, useState } from "react";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -18,280 +13,369 @@ const montserrat = Montserrat({
 
 const steps = [
   {
-    n: 1,
-    title: "Upload credit report",
-    text: "Securely connect your bureau snapshot so every recommendation maps to your real profile.",
+    title: "Step 1 — Upload your credit report",
+    body: "We analyze your actual Equifax bureau — every tradeline, every collection, every inquiry. Nothing generic. Everything built from your real file.",
   },
   {
-    n: 2,
-    title: "Set your credit goals",
-    text: "Tell us what you are rebuilding toward so your Blueprint stays goal-driven month after month.",
+    title: "Step 2 — Tell us what you're rebuilding toward",
+    body: "A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your goal — not a one-size-fits-all template.",
   },
   {
-    n: 3,
-    title: "Personalized blueprint",
-    text: "Receive a structured 24-month plan with clear priorities based on your bureau—not generic tips.",
+    title: "Step 3 — Get your personalized blueprint",
+    body: "Your file analyzed and turned into a clear month-by-month action plan. 3 actions per month, ranked by score impact. You always know what matters most right now.",
   },
   {
-    n: 4,
-    title: "Hit your goals",
-    text: "Stay consistent with your monthly plan, track wins, and move the score up —on your timeline!",
+    title: "Step 4 — Hit your goals",
+    body: "Complete your monthly actions, unlock the next month, watch your score move. Month by month. No guesswork. No wasted moves.",
   },
 ] as const;
 
-const benefits = [
+const valueCards = [
   {
     title: "Your Credit Blueprint",
-    body: "Personalized 24-month plan built from your actual bureau data—not a one-size template.",
+    tag: "$497 value",
+    body: "A personalized 24-month plan built from your actual bureau data. Not a template. Not generic advice. Your file, your plan, your path.",
   },
   {
     title: "Monthly Action Plan",
-    body: "Clear priorities every month, ranked by score impact so you always know what matters first.",
+    tag: "$197/year value",
+    body: "3 clear priorities every month, ranked by score impact. You always know what to do next and why it matters.",
   },
   {
-    title: "Personalized Blueprint",
-    body: "Your bureau analyzed and turned into a clear month-by-month action plan built specifically for your credit profile.",
+    title: "Recommended Credit Products",
+    tag: "Saves $200+",
+    body: "The exact cards and products that will move your score fastest — with referral codes and bonuses built in.",
   },
   {
-    title: "Powersport Financing Program",
-    body: "Pathways and guidance aimed at helping you qualify for the powersport financing you want, with clear steps tied to your bureau picture.",
+    title: "Free Financial Planning Session",
+    tag: "$150 value",
+    body: "Access to a licensed financial specialist through our partner Brandon Kirk at Safe Wealth Planners. One session, no cost, no obligation.",
   },
   {
-    title: "Debt Consolidation Referrals",
-    body: "When consolidation fits your situation, we point you toward trusted referral options so you can simplify payments and rebuild with a clearer plan.",
+    title: "Direct Line to a Finance Director",
+    tag: "Priceless",
+    body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he's ready to get you approved.",
   },
   {
-    title: "Financial Freedom",
-    body: "Hit your goals with confidence—stronger credit opens calmer choices, room to breathe, and a future that feels like yours again.",
+    title: "Personal Loan Access",
+    tag: "No hard credit check",
+    body: "Pre-qualify for a personal loan without a hard inquiry touching your score. We connect you with trusted lending partners when the timing is right for your file.",
   },
 ] as const;
 
-export default function HomePage() {
+const testimonials = [
+  {
+    quote:
+      "I have to admit I had zero faith. Michael asked me to give him a chance — and within two days he had an approval, three vehicles picked out, and got me the exact vehicle I wanted despite bad credit and being self-employed. So happy I gave him a chance.",
+    by: "— Michelle P., Vancouver BC",
+  },
+  {
+    quote:
+      "My credit was shot and I wasn't sure how I was going to get back on the road. Michael was incredibly patient through all my anxiety and questions. He told me — make your payments on time and you'll be able to trade into the vehicle you actually want in a year. He was right.",
+    by: "— Cassandra B., BC",
+  },
+  {
+    quote:
+      "I filed a consumer proposal four years ago. Michael never made me feel like that was the end of the road. The approval process was smooth, the deal was satisfying, and he was genuinely listening the whole time. Second time I've used him — won't be the last.",
+    by: "— Igor S., BC",
+  },
+  {
+    quote:
+      "Single mother of three. They helped me get a vehicle that was reasonable in price, better than what I had, and delivered it to my driveway. I couldn't have gone to a better place.",
+    by: "— Sherri N., BC",
+  },
+  {
+    quote:
+      "Michael went above and beyond. From the moment the deal started to the moment I had my keys — it was an impeccable experience. When you call, ask for Michael.",
+    by: "— Emmanuel O., BC",
+  },
+  {
+    quote:
+      "Michael, Michaela, the two gentlemen we met in Saskatoon, and everyone else involved did absolutely amazing helping us get set up with a Christmas Miracle of the perfect car for my family. Can't thank you enough!",
+    by: "— Kels O., Saskatchewan",
+  },
+] as const;
+
+export default function LandingV2Page() {
   const h = montserrat.className;
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [signatureSrc, setSignatureSrc] = useState("/michael-signature.png");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, []);
 
   return (
-    <div
-      className={`flex min-h-full flex-col bg-[var(--cp-bg-light)] text-[var(--cp-dark)] ${montserrat.variable}`}
-    >
+    <div className={`min-h-full bg-[#F5F7FA] text-[#0F1923] ${montserrat.variable}`}>
       <SiteHeader />
-
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="border-b border-[var(--cp-border)] bg-white">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] md:items-center md:gap-12 md:py-24">
-            <div className="border-l-4 border-[var(--cp-teal)] pl-6 md:pl-8">
-              <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[var(--cp-teal)] ${h}`}>
-                Canada&apos;s Credit Education Platform
+      <main>
+        <section className="border-b border-black/10 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+            <div className="border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
+              <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
+                CANADA&apos;S CREDIT EDUCATION PLATFORM
               </p>
-              <h1 className={`mt-4 text-3xl font-bold leading-tight tracking-tight text-[var(--cp-dark)] sm:text-5xl ${h}`}>
-                Your personalized path back to strong credit.
+              <h1 className={`mt-4 max-w-5xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
+                What if you knew exactly what to do with your credit — every month — based on your actual file?
               </h1>
-              <p className={`mt-4 hidden text-lg font-semibold text-[var(--cp-dark)] sm:block sm:text-xl ${h}`}>
-                <span style={{ color: "#00C9A7" }}>Your Credit. Your Path. Your Future.</span>
+              <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
+                Not generic tips. Not a score app. A real plan.
               </p>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--cp-dark)]/80">
-                Upload your bureau. Set your goals. Follow your personalized 24-month Blueprint with clear monthly
-                actions — no guesswork, no gimmicks.
+              <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
+                Upload your bureau. Get a personalized blueprint built from your actual credit file. Follow 3 clear actions every month.{" "}
+                <span style={{ color: "#00C9A7" }}>Watch your score move.</span>
               </p>
-              <div className="mt-10 pb-2">
-                <div className="flex flex-wrap items-center gap-4">
-                  <Link
-                    href="/onboarding"
-                    className={`inline-flex rounded-2xl bg-[var(--cp-teal)] px-8 py-4 text-lg font-extrabold uppercase tracking-wide text-[var(--cp-dark)] shadow-[0_10px_40px_rgba(0,201,167,0.45)] ring-2 ring-[var(--cp-teal)]/80 transition-all hover:scale-[1.02] hover:opacity-95 hover:shadow-[0_14px_48px_rgba(0,201,167,0.5)] ${h}`}
-                  >
-                    GET MY BLUEPRINT
-                  </Link>
-                  <Link
-                    href="/login"
-                    className={`inline-flex rounded-xl border border-[var(--cp-border)] bg-white px-6 py-3 text-base font-bold text-[var(--cp-dark)] transition-colors hover:bg-[var(--cp-bg-light)] ${h}`}
-                  >
-                    Sign in
-                  </Link>
-                </div>
-                <div className={`mt-10 flex flex-col gap-2.5 text-sm text-[var(--cp-teal)] ${h}`}>
-                  <p className="font-semibold leading-snug">✓ Trusted by Canadians rebuilding their credit</p>
-                  <p className="font-medium leading-snug">✓ Less than a coffee per week — $4.44</p>
-                  <p className="font-medium leading-snug">✓ First 30 days free</p>
-                  <p className="font-medium leading-snug">✓ Cancel anytime</p>
-                </div>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <Link
+                  href="/onboarding"
+                  className={`inline-flex rounded-xl bg-[#00C9A7] px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-[#0F1923] shadow-[0_10px_32px_rgba(0,201,167,0.35)] ${h}`}
+                >
+                  GET MY BLUEPRINT →
+                </Link>
+                <Link href="/login" className={`text-base font-semibold text-[#0F1923] ${h}`}>
+                  Sign in →
+                </Link>
+              </div>
+              <div className={`mt-8 space-y-2.5 pb-1 text-sm text-[#00C9A7] ${h}`}>
+                <p className="font-semibold">✓ Trusted by Canadians rebuilding their credit</p>
+                <p className="font-medium">✓ Less than a coffee a week — $4.44</p>
+                <p className="font-medium">✓ First 30 days free</p>
+                <p className="font-medium">✓ Cancel anytime</p>
               </div>
             </div>
-            <div className="hidden rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-8 shadow-[0_12px_36px_rgba(15,25,35,0.08)] md:block md:p-9 md:py-10">
-              <p className={`text-base font-bold text-[var(--cp-teal)] ${h}`}>Why Credit Path Canada</p>
-              <p className="mt-4 text-base leading-relaxed text-[var(--cp-dark)]/75">Built for Canadians 🍁</p>
-              <p className="mt-2 text-base leading-relaxed text-[var(--cp-dark)]/75">{"By Canadians  🍁"}</p>
-              <p className="mt-2 text-base leading-relaxed text-[var(--cp-dark)]/75">
-                Who want a clear, month-by-month plan — not another generic score app.
-              </p>
-            </div>
           </div>
         </section>
 
-        {/* Pain */}
-        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-dark)] py-12 text-white sm:py-24">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h2 className={`text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl ${h}`}>
-              Tired of being told no?
+        <section className="border-b border-black/10 bg-[#0F1923] py-14 text-white sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <h2 className={`text-3xl font-bold leading-tight sm:text-4xl ${h}`}>
+              You&apos;ve probably been told no more than once.
             </h2>
-            <p className="mt-8 text-lg leading-relaxed text-white/90 sm:text-xl">
-              Every rejection is another{" "}
-              <span className="font-bold text-[var(--cp-teal)]">hard inquiry</span>. Every month you wait is another
-              month your score <span className="font-bold text-[var(--cp-teal)]">isn&apos;t moving</span>. The problem
-              isn&apos;t you — it was that{" "}
-              <span className="font-bold text-[var(--cp-teal)]">nobody gave you a roadmap</span>.{" "}
-              <span className="font-bold text-[var(--cp-teal)]">Until now.</span>
+            <p className="mt-6 text-base leading-relaxed text-white/90">
+              Maybe it was a car loan. A credit card. A mortgage pre-approval. Each rejection comes with a hard inquiry that damages your score — and nobody tells you what to actually do about it.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-white/90">
+              You&apos;re not irresponsible. You&apos;re not a lost cause.{" "}
+              <span style={{ color: "#00C9A7" }}>You were just never given a roadmap.</span>
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-white/90">
+              Every month you wait, your score isn&apos;t moving. Every application without a plan is another inquiry stacking up. That changes today.
             </p>
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
+        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-3xl font-bold text-[var(--cp-dark)] ${h}`}>How it works</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--cp-muted)]">
-              Four steps from bureau upload to a living plan you can follow every month.
+            <h2 className={`text-3xl font-bold text-[#0F1923] ${h}`}>How it works</h2>
+            <p className="mt-2 max-w-2xl text-sm text-[#0F1923]/60">
+              Four steps. <span style={{ color: "#00C9A7" }}>One clear path forward.</span>
             </p>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((step) => (
-                <div
-                  key={step.n}
-                  className="rounded-2xl border border-[var(--cp-border)] bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]"
-                >
-                  <span
-                    className={`inline-flex size-10 items-center justify-center rounded-full bg-[var(--cp-teal)] text-sm font-bold text-[var(--cp-dark)] ${h}`}
-                  >
-                    {step.n}
+              {steps.map((step, idx) => (
+                <div key={step.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-[0_8px_24px_rgba(15,25,35,0.04)]">
+                  <span className={`inline-flex size-10 items-center justify-center rounded-full bg-[#00C9A7] text-sm font-bold text-[#0F1923] ${h}`}>
+                    {idx + 1}
                   </span>
-                  <h3 className={`mt-4 text-lg font-bold text-[var(--cp-dark)] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--cp-dark)]/75">{step.text}</p>
+                  <h3 className={`mt-4 text-lg font-bold text-[#0F1923] ${h}`} style={{ fontSize: "18px", fontWeight: 600 }}>
+                    {idx === 3 ? (
+                      <>
+                        Step 4 — <span style={{ color: "#00C9A7" }}>Hit your goals</span>
+                      </>
+                    ) : (
+                      step.title
+                    )}
+                  </h3>
+                  {idx === 0 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      We <span style={{ color: "#00C9A7" }}>analyze your actual Equifax bureau</span> — every tradeline, every collection, every inquiry. Nothing generic. Everything built from your real file.
+                    </p>
+                  ) : idx === 1 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      A vehicle. A mortgage. A clean slate. Your blueprint stays <span style={{ color: "#00C9A7" }}>focused on your goal</span> — not a one-size-fits-all template.
+                    </p>
+                  ) : idx === 2 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      Your file analyzed and turned into a <span style={{ color: "#00C9A7" }}>clear month-by-month action plan</span>. 3 actions per month, ranked by score impact. You always know what matters most right now.
+                    </p>
+                  ) : idx === 3 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+                      Complete your monthly actions, unlock the next month, <span style={{ color: "#00C9A7" }}>watch your score move</span>. Month by month. No guesswork. No wasted moves.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">{step.body}</p>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* What you get */}
-        <section className="border-b border-[var(--cp-border)] bg-white py-12 sm:py-20">
+        <section className="border-b border-black/10 py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-3xl font-bold text-[var(--cp-dark)] ${h}`}>What you get</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--cp-muted)]">
-              Everything you need to rebuild with confidence.
-            </p>
-            <div className="mx-auto mt-10 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {benefits.map((card) => {
-                const isFinancialFreedom = card.title === "Financial Freedom";
-                return (
-                  <div
-                    key={card.title}
-                    className="rounded-2xl border border-[var(--cp-border)] bg-[var(--cp-bg-light)] p-6 shadow-sm"
-                  >
-                    <h3
-                      className={`text-lg font-bold leading-snug ${h} ${
-                        isFinancialFreedom ? "text-[#00C9A7]" : "text-[var(--cp-dark)]"
-                      }`}
-                    >
-                      {card.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed">
-                      {isFinancialFreedom ? (
-                        <>
-                          <span className="text-[#00C9A7]">Hit your goals with confidence</span>
-                          <span className="text-[#0F1923]">
-                            —stronger credit opens calmer choices, room to breathe, and a future that feels like yours
-                            again.
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-[var(--cp-dark)]/80">{card.body}</span>
-                      )}
-                    </p>
+            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Everything you need to rebuild with confidence.</h2>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {valueCards.map((card) => (
+                <article key={card.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className={`text-base font-bold text-[#0F1923] ${h}`}>{card.title}</h3>
+                    <span className="rounded-full bg-[#00C9A7]/15 px-3 py-1 text-xs font-bold text-[#0F1923]">{card.tag}</span>
                   </div>
-                );
-              })}
+                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">{card.body}</p>
+                </article>
+              ))}
+            </div>
+            <div className="mt-8 rounded-2xl border-2 border-[#00C9A7] bg-white p-6 shadow-sm md:mx-auto md:max-w-xl">
+              <p className={`text-2xl font-extrabold text-[#0F1923] sm:text-3xl ${h}`}>
+                Total value: <span style={{ color: "#00C9A7" }}>$1,000+</span>
+              </p>
+              <p className={`mt-1 text-xl font-extrabold text-[#00C9A7] ${h}`}>Your price: $4.44/week.</p>
             </div>
           </div>
         </section>
 
-        {/* Pricing */}
-        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
-          <div className="mx-auto max-w-lg px-4 sm:px-6">
-            <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Pricing</h2>
-            <div className="mt-10 rounded-2xl border-2 border-[var(--cp-teal)] bg-white p-8 shadow-[0_12px_40px_rgba(15,25,35,0.08)]">
-              <p className={`text-center text-4xl font-bold text-[var(--cp-dark)] ${h}`}>$4.44</p>
-              <p className="text-center text-sm font-semibold text-[var(--cp-muted)]">per week · CAD</p>
-              <p className={`mt-3 text-center text-base text-[#0F1923] ${h}`}>
-                Less than a coffee per week. No contracts.
-              </p>
-              <p className={`mt-4 text-center text-sm font-bold text-[var(--cp-teal)] ${h}`}>
-                First 30 days free · Cancel anytime
-              </p>
-              <ul className="mt-6 space-y-3 text-sm text-[var(--cp-dark)]/85">
-                <li className="flex gap-2">
-                  <span className="font-bold text-[var(--cp-teal)]">✓</span>
-                  Your Credit Blueprint
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-[var(--cp-teal)]">✓</span>
-                  24-month program
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-[var(--cp-teal)]">✓</span>
-                  Monthly unlocks
-                </li>
-                <li className="flex gap-2">
-                  <span className="font-bold text-[var(--cp-teal)]">✓</span>
-                  Recommended credit products
-                </li>
+        <section className="border-b border-black/10 py-14 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <h2 className={`text-center text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Less than a coffee a week.</h2>
+            <p className="mx-auto mt-5 max-w-3xl text-center text-sm leading-relaxed text-[#0F1923]/80 sm:text-base">
+              What does staying where you are actually cost you? A <span style={{ color: "#00C9A7" }}>580</span> credit score vs a{" "}
+              <span style={{ color: "#00C9A7" }}>680</span> credit score on a $30,000 auto loan is the difference between 12% and
+              6% interest. That&apos;s over <span style={{ color: "#00C9A7" }}>$9,000</span> out of your pocket over the life of the
+              loan. Credit Path Canada costs $4.44 a week.
+            </p>
+            <div className="mx-auto mt-8 max-w-xl rounded-2xl border-2 border-[#00C9A7] bg-white p-7 shadow-sm">
+              <p className={`text-center text-3xl font-bold text-[#0F1923] ${h}`}>$4.44/week · CAD</p>
+              <p className="mt-1 text-center text-sm font-semibold text-[#0F1923]/65">Billed $8.88 biweekly · No contracts</p>
+              <ul className="mt-6 space-y-2.5 text-sm text-[#0F1923]/85">
+                <li>✓ Your personalized Credit Blueprint</li>
+                <li>✓ 24-month program with monthly unlocks</li>
+                <li>✓ Recommended credit products with referral bonuses</li>
+                <li>✓ Free financial planning session</li>
+                <li>✓ Direct access to a licensed Finance Director</li>
               </ul>
               <Link
                 href="/onboarding"
-                className={`mt-8 flex w-full items-center justify-center rounded-xl bg-[var(--cp-teal)] px-6 py-3.5 text-center text-base font-bold text-[var(--cp-dark)] transition-opacity hover:opacity-90 ${h}`}
+                className={`mt-7 inline-flex w-full items-center justify-center rounded-xl bg-[#00C9A7] px-6 py-3 text-center text-base font-bold text-[#0F1923] ${h}`}
               >
-                Start free — 30 days on us
+                Start Free — 30 Days On Us →
               </Link>
+              <p className="mt-3 text-center text-xs text-[#0F1923]/65">First 30 days free. Cancel anytime. No risk.</p>
             </div>
           </div>
         </section>
 
-        {/* Guarantee */}
-        <section className="border-b border-[var(--cp-border)] bg-[var(--cp-teal)] py-12 sm:py-20">
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-            <h2 className={`text-2xl font-extrabold leading-tight text-[var(--cp-dark)] sm:text-3xl ${h}`}>
-              Trusted by Canadians rebuilding their credit
-            </h2>
-            <p className="mt-5 text-base font-semibold leading-relaxed text-[var(--cp-dark)]/90 sm:text-lg">
-              Show up every month and your credit will move.
-            </p>
-            <p className="mx-auto mt-8 max-w-3xl text-left text-xs font-bold leading-snug text-[var(--cp-dark)]/75">
-              Guarantee requires: 12 consecutive months of active subscription; completion of all monthly actions with
-              documented proof submitted through the portal; minimum 2 credit cards open and reporting for the full
-              12-month period; zero missed payments across all accounts; zero new collections; all credit card balances
-              maintained under 30% utilization at all times; consistent income level throughout the program period (any
-              reduction in income voids eligibility); credit score improvement measured from enrollment baseline only;
-              guarantee claim must be submitted within 30 days of completing month 12. Credit Path Canada reserves the
-              right to request supporting documentation for any guarantee claim. Results may vary. This guarantee
-              applies to credit score improvement only and does not guarantee approval for any specific credit product or
-              loan.
-            </p>
+        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 className={`text-center text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Real Canadians. Real outcomes. 🍁</h2>
+            <div className="relative mx-auto mt-10 max-w-4xl">
+              <button
+                type="button"
+                aria-label="Previous testimonials"
+                onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                className={`absolute left-0 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full text-[#0F1923] shadow-md transition-opacity hover:opacity-90 md:flex ${h}`}
+                style={{ backgroundColor: "#00C9A7" }}
+              >
+                <span className="text-xl font-bold leading-none" aria-hidden="true">
+                  ‹
+                </span>
+              </button>
+              <button
+                type="button"
+                aria-label="Next testimonials"
+                onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                className={`absolute right-0 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full text-[#0F1923] shadow-md transition-opacity hover:opacity-90 md:flex ${h}`}
+                style={{ backgroundColor: "#00C9A7" }}
+              >
+                <span className="text-xl font-bold leading-none" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+              <article className="mx-auto rounded-2xl border border-black/10 bg-[#F8FAFC] p-6 shadow-sm md:mx-14">
+                <p className="text-sm font-bold tracking-wide text-[#00C9A7]">⭐⭐⭐⭐⭐</p>
+                <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/85">
+                  &ldquo;{testimonials[activeTestimonial]?.quote}&rdquo;
+                </p>
+                <p className={`mt-4 text-sm font-bold text-[#0F1923] ${h}`}>{testimonials[activeTestimonial]?.by}</p>
+              </article>
+              <div className="mt-4 flex justify-center gap-3 md:hidden">
+                <button
+                  type="button"
+                  aria-label="Previous testimonials"
+                  onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                  className={`inline-flex size-11 items-center justify-center rounded-full text-[#0F1923] shadow-md ${h}`}
+                  style={{ backgroundColor: "#00C9A7" }}
+                >
+                  <span className="text-xl font-bold leading-none" aria-hidden="true">
+                    ‹
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next testimonials"
+                  onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                  className={`inline-flex size-11 items-center justify-center rounded-full text-[#0F1923] shadow-md ${h}`}
+                  style={{ backgroundColor: "#00C9A7" }}
+                >
+                  <span className="text-xl font-bold leading-none" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="border-b border-[var(--cp-border)] py-12 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className={`text-center text-3xl font-bold text-[var(--cp-dark)] ${h}`}>Testimonials</h2>
-            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--cp-muted)]">
-              Real Canadians 🍁 Real score movement
+        <section className="border-b border-black/10 bg-[#00C9A7] py-14 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <p className={`text-xl font-bold leading-relaxed text-[#0F1923] sm:text-2xl ${h}`}>
+              Follow the program for 12 months and your score will move. If it doesn&apos;t — we work with you for free until it does.
             </p>
-            <TestimonialCarousel headingClass={h} />
-            <p className="mt-6 text-center text-xs text-[var(--cp-muted)]">
-              Results may vary. Testimonials are illustrative examples of potential outcomes.
+            <p className="mt-4 text-sm font-semibold text-[#0F1923]/75">Full guarantee terms available on request.</p>
+          </div>
+        </section>
+
+        <section className="py-14 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>Built by someone who sees this every day.</h2>
+            <p className="mt-6 text-base leading-relaxed text-[#0F1923]/85">
+              I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of the Steve Marshall Auto Group. I see 30 credit applications a day. Twenty-nine get declined.
             </p>
+            <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
+              For a long time I watched good people walk away with nothing — not because they couldn&apos;t be helped, but{" "}
+              <span style={{ color: "#00C9A7" }}>because nobody gave them a clear plan.</span>
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-[#0F1923]/85">
+              I built Credit Path Canada because those 29 people deserved better than a rejection slip. They deserved{" "}
+              <span style={{ color: "#00C9A7" }}>a roadmap.</span>
+            </p>
+            <div className="mt-8 border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
+              <img
+                src={signatureSrc}
+                alt="Michael Filzwieser signature"
+                onError={() => setSignatureSrc("/michael-signature.jpg")}
+                style={{ width: 120, height: "auto", display: "block", marginBottom: 14, border: "0", background: "transparent" }}
+              />
+              <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Michael Filzwieser</p>
+              <p className="mt-1 text-sm text-[#0F1923]/80">
+                Founder, Credit Path Canada · Finance Director · Titanium Ford
+              </p>
+              <p className="mt-1 text-xs text-[#0F1923]/50">
+                As seen at Titanium Ford — Steve Marshall Auto Group · Serving BC for 60 years
+              </p>
+              <p className="mt-1 text-sm text-[#0F1923]/80">
+                (604) 442-0894 ·{" "}
+                <a href="mailto:info@creditpathcanada.ca" style={{ color: "#0F1923", textDecoration: "underline" }}>
+                  info@creditpathcanada.ca
+                </a>
+              </p>
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-[var(--cp-border)] bg-white py-6 text-center text-xs text-[var(--cp-muted)] sm:py-8 sm:text-sm">
+      <footer className="border-t border-[var(--cp-border)] bg-white py-8 text-center text-xs text-[var(--cp-muted)] sm:text-sm">
         <p className="font-medium text-[var(--cp-dark)]/80">
           Your Credit. Your Path. Your Future. · creditpathcanada.ca · © 2026 Credit Path Canada
         </p>
@@ -301,9 +385,7 @@ export default function HomePage() {
             info@creditpathcanada.ca
           </a>
         </p>
-        <p className="mt-4 text-[var(--cp-muted)]">
-          34 W 7th Ave #401, Vancouver, BC V5Y 1L6
-        </p>
+        <p className="mt-4 text-[var(--cp-muted)]">34 W 7th Ave #401, Vancouver, BC V5Y 1L6</p>
       </footer>
     </div>
   );
