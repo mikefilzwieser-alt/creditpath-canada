@@ -163,9 +163,9 @@ Concrete example (structure only — replace copy with this client’s real bure
 Invalid: a single paragraph with no "|||" anywhere — never do this.
 
 **this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
-this_months_focus MUST always start with the EMERGENCY stop-applications line as bullet 1, even for Consumer Proposal clients. Never omit this bullet.
+this_months_focus bullet 1 must always lead with: "⚠️ Pause all credit applications immediately" — do not use the word EMERGENCY or STOP
 FORMATTING RULE: this_months_focus must be formatted as exactly 3 short separate bullet points. Each bullet is one sentence maximum. Never combine multiple instructions into one bullet. Use newline between each bullet.
-1) **Stop all credit applications immediately** (align with the intent of PERMANENT TOP ACTION #1; EMERGENCY-style lead-in is allowed).
+1) **Stop all credit applications immediately** (align with the intent of PERMANENT TOP ACTION #1).
 2) **Set up pre-authorized payments on every account** (same protective intent as the PRE-AUTH block; describe at a high level only — **no** per-account paydown math here).
 3) **Utilization:** If overall revolving utilization is **over 100%** or the bureau clearly shows **over-limit** revolving accounts, say that **one or more cards are over their credit limit** (or equivalent plain language) and that reducing balances and staying current is critical — **do NOT** give **specific dollar amounts**, **"pay $X to reach Y%"** phrasing, or **named-account paydown targets** in **this_months_focus**.
 

@@ -1737,7 +1737,7 @@ export default function BlueprintPage() {
                           </span>
                         </button>
                         {showScoreSummaryDetail ? (
-                          <p className="leading-relaxed text-white/65" style={{ fontSize: 13 }}>
+                          <p className="leading-relaxed" style={{ fontSize: 13, color: TEAL }}>
                             {scoreSummaryParts.detail}
                           </p>
                         ) : null}
@@ -1868,6 +1868,8 @@ export default function BlueprintPage() {
                             key={idx}
                             className="flex items-start gap-3 rounded-xl border border-black/5 bg-white px-3 py-3"
                             style={{
+                              border: "1.5px solid #00C9A7",
+                              borderRadius: "8px",
                               borderColor: done ? "rgba(0, 201, 167, 0.45)" : "rgba(15, 25, 35, 0.08)",
                               backgroundColor: done ? "rgba(0, 201, 167, 0.06)" : "#fff",
                             }}
@@ -1943,7 +1945,7 @@ export default function BlueprintPage() {
                             </svg>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className={`text-lg font-bold ${h}`}>You crushed it this month.</p>
+                            <p className={`text-lg font-bold ${h}`}>You crushed it this month 🏆.</p>
                             <p className={`mt-2 text-sm leading-relaxed opacity-90 ${h}`}>
                               Every action completed. Your progress has been recorded. Keep this momentum going into
                               next month.
