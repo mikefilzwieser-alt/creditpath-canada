@@ -3,7 +3,7 @@
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import {
   collectionsAgingOrEmpty,
@@ -203,6 +203,7 @@ export default function GoalsPage() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading: authLoading, headingFontClass } = useDashboardAuth();
+  const isSavedRef = React.useRef(false);
   const h = headingFontClass || montserrat.className;
   const [loading, setLoading] = useState(true);
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
@@ -219,6 +220,7 @@ export default function GoalsPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
+    if (isSavedRef.current) return;
     setLoading(true);
     const [clientRes, bpRes] = await Promise.all([
       supabase.from("clients").select("primary_goal, goal_selected").eq("id", user.id).maybeSingle(),
@@ -417,6 +419,7 @@ export default function GoalsPage() {
     const isPaid = clientData?.subscription_status === "active";
     const isFreeTrial = clientData?.free_trial === true;
 
+    isSavedRef.current = true;
     if (isPaid || isFreeTrial) {
       router.replace("/dashboard");
     } else {
