@@ -23,6 +23,7 @@ type ClientPaywallRow = {
   trial_start: string | null;
   stripe_customer_id: string | null;
   access_until: string | null;
+  goal_selected: boolean | null;
 };
 
 /**
@@ -42,22 +43,12 @@ function isDashboardSoftNavigation(request: NextRequest): boolean {
 }
 
 /**
- * Redirect to /pricing when the user should not use the dashboard yet.
- * - `?payment=success`: optimistic `active` update then allow (document navigation from Stripe).
- * - Allow `active`, or CCVIP2026 comp on `applied_promo_code`.
- * - Allow `trial` only when `stripe_customer_id` is set (post-checkout).
- * - If the `clients` row cannot be read, redirect (fail closed).
- * - Otherwise redirect — including `trial` without Stripe customer.
+ * Whether a client currently has paid dashboard access.
  */
-function shouldRedirectToPricing(
-  row: ClientPaywallRow | null,
-  readError: boolean,
-  paymentSuccess: boolean,
-): boolean {
-  if (paymentSuccess) return false;
-  if (readError) return true;
-  if (!row) return true;
-  return !hasDashboardPaywallAccess({
+function hasPaidDashboardAccess(row: ClientPaywallRow | null, readError: boolean, paymentSuccess: boolean): boolean {
+  if (paymentSuccess) return true;
+  if (readError || !row) return false;
+  return hasDashboardPaywallAccess({
     subscriptionStatus: row.subscription_status,
     appliedPromoCode: row.applied_promo_code,
     trialStart: row.trial_start,
@@ -95,20 +86,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  // PERMANENT: sub-routes bypass paywall — do not move this check so it is not accidentally removed in future edits.
   if (user && pathname.startsWith("/dashboard")) {
-    // Always allow sub-routes through immediately — no paywall check
-    if (pathname.startsWith("/dashboard/")) {
-      return supabaseResponse;
-    }
-
-    // Always allow soft navigations through
     if (isDashboardSoftNavigation(request)) {
-      return supabaseResponse;
-    }
-
-    // Only run paywall check on hard navigation to /dashboard root
-    if (pathname !== "/dashboard") {
       return supabaseResponse;
     }
 
@@ -134,7 +113,7 @@ export async function middleware(request: NextRequest) {
 
     const { data: row, error } = await supabase
       .from("clients")
-      .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
+      .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, goal_selected")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -143,6 +122,7 @@ export async function middleware(request: NextRequest) {
     const statusRead = effectiveRow?.subscription_status ?? null;
     const stripeRead = effectiveRow?.stripe_customer_id ?? null;
     const accessUntilRead = effectiveRow?.access_until ?? null;
+    const goalSelectedRead = effectiveRow?.goal_selected ?? null;
 
     console.log("[dashboard paywall] client row", {
       userId: user.id,
@@ -150,37 +130,35 @@ export async function middleware(request: NextRequest) {
       subscription_status: statusRead,
       stripe_customer_id: stripeRead,
       access_until: accessUntilRead,
+      goal_selected: goalSelectedRead,
       rowPresent: Boolean(effectiveRow),
       fetchError: error?.message ?? null,
       paymentSuccessQuery: paymentSuccess,
       readError,
     });
 
-    if (shouldRedirectToPricing(effectiveRow, readError, paymentSuccess)) {
-      const { data: existingBlueprint } = await supabase
-        .from("blueprints")
-        .select("id")
-        .eq("client_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (existingBlueprint?.id) {
-        console.log("[dashboard paywall] unpaid user with blueprint → allow /dashboard teaser", {
-          userId: user.id,
-          blueprint_id: existingBlueprint.id,
-        });
-        return supabaseResponse;
-      }
-      console.log("[dashboard paywall] redirect → /pricing", {
-        userId: user.id,
-        subscription_status: statusRead,
-        stripe_customer_id: stripeRead,
-        access_until: accessUntilRead,
-        fetchError: error?.message ?? null,
-      });
+    if (readError || !effectiveRow) {
       const redirectRes = NextResponse.redirect(new URL("/pricing", request.url));
       copyCookies(supabaseResponse, redirectRes);
       return redirectRes;
+    }
+
+    const paid = hasPaidDashboardAccess(effectiveRow, readError, paymentSuccess);
+    if (!paid) {
+      if (pathname === "/dashboard/goals") {
+        return supabaseResponse;
+      }
+      if (effectiveRow.goal_selected === false) {
+        const redirectRes = NextResponse.redirect(new URL("/dashboard/goals", request.url));
+        copyCookies(supabaseResponse, redirectRes);
+        return redirectRes;
+      }
+      if (pathname !== "/dashboard") {
+        const redirectRes = NextResponse.redirect(new URL("/dashboard", request.url));
+        copyCookies(supabaseResponse, redirectRes);
+        return redirectRes;
+      }
+      return supabaseResponse;
     }
   }
 

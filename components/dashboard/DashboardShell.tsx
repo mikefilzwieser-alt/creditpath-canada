@@ -225,32 +225,20 @@ export function DashboardShell({
           accessUntil: data?.access_until,
         })
       ) {
-        const { data: existingBlueprint } = await supabase
-          .from("blueprints")
-          .select("id")
-          .eq("client_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (cancelled) return;
-        if (existingBlueprint?.id) {
-          setHasDashboardAccess(false);
-          setPaywallChecked(true);
-          if (pathname !== "/dashboard") {
-            router.replace("/dashboard");
+        setHasDashboardAccess(false);
+        setPaywallChecked(true);
+        if (data?.goal_selected === false) {
+          if (pathname !== "/dashboard/goals") {
+            router.replace("/dashboard/goals");
           }
           return;
         }
-        router.replace("/pricing");
+        if (pathname !== "/dashboard" && pathname !== "/dashboard/goals") {
+          router.replace("/dashboard");
+        }
         return;
       }
       setHasDashboardAccess(true);
-
-      if (data?.goal_selected === false && pathname !== "/dashboard/goals") {
-        setPaywallChecked(true);
-        router.replace("/dashboard/goals");
-        return;
-      }
 
       if (!cancelled && data?.first_login_seen === true) {
         firstLoginDismissedRef.current = true;
