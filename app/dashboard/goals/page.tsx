@@ -407,9 +407,6 @@ export default function GoalsPage() {
       return;
     }
 
-    setPrimaryGoal(selectedPrimaryGoal);
-    setGoalSelected(true);
-    setJustSavedGoal(selectedPrimaryGoal);
     setIsSavingGoal(false);
     const { data: clientData } = await supabase
       .from("clients")
@@ -428,7 +425,8 @@ export default function GoalsPage() {
   }, [goalDetail, goalMotivation, router, selectedGoals, user]);
 
   if (!loading && !goalSelected) {
-    const firstSelectedGoal = GUIDED_GOAL_OPTIONS.map((g) => g.key).find((key) => selectedGoals.has(key)) ?? null;
+    const firstSelectedGoal = (GUIDED_GOAL_OPTIONS.map((g) => g.key).find((key) => selectedGoals.has(key)) ??
+      null) as GuidedGoalKey | null;
     const detailConfig = firstSelectedGoal ? GUIDED_DETAIL_OPTIONS[firstSelectedGoal] : null;
     return (
       <div className={`${montserrat.className} min-h-[80vh]`} style={{ backgroundColor: NAVY, color: "#fff" }}>
