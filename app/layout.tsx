@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   description: "Credit rebuilding with a personalized monthly blueprint.",
   icons: {
     icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png?v=2", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico?v=2" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/favicon-32x32.png",
+    shortcut: "/favicon.ico?v=2",
+    apple: "/favicon-32x32.png?v=2",
   },
 };
 
