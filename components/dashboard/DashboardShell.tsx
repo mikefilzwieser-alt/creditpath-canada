@@ -227,12 +227,6 @@ export function DashboardShell({
       ) {
         setHasDashboardAccess(false);
         setPaywallChecked(true);
-        if (data?.goal_selected === false) {
-          if (pathname !== "/dashboard/goals") {
-            router.replace("/dashboard/goals");
-          }
-          return;
-        }
         if (pathname !== "/dashboard" && pathname !== "/dashboard/goals") {
           router.replace("/dashboard");
         }
