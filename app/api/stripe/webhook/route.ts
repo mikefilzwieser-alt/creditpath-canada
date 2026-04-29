@@ -117,6 +117,18 @@ export async function POST(request: Request) {
         const userId = session.client_reference_id ?? session.metadata?.supabase_user_id ?? null;
         const customerRaw = session.customer;
         const customerId = typeof customerRaw === "string" ? customerRaw : customerRaw?.id;
+        console.log("[webhook] raw session data", {
+          client_reference_id: session.client_reference_id,
+          metadata: session.metadata,
+          customer: session.customer,
+          mode: session.mode,
+        });
+        if (!userId) {
+          console.warn("[webhook] userId is null - skipping email and client update", {
+            client_reference_id: session.client_reference_id,
+            metadata: session.metadata,
+          });
+        }
         console.log("[webhook] checkout.session.completed fired", {
           userId,
           customerId,
