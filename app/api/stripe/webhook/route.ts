@@ -47,19 +47,24 @@ async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): 
   </div>
   <div style="padding: 32px;">
     <p>Hi ${greetingName},</p>
-    <p>Welcome to Credit Path Canada. Your blueprint is unlocked and your Month 1 plan is live. Before you dive in — two rules that protect everything we're about to build together:</p>
+    <p>Most people who get declined just move on. Apply somewhere else. Hope for the best. Watch their score go nowhere.</p>
+    <p>You didn't. You decided to actually fix it.</p>
+    <p>That decision is worth more than you know — because the clients who get approved 8-12 months from now are the ones who started today, followed the plan, and didn't apply anywhere else while the work was happening.</p>
+    <p>Before you do anything — two rules that protect everything:</p>
     <div style="background: #fff3cd; border-left: 4px solid #f0a500; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
       <p style="margin: 0;"><strong>🚫 Rule 1 — Do not apply for credit anywhere without contacting us first.</strong> Every application is a hard inquiry that damages your score and could delay your approval. Call or text us before you act. We are your credit specialist.</p>
     </div>
     <div style="background: #e8f8f5; border-left: 4px solid #00C9A7; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
       <p style="margin: 0;"><strong>✅ Rule 2 — Set up pre-authorized payments on every account today.</strong> Payment history is the single biggest factor in your score. One missed payment undoes months of work. Set up autopay on every account — cards, loans, phone bills — this week. Not next week. Today.</p>
     </div>
-    <p>Those two actions protect everything. Now log in and check your Month 1 plan.</p>
+    <p>Those two moves this week will protect months of progress. Everything else is in your blueprint.</p>
     <p style="text-align: center; margin: 32px 0;">
-      <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">View My Blueprint</a>
+      <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">View My Blueprint →</a>
     </p>
-    <p>Any questions — reply to this email or call me directly.</p>
-    <p style="margin-top: 32px;">— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Finance Director · Titanium Ford · Founder, Credit Path Canada<br>(604) 442-0894 · info@creditpathcanada.ca</span></p>
+    <div style="border-top: 1px solid #e0e0e0; margin-top: 32px; padding-top: 24px;">
+      <p style="font-style: italic; color: #444; font-size: 14px; line-height: 1.7;">"A quick note from me personally —<br><br>I've been in automotive finance for years. I've seen thousands of people get declined and walk away feeling like the system was built against them. In a lot of ways, it is.<br><br>But I've also seen what happens when someone gets a real plan and actually follows it. Scores move. Doors open. People who were told no start hearing yes.<br><br>That's why I built this. Not as a product — as a solution I wished existed for every person I had to turn away.<br><br>You're in good hands. I'm here if you need me."</p>
+      <p style="margin-top: 16px;">— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Founder, Credit Path Canada<br>(604) 442-0894 · info@creditpathcanada.ca</span></p>
+    </div>
   </div>
   <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
     Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color: #00C9A7;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6
@@ -69,7 +74,7 @@ async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): 
   const { error } = await resend.emails.send({
     from,
     to: [authData.user.email.trim()],
-    subject: "Welcome to Credit Path Canada — Read This First",
+    subject: "You just did what most people never do.",
     html,
   });
 

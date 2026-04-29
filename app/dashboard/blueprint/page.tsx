@@ -1073,26 +1073,29 @@ export default function BlueprintPage() {
   const saveCompletion = useCallback(
     async (index: number, action: MonthlyProgramAction) => {
       if (!user?.id || !blueprint?.id) return;
-      const clientId = user.id;
       const blueprintId = blueprint.id;
       const pm = normalizeProgramMonth(blueprint.current_month);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess?.session?.access_token;
+      if (!token) return;
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
 
       if (completionsRef.current.has(index)) {
         completionsRef.current.delete(index);
-        const { error } = await supabase
-          .from("action_completions")
-          .delete()
-          .eq("client_id", clientId)
-          .eq("blueprint_id", blueprintId)
-          .eq("action_index", index)
-          .eq("program_month", pm);
-        if (error) {
-          logPostgrestError("[blueprint] action_completions delete failed", error, {
-            client_id: clientId,
-            blueprint_id: blueprintId,
-            program_month: pm,
-            action_index: index,
-          });
+        const res = await fetch(`${origin}/api/action-completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            blueprintId,
+            programMonth: pm,
+            actionIndex: index,
+            completed: false,
+          }),
+        });
+        if (!res.ok) {
           completionsRef.current.add(index);
           return;
         }
@@ -1107,72 +1110,21 @@ export default function BlueprintPage() {
 
       completionsRef.current.add(index);
       const actionText = typeof action?.action === "string" ? action.action : formatDisplay(action?.action);
-      const completedAt = new Date().toISOString();
-      const match = {
-        client_id: clientId,
-        blueprint_id: blueprintId,
-        program_month: pm,
-        action_index: index,
-      };
-
-      const { data: blueprintRow, error: blueprintLookupErr } = await supabase
-        .from("blueprints")
-        .select("id")
-        .eq("id", blueprintId)
-        .eq("client_id", clientId)
-        .maybeSingle();
-      if (blueprintLookupErr) {
-        logPostgrestError("[blueprint] blueprints lookup failed (before action_completions save)", blueprintLookupErr, {
-          client_id: clientId,
-          blueprint_id: blueprintId,
-        });
-        completionsRef.current.delete(index);
-        return;
-      }
-      if (!blueprintRow) {
-        console.error(
-          "[blueprint] action_completions: no blueprint row for this client (FK on blueprint_id would fail on insert)",
-          { client_id: clientId, blueprint_id: blueprintId },
-        );
-        completionsRef.current.delete(index);
-        return;
-      }
-
-      const { data: existingRow, error: selectErr } = await supabase
-        .from("action_completions")
-        .select("id")
-        .match(match)
-        .maybeSingle();
-      if (selectErr) {
-        logPostgrestError("[blueprint] action_completions lookup failed", selectErr, {
-          client_id: clientId,
-          blueprint_id: blueprintId,
-          program_month: pm,
-          action_index: index,
-        });
-        completionsRef.current.delete(index);
-        return;
-      }
-      const rowId = (existingRow as { id?: string } | null)?.id;
-      const { error } = rowId
-        ? await supabase
-            .from("action_completions")
-            .update({ action_text: actionText, completed_at: completedAt })
-            .eq("id", rowId)
-        : await supabase.from("action_completions").insert({
-            ...match,
-            action_text: actionText,
-            completed_at: completedAt,
-          });
-      if (error) {
-        logPostgrestError("[blueprint] action_completions insert/update failed", error, {
-          client_id: clientId,
-          blueprint_id: blueprintId,
-          program_month: pm,
-          action_index: index,
-          row_id: rowId ?? null,
-          op: rowId ? "update" : "insert",
-        });
+      const res = await fetch(`${origin}/api/action-completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          blueprintId,
+          programMonth: pm,
+          actionIndex: index,
+          actionText,
+          completed: true,
+        }),
+      });
+      if (!res.ok) {
         completionsRef.current.delete(index);
         return;
       }
