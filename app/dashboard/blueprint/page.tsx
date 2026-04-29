@@ -938,6 +938,18 @@ export default function BlueprintPage() {
     return [0, 1, 2].every((i) => completedSet.has(i));
   }, [monthlyProgramActions.length, completedSet]);
 
+  useEffect(() => {
+    console.log("[celebration] programMonth", programMonth);
+    console.log("[celebration] actions array", monthlyProgramActions);
+  }, [programMonth, monthlyProgramActions]);
+
+  // TEMP (debug): force overlay when 3/3 complete to verify the dialog renders (remove after confirming).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!allCurrentMonthActionsDone) return;
+    setShowMonthCompletionOverlay(true);
+  }, [allCurrentMonthActionsDone]);
+
   const nextUnlockMeta = useMemo(() => {
     if (!blueprint || programMonth >= 4) {
       return { daysRemaining: null as number | null, unlockAtMs: null as number | null, nextMonth: null as number | null };
