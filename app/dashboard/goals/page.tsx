@@ -146,6 +146,52 @@ type BlueprintRow = {
   current_month?: number | null;
 };
 
+type GuidedGoalKey = "auto" | "mortgage" | "score" | "products";
+type GuidedStep = 1 | 2 | 3;
+
+const GUIDED_GOAL_OPTIONS: Array<{ key: GuidedGoalKey; label: string; icon: string }> = [
+  { key: "auto", label: "Get approved for a vehicle on my own", icon: "🚗" },
+  { key: "mortgage", label: "Qualify for a mortgage or refinance", icon: "🏠" },
+  { key: "score", label: "Increase my score and open more doors", icon: "📈" },
+  { key: "products", label: "Get access to better credit products", icon: "💳" },
+];
+
+const GUIDED_DETAIL_OPTIONS: Record<GuidedGoalKey, { question: string; options: string[] }> = {
+  auto: {
+    question: "How long have you been trying to get approved for a vehicle?",
+    options: ["Less than 6 months", "6-12 months", "Over a year", "Multiple times, keep getting declined"],
+  },
+  mortgage: {
+    question: "Where are you in your mortgage journey?",
+    options: [
+      "Just starting to think about it",
+      "Been saving for a down payment",
+      "Got declined recently",
+      "Looking to refinance",
+    ],
+  },
+  score: {
+    question: "What's been holding you back from the score you want?",
+    options: [
+      "Not sure — just know it's low",
+      "Collections or late payments",
+      "Too many inquiries",
+      "Limited credit history",
+    ],
+  },
+  products: {
+    question: "What kind of access are you looking for?",
+    options: ["Better credit cards", "Personal loan", "Line of credit", "All of the above"],
+  },
+};
+
+function primaryGoalFromGuided(key: GuidedGoalKey): string {
+  if (key === "auto") return "Get approved for a vehicle on my own";
+  if (key === "mortgage") return "Qualify for a mortgage or refinance";
+  if (key === "score") return "Increase my score and open more doors";
+  return "Get access to better credit products";
+}
+
 export default function GoalsPage() {
   const pathname = usePathname();
   const { user, loading: authLoading, headingFontClass } = useDashboardAuth();
@@ -154,6 +200,13 @@ export default function GoalsPage() {
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
   const [completedCount, setCompletedCount] = useState(0);
+  const [guidedStep, setGuidedStep] = useState<GuidedStep>(1);
+  const [guidedGoal, setGuidedGoal] = useState<GuidedGoalKey | null>(null);
+  const [goalDetail, setGoalDetail] = useState<string | null>(null);
+  const [goalMotivation, setGoalMotivation] = useState("");
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [justSavedGoal, setJustSavedGoal] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -307,8 +360,162 @@ export default function GoalsPage() {
   const actionsThisMonthDisplay =
     blueprint?.id && topActionCount > 0 ? `${completedCount} / ${topActionCount}` : "—";
 
+  const saveGuidedGoal = useCallback(async () => {
+    if (!user || !guidedGoal || !goalDetail) return;
+    setSaveError("");
+    setIsSavingGoal(true);
+    const selectedPrimaryGoal = primaryGoalFromGuided(guidedGoal);
+    const trimmedMotivation = goalMotivation.trim();
+    const nowIso = new Date().toISOString();
+
+    const { error: goalsError } = await supabase.from("goals").upsert(
+      {
+        client_id: user.id,
+        primary_goal: selectedPrimaryGoal,
+        goal_detail: goalDetail,
+        goal_motivation: trimmedMotivation || null,
+        updated_at: nowIso,
+      },
+      { onConflict: "client_id" },
+    );
+    if (goalsError) {
+      setIsSavingGoal(false);
+      setSaveError(goalsError.message);
+      return;
+    }
+
+    const { error: clientErr } = await supabase
+      .from("clients")
+      .update({ primary_goal: selectedPrimaryGoal })
+      .eq("id", user.id);
+    if (clientErr) {
+      setIsSavingGoal(false);
+      setSaveError(clientErr.message);
+      return;
+    }
+
+    setPrimaryGoal(selectedPrimaryGoal);
+    setJustSavedGoal(selectedPrimaryGoal);
+    setIsSavingGoal(false);
+    await load();
+  }, [goalDetail, goalMotivation, guidedGoal, load, user]);
+
+  if (!loading && !primaryGoal) {
+    const detailConfig = guidedGoal ? GUIDED_DETAIL_OPTIONS[guidedGoal] : null;
+    return (
+      <div className={`${montserrat.className} min-h-[80vh]`} style={{ backgroundColor: NAVY, color: "#fff" }}>
+        <div className="mx-auto flex min-h-[80vh] w-full max-w-2xl flex-col justify-center px-5 py-10 sm:px-8">
+          {guidedStep === 1 ? (
+            <section className="text-center">
+              <h1 className={`text-3xl font-bold leading-tight sm:text-4xl ${h}`}>
+                What would it mean to you to have strong credit?
+              </h1>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+                Take a moment. Think about what&apos;s actually on the other side of this for you.
+              </p>
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {GUIDED_GOAL_OPTIONS.map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => {
+                      setGuidedGoal(option.key);
+                      setGoalDetail(null);
+                      setGuidedStep(2);
+                    }}
+                    className={`rounded-2xl border px-4 py-5 text-left transition-colors ${h}`}
+                    style={{ borderColor: "rgba(0, 201, 167, 0.4)", backgroundColor: "rgba(255,255,255,0.04)" }}
+                  >
+                    <p className="text-2xl">{option.icon}</p>
+                    <p className="mt-2 text-sm font-semibold leading-snug sm:text-base">{option.label}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {guidedStep === 2 && detailConfig ? (
+            <section>
+              <h2 className={`text-2xl font-bold leading-tight sm:text-3xl ${h}`}>{detailConfig.question}</h2>
+              <div className="mt-7 space-y-3">
+                {detailConfig.options.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      setGoalDetail(option);
+                      setGuidedStep(3);
+                    }}
+                    className={`w-full rounded-2xl border px-4 py-4 text-left text-sm font-semibold transition-colors sm:text-base ${h}`}
+                    style={{ borderColor: "rgba(0, 201, 167, 0.45)", backgroundColor: "rgba(255,255,255,0.04)" }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setGuidedStep(1)}
+                className={`mt-6 text-sm font-semibold ${h}`}
+                style={{ color: TEAL }}
+              >
+                Back
+              </button>
+            </section>
+          ) : null}
+
+          {guidedStep === 3 && guidedGoal ? (
+            <section>
+              <h2 className={`text-2xl font-bold leading-tight sm:text-3xl ${h}`}>
+                What would getting there actually change for you?
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-base">
+                This helps us build your blueprint around what matters most.
+              </p>
+              <textarea
+                value={goalMotivation}
+                onChange={(event) => setGoalMotivation(event.target.value)}
+                placeholder="e.g. I want to get my family into a reliable vehicle without needing a co-signer"
+                className="mt-5 min-h-28 w-full rounded-2xl border bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none sm:text-base"
+                style={{ borderColor: "rgba(0, 201, 167, 0.45)" }}
+              />
+              {saveError ? (
+                <p className="mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-200">{saveError}</p>
+              ) : null}
+              <button
+                type="button"
+                disabled={isSavingGoal}
+                onClick={() => void saveGuidedGoal()}
+                className={`mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60 ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                {isSavingGoal ? "Saving..." : "Set My Goal →"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setGuidedStep(2)}
+                className={`ml-4 text-sm font-semibold ${h}`}
+                style={{ color: TEAL }}
+              >
+                Back
+              </button>
+            </section>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`mx-auto max-w-2xl space-y-8 ${montserrat.className}`} style={{ color: NAVY, fontFamily: "inherit" }}>
+      {justSavedGoal ? (
+        <section
+          className="rounded-2xl border px-5 py-4 text-sm font-semibold sm:text-base"
+          style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.1)", color: NAVY }}
+        >
+          Your blueprint is now focused on: {justSavedGoal}. Let&apos;s get to work.
+        </section>
+      ) : null}
       <section
         className="overflow-hidden rounded-2xl border-2 shadow-lg"
         style={{ borderColor: TEAL, backgroundColor: NAVY, color: "#fff" }}
