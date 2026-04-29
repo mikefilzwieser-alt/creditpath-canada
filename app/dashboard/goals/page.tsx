@@ -147,7 +147,7 @@ type BlueprintRow = {
 };
 
 type GuidedGoalKey = "auto" | "mortgage" | "score" | "products";
-type GuidedStep = 1 | 2;
+type GuidedStep = 1 | 2 | 3;
 
 const GUIDED_GOAL_OPTIONS: Array<{ key: GuidedGoalKey; label: string; icon: string }> = [
   { key: "auto", label: "Get approved for a vehicle on my own", icon: "🚗" },
@@ -155,6 +155,35 @@ const GUIDED_GOAL_OPTIONS: Array<{ key: GuidedGoalKey; label: string; icon: stri
   { key: "score", label: "Increase my score and open more doors", icon: "📈" },
   { key: "products", label: "Get access to better credit products", icon: "💳" },
 ];
+
+const GUIDED_DETAIL_OPTIONS: Record<GuidedGoalKey, { question: string; options: string[] }> = {
+  auto: {
+    question: "How long have you been trying to get approved for a vehicle?",
+    options: ["Less than 6 months", "6-12 months", "Over a year", "Multiple times, keep getting declined"],
+  },
+  mortgage: {
+    question: "Where are you in your mortgage journey?",
+    options: [
+      "Just starting to think about it",
+      "Been saving for a down payment",
+      "Got declined recently",
+      "Looking to refinance",
+    ],
+  },
+  score: {
+    question: "What's been holding you back from the score you want?",
+    options: [
+      "Not sure — just know it's low",
+      "Collections or late payments",
+      "Too many inquiries",
+      "Limited credit history",
+    ],
+  },
+  products: {
+    question: "What kind of access are you looking for?",
+    options: ["Better credit cards", "Personal loan", "Line of credit", "All of the above"],
+  },
+};
 
 function primaryGoalFromGuided(key: GuidedGoalKey): string {
   if (key === "auto") return "Get approved for a vehicle on my own";
@@ -182,6 +211,7 @@ export default function GoalsPage() {
   const [completedCount, setCompletedCount] = useState(0);
   const [guidedStep, setGuidedStep] = useState<GuidedStep>(1);
   const [selectedGoals, setSelectedGoals] = useState<Set<GuidedGoalKey>>(new Set());
+  const [goalDetail, setGoalDetail] = useState("");
   const [goalMotivation, setGoalMotivation] = useState("");
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -353,7 +383,7 @@ export default function GoalsPage() {
       client_id: user.id,
       goal_type: goalTypeFromGuided(key),
       primary_goal: primaryGoalFromGuided(key),
-      goal_detail: null,
+      goal_detail: goalDetail || null,
       goal_motivation: trimmedMotivation || null,
       updated_at: nowIso,
     }));
@@ -381,10 +411,25 @@ export default function GoalsPage() {
     setGoalSelected(true);
     setJustSavedGoal(selectedPrimaryGoal);
     setIsSavingGoal(false);
-    router.replace("/dashboard");
-  }, [goalMotivation, router, selectedGoals, user]);
+    const { data: clientData } = await supabase
+      .from("clients")
+      .select("subscription_status, free_trial")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const isPaid = clientData?.subscription_status === "active";
+    const isFreeTrial = clientData?.free_trial === true;
+
+    if (isPaid || isFreeTrial) {
+      router.replace("/dashboard");
+    } else {
+      router.replace("/dashboard/paywall");
+    }
+  }, [goalDetail, goalMotivation, router, selectedGoals, user]);
 
   if (!loading && !goalSelected) {
+    const firstSelectedGoal = GUIDED_GOAL_OPTIONS.map((g) => g.key).find((key) => selectedGoals.has(key)) ?? null;
+    const detailConfig = firstSelectedGoal ? GUIDED_DETAIL_OPTIONS[firstSelectedGoal] : null;
     return (
       <div className={`${montserrat.className} min-h-[80vh]`} style={{ backgroundColor: NAVY, color: "#fff" }}>
         <div className="mx-auto flex min-h-[80vh] w-full max-w-2xl flex-col justify-center px-5 py-10 sm:px-8">
@@ -439,7 +484,12 @@ export default function GoalsPage() {
               <button
                 type="button"
                 disabled={selectedGoals.size === 0}
-                onClick={() => setGuidedStep(2)}
+                onClick={() => {
+                  if (!firstSelectedGoal) return;
+                  const firstOption = GUIDED_DETAIL_OPTIONS[firstSelectedGoal].options[0] ?? "";
+                  setGoalDetail((prev) => prev || firstOption);
+                  setGuidedStep(2);
+                }}
                 className={`mt-7 inline-flex rounded-xl px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60 ${h}`}
                 style={{ backgroundColor: TEAL, color: NAVY }}
               >
@@ -448,7 +498,41 @@ export default function GoalsPage() {
             </section>
           ) : null}
 
-          {guidedStep === 2 ? (
+          {guidedStep === 2 && detailConfig ? (
+            <section>
+              <h2 className={`text-2xl font-bold leading-tight sm:text-3xl ${h}`}>{detailConfig.question}</h2>
+              <select
+                value={goalDetail}
+                onChange={(event) => setGoalDetail(event.target.value)}
+                className="mt-5 w-full rounded-2xl border bg-transparent px-4 py-3 text-sm text-white focus:outline-none sm:text-base"
+                style={{ borderColor: "rgba(0, 201, 167, 0.45)" }}
+              >
+                {detailConfig.options.map((option) => (
+                  <option key={option} value={option} style={{ color: NAVY }}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setGuidedStep(3)}
+                className={`mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-bold ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Continue →
+              </button>
+              <button
+                type="button"
+                onClick={() => setGuidedStep(1)}
+                className={`ml-4 text-sm font-semibold ${h}`}
+                style={{ color: TEAL }}
+              >
+                Back
+              </button>
+            </section>
+          ) : null}
+
+          {guidedStep === 3 ? (
             <section>
               <h2 className={`text-2xl font-bold leading-tight sm:text-3xl ${h}`}>
                 What would getting there actually change for you?
@@ -477,7 +561,7 @@ export default function GoalsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setGuidedStep(1)}
+                onClick={() => setGuidedStep(2)}
                 className={`ml-4 text-sm font-semibold ${h}`}
                 style={{ color: TEAL }}
               >
