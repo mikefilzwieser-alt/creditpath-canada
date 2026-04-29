@@ -410,21 +410,8 @@ export default function GoalsPage() {
     }
 
     setIsSavingGoal(false);
-    const { data: clientData } = await supabase
-      .from("clients")
-      .select("subscription_status, free_trial")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const isPaid = clientData?.subscription_status === "active";
-    const isFreeTrial = clientData?.free_trial === true;
-
     isSavedRef.current = true;
-    if (isPaid || isFreeTrial) {
-      router.replace("/dashboard");
-    } else {
-      router.replace("/dashboard/paywall");
-    }
+    router.replace("/dashboard");
   }, [goalDetail, goalMotivation, router, selectedGoals, user]);
 
   if (!loading && !goalSelected) {

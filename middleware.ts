@@ -145,7 +145,7 @@ export async function middleware(request: NextRequest) {
 
     const paid = hasPaidDashboardAccess(effectiveRow, readError, paymentSuccess);
     if (!paid) {
-      if (pathname === "/dashboard/goals") {
+      if (pathname === "/dashboard/goals" || pathname === "/dashboard/paywall") {
         return supabaseResponse;
       }
       if (effectiveRow.goal_selected === false) {
