@@ -99,7 +99,6 @@ const testimonials = [
 export default function LandingV2Page() {
   const h = montserrat.className;
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [signatureSrc, setSignatureSrc] = useState("/michael-signature.png");
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -352,9 +351,15 @@ export default function LandingV2Page() {
             </p>
             <div className="mt-8 border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
               <img
-                src={signatureSrc}
+                src="/michael-signature.png"
                 alt="Michael Filzwieser signature"
-                onError={() => setSignatureSrc("/michael-signature.jpg")}
+                onError={(e) => {
+                  const el = e.currentTarget;
+                  if (!el.dataset.fallbackJpg) {
+                    el.dataset.fallbackJpg = "1";
+                    el.src = "/michael-signature.jpg";
+                  }
+                }}
                 style={{ width: 120, height: "auto", display: "block", marginBottom: 14, border: "0", background: "transparent" }}
               />
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Michael Filzwieser</p>
