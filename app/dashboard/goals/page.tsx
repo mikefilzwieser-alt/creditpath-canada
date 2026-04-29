@@ -2,7 +2,7 @@
 
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import {
@@ -194,10 +194,12 @@ function primaryGoalFromGuided(key: GuidedGoalKey): string {
 
 export default function GoalsPage() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading: authLoading, headingFontClass } = useDashboardAuth();
   const h = headingFontClass || montserrat.className;
   const [loading, setLoading] = useState(true);
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
+  const [goalSelected, setGoalSelected] = useState(false);
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
   const [completedCount, setCompletedCount] = useState(0);
   const [guidedStep, setGuidedStep] = useState<GuidedStep>(1);
@@ -212,7 +214,7 @@ export default function GoalsPage() {
     if (!user) return;
     setLoading(true);
     const [clientRes, bpRes] = await Promise.all([
-      supabase.from("clients").select("primary_goal").eq("id", user.id).maybeSingle(),
+      supabase.from("clients").select("primary_goal, goal_selected").eq("id", user.id).maybeSingle(),
       supabase
         .from("blueprints")
         .select("id, raw_parse_data, blueprint_data, status, created_at, current_month")
@@ -222,8 +224,10 @@ export default function GoalsPage() {
         .maybeSingle(),
     ]);
 
-    const pg = (clientRes.data as { primary_goal?: string | null } | null)?.primary_goal;
+    const clientRow = clientRes.data as { primary_goal?: string | null; goal_selected?: boolean | null } | null;
+    const pg = clientRow?.primary_goal;
     setPrimaryGoal(typeof pg === "string" && pg.trim() ? pg.trim() : null);
+    setGoalSelected(clientRow?.goal_selected === true);
 
     const bp = bpRes.error ? null : (bpRes.data as BlueprintRow | null);
     setBlueprint(bp);
@@ -386,7 +390,7 @@ export default function GoalsPage() {
 
     const { error: clientErr } = await supabase
       .from("clients")
-      .update({ primary_goal: selectedPrimaryGoal })
+      .update({ primary_goal: selectedPrimaryGoal, goal_selected: true })
       .eq("id", user.id);
     if (clientErr) {
       setIsSavingGoal(false);
@@ -395,12 +399,13 @@ export default function GoalsPage() {
     }
 
     setPrimaryGoal(selectedPrimaryGoal);
+    setGoalSelected(true);
     setJustSavedGoal(selectedPrimaryGoal);
     setIsSavingGoal(false);
-    await load();
-  }, [goalDetail, goalMotivation, guidedGoal, load, user]);
+    router.replace("/dashboard");
+  }, [goalDetail, goalMotivation, guidedGoal, router, user]);
 
-  if (!loading && !primaryGoal) {
+  if (!loading && !goalSelected) {
     const detailConfig = guidedGoal ? GUIDED_DETAIL_OPTIONS[guidedGoal] : null;
     return (
       <div className={`${montserrat.className} min-h-[80vh]`} style={{ backgroundColor: NAVY, color: "#fff" }}>

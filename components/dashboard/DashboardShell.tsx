@@ -199,7 +199,7 @@ export function DashboardShell({
       const { data, error } = await supabase
         .from("clients")
         .select(
-          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen",
+          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen, goal_selected",
         )
         .eq("id", user.id)
         .maybeSingle();
@@ -245,6 +245,12 @@ export function DashboardShell({
         return;
       }
       setHasDashboardAccess(true);
+
+      if (data?.goal_selected === false && pathname !== "/dashboard/goals") {
+        setPaywallChecked(true);
+        router.replace("/dashboard/goals");
+        return;
+      }
 
       if (!cancelled && data?.first_login_seen === true) {
         firstLoginDismissedRef.current = true;
