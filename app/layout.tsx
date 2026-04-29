@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   description: "Credit rebuilding with a personalized monthly blueprint.",
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico" },
     ],
     shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    apple: "/favicon-32x32.png",
   },
 };
 
@@ -35,6 +35,15 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${dmSans.variable} h-full antialiased`}
     >
+      <head>
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
