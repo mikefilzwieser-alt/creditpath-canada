@@ -204,6 +204,7 @@ export default function GoalsPage() {
   const router = useRouter();
   const { user, loading: authLoading, headingFontClass } = useDashboardAuth();
   const isSavedRef = React.useRef(false);
+  const [flowComplete, setFlowComplete] = useState(false);
   const h = headingFontClass || montserrat.className;
   const [loading, setLoading] = useState(true);
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
@@ -410,11 +411,12 @@ export default function GoalsPage() {
     }
 
     setIsSavingGoal(false);
+    setFlowComplete(true);
     isSavedRef.current = true;
     router.replace("/dashboard");
   }, [goalDetail, goalMotivation, router, selectedGoals, user]);
 
-  if (!loading && !goalSelected) {
+  if (!loading && !goalSelected && !flowComplete) {
     const firstSelectedGoal = (GUIDED_GOAL_OPTIONS.map((g) => g.key).find((key) => selectedGoals.has(key)) ??
       null) as GuidedGoalKey | null;
     const detailConfig = firstSelectedGoal ? GUIDED_DETAIL_OPTIONS[firstSelectedGoal] : null;
