@@ -138,9 +138,8 @@ When counting how many **credit cards are currently reporting** toward the 3-net
 
 7. **blueprint_data.credit_cards_reporting (integer):** Must equal the **exact** count of revolving tradelines that pass **ALL** rules in items **1–4** above — Visa/Mastercard/Amex network only, open and active (including description exclusions), rating **R1** or **R2** only, **not** excluded by **stale DLA** or **zero/missing balance + no activity in 3 months**. Tradelines that pass the count but trigger item **5** must still appear in this integer; item **5** governs narrative only.
 
-Whenever **top_actions** recommends **adding a secured credit card**, the **action** field must be **exactly** this string (markdown inline links on the names are required for the client UI):
-"🏦 Add a credit card — [Neo Financial](https://neo.cc/refer/G3Y6L5A9), [Tangerine](https://www.tangerine.ca) (use code 79976711S1 for $50 bonus), or [Koho](https://www.koho.ca) — to build history toward three healthy revolving accounts."
-Links must stay inline with the card names as shown.
+Whenever **top_actions** recommends **adding a credit card** using this referral format, the **action** field must be **exactly** this string:
+"🏦 Add a credit card — Neo Financial (https://neo.cc/refer/G3Y6L5A9), Tangerine (https://www.tangerine.ca, use code 79976711S1 for $50 bonus), or Koho (https://www.koho.ca) — to build history toward three healthy revolving accounts."
 Count ONLY Visa/Mastercard/Amex network R-rated revolving cards that pass **all** rules in items **1–4** above toward the minimum of 3.
 • **Existing cards and utilization:** In blueprint narrative (especially **score_summary** segment 2 and utilization-related **top_actions**), **always** recommend using **existing** qualifying cards where applicable and keeping **revolving utilization under 30%** on all cards. Avoid implying that meeting the 3-card count removes the need for utilization discipline.
 • 0 qualifying network cards → recommended_cards: 3 (recommend Neo Financial, Tangerine, Koho in blueprint narrative) **unless consumer_proposal is true** — then recommended_cards must be 0 and only secured/Koho/authorized-user paths as specified in the PUBLIC RECORDS section.
