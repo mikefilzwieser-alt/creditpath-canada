@@ -112,6 +112,35 @@ function formatDisplay(v: unknown): string {
   return String(v);
 }
 
+/** Renders `[label](https://...)` in action copy as clickable links; other text unchanged. */
+function renderMarkdownInlineLinks(text: string): React.ReactNode {
+  const t = text.trim();
+  if (!t || t === "—") return t || "—";
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  const nodes: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t)) !== null) {
+    if (m.index > last) nodes.push(t.slice(last, m.index));
+    nodes.push(
+      <a
+        key={`md-${m.index}`}
+        href={m[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2"
+        style={{ color: "#00C9A7" }}
+      >
+        {m[1]}
+      </a>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (nodes.length === 0) return t;
+  if (last < t.length) nodes.push(t.slice(last));
+  return <>{nodes}</>;
+}
+
 function formatPercent(v: unknown): string {
   const display = formatDisplay(v);
   return display === "—" ? display : `${display}%`;
@@ -1946,7 +1975,7 @@ export default function BlueprintPage() {
                                 className={`text-sm font-bold leading-snug ${done ? "line-through" : ""} line-clamp-4 ${h}`}
                                 style={{ color: done ? TEAL : NAVY }}
                               >
-                                {formatDisplay(item.action)}
+                                {renderMarkdownInlineLinks(formatDisplay(item.action))}
                               </p>
                               {impactLine ? (
                                 <p
