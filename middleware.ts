@@ -148,11 +148,6 @@ export async function middleware(request: NextRequest) {
       if (pathname === "/dashboard/goals" || pathname === "/dashboard/paywall") {
         return supabaseResponse;
       }
-      if (effectiveRow.goal_selected === false) {
-        const redirectRes = NextResponse.redirect(new URL("/dashboard/goals", request.url));
-        copyCookies(supabaseResponse, redirectRes);
-        return redirectRes;
-      }
       if (pathname !== "/dashboard") {
         const redirectRes = NextResponse.redirect(new URL("/dashboard", request.url));
         copyCookies(supabaseResponse, redirectRes);
