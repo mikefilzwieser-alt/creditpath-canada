@@ -163,18 +163,22 @@ export async function POST(request: Request) {
       updated_at: string;
       current_month: number;
       blueprint_data: unknown;
+      top_actions_count: number;
     }
   >();
 
   for (const row of bps ?? []) {
     const cid = row.client_id as string;
     if (!cid || latestByClient.has(cid)) continue;
+    const bpData = row.blueprint_data as { top_actions?: unknown[] } | null;
+    const topActionsCount = Array.isArray(bpData?.top_actions) ? Math.min(3, bpData.top_actions.length) : 3;
     latestByClient.set(cid, {
       id: String(row.id ?? ""),
       created_at: String(row.created_at ?? ""),
       updated_at: String(row.updated_at ?? row.created_at ?? ""),
       current_month: normalizeProgramMonth((row as { current_month?: number | null }).current_month),
       blueprint_data: row.blueprint_data,
+      top_actions_count: topActionsCount,
     });
   }
 
@@ -217,6 +221,7 @@ export async function POST(request: Request) {
     last_login_at: string | null;
     blueprint_generated: boolean;
     actions_completed_this_month: number;
+    actions_remaining: number;
     stuck_month1: boolean;
     sort_ts: number;
   };
@@ -229,6 +234,8 @@ export async function POST(request: Request) {
     const lastLogin = lastSignInById.get(id) ?? null;
     const blueprintGenerated = bp ? blueprintHasData(bp.blueprint_data) : false;
     const actionsThisMonth = bp?.id ? (completionsThisMonthByBlueprint.get(bp.id) ?? 0) : 0;
+    const topActionsCount = bp?.top_actions_count ?? 3;
+    const actionsRemaining = Math.max(0, topActionsCount - actionsThisMonth);
 
     const createdBp = bp?.created_at ? new Date(bp.created_at) : null;
     const daysOnProgram =
@@ -259,6 +266,7 @@ export async function POST(request: Request) {
       last_login_at: lastLogin,
       blueprint_generated: blueprintGenerated,
       actions_completed_this_month: actionsThisMonth,
+      actions_remaining: actionsRemaining,
       stuck_month1: stuckMonth1,
       sort_ts: sortTs,
     };
