@@ -355,6 +355,8 @@ export default function LandingV2Page() {
                 src={signatureSrc}
                 alt="Michael Filzwieser signature"
                 onError={() => setSignatureSrc("/michael-signature.jpg")}
+                fetchPriority="high"
+                loading="eager"
                 style={{ width: 120, height: "auto", display: "block", marginBottom: 14, border: "0", background: "transparent" }}
               />
               <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Michael Filzwieser</p>
