@@ -4,6 +4,10 @@ import { sendBrandonEmail } from "@/lib/send-brandon-email";
 import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
 
+export async function GET(request: Request) {
+  return POST(request);
+}
+
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.EMAIL_TRIGGER_SECRET}`) {
