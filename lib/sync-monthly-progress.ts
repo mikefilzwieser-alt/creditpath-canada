@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateMonthlyPlanWithClaude } from "@/lib/generate-monthly-plan-claude";
 import { getProgramMonthThemeTitle, MAX_THEMED_PROGRAM_MONTH, normalizeProgramMonth } from "@/lib/monthly-progression-themes";
+import { sendMonthUnlockEmail } from "@/lib/send-month-unlock-email";
 
 const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
 
@@ -173,6 +174,22 @@ export async function syncMonthlyProgressForUser(
     updated = true;
     advancedToMonth = nextMonth;
     theme = getProgramMonthThemeTitle(nextMonth);
+
+    // Fire month unlock email — non-blocking, don't throw on failure
+    void (async () => {
+      try {
+        const { data: clientRow } = await admin
+          .from("clients")
+          .select("email, full_name")
+          .eq("id", userId)
+          .maybeSingle();
+        if (clientRow?.email) {
+          await sendMonthUnlockEmail(clientRow.email, clientRow.full_name ?? "", nextMonth);
+        }
+      } catch {
+        // Non-critical — swallow error
+      }
+    })();
 
     if (nextMonth >= 2 && nextMonth <= MAX_THEMED_PROGRAM_MONTH) {
       await ensureMonthlyPlanRow(admin, {
