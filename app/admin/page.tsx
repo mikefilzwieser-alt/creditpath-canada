@@ -1315,7 +1315,20 @@ export default function VaAdminPage() {
                     </div>
                     <div>
                       <dt className="text-xs font-semibold uppercase tracking-wide opacity-60">Blueprint status</dt>
-                      <dd className="mt-0.5">{selectedClient.blueprint_status}</dd>
+                      <dd className="mt-0.5 flex items-center gap-3">
+                        <span>{selectedClient.blueprint_status}</span>
+                        {selectedClient.blueprint_status === "ready" && selectedClient.blueprint_id ? (
+                          <a
+                            href={`/dashboard/blueprint?client_id=${selectedClient.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold underline"
+                            style={{ color: TEAL }}
+                          >
+                            View Blueprint →
+                          </a>
+                        ) : null}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-xs font-semibold uppercase tracking-wide opacity-60">Current score (Equifax)</dt>
@@ -1327,7 +1340,11 @@ export default function VaAdminPage() {
                     </div>
                     <div>
                       <dt className="text-xs font-semibold uppercase tracking-wide opacity-60">Rebuild score</dt>
-                      <dd className="mt-0.5 tabular-nums">{selectedClient.rebuild_score ?? "—"}</dd>
+                      <dd className="mt-0.5 tabular-nums">
+                        {selectedClient.rebuild_score !== null && selectedClient.rebuild_score !== undefined && selectedClient.rebuild_score > 0
+                          ? selectedClient.rebuild_score
+                          : "—"}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-xs font-semibold uppercase tracking-wide opacity-60">Utilization</dt>
