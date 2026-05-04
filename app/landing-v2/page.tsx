@@ -33,26 +33,32 @@ const steps = [
 const valueCards = [
   {
     title: "Your Credit Blueprint",
+    tag: "$497 value",
     body: "A personalized 24-month plan built from your actual bureau data. Not a template. Not generic advice. Your file, your plan, your path.",
   },
   {
     title: "Monthly Action Plan",
+    tag: "$197/year value",
     body: "3 clear priorities every month, ranked by score impact. You always know what to do next and why it matters.",
   },
   {
     title: "Recommended Credit Products",
+    tag: "Saves $200+",
     body: "The exact cards and products that will move your score fastest — with referral codes and bonuses built in.",
   },
   {
     title: "Free Financial Planning Session",
+    tag: "$150 value",
     body: "Access to a licensed financial specialist through our partner Brandon Kirk at Safe Wealth Planners. One session, no cost, no obligation.",
   },
   {
     title: "Direct Line to a Finance Director",
+    tag: "Priceless",
     body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he's ready to get you approved.",
   },
   {
     title: "Personal Loan Access",
+    tag: "No hard credit check",
     body: "Pre-qualify for a personal loan without a hard inquiry touching your score. We connect you with trusted lending partners when the timing is right for your file.",
   },
 ] as const;
@@ -190,6 +196,9 @@ export default function LandingV2Page() {
               {valueCards.map((card) => (
                 <article key={card.title} className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
                   <h3 className={`text-base font-bold text-[#0F1923] ${h}`}>{card.title}</h3>
+                  <span className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold" style={{ backgroundColor: "rgba(0,201,167,0.15)", color: "#00C9A7" }}>
+                    {card.tag}
+                  </span>
                   <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/80">{card.body}</p>
                 </article>
               ))}
