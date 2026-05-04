@@ -95,6 +95,13 @@ export default function AboutPage() {
               </p>
               <div className="mt-8">
                 <img
+                  src="/headshot.jpg"
+                  alt="Michael Filzwieser"
+                  fetchPriority="high"
+                  loading="eager"
+                  style={{ width: 120, height: 120, objectFit: "cover", borderRadius: "50%", display: "block", marginBottom: 20, border: `3px solid ${TEAL}` }}
+                />
+                <img
                   src={signatureSrc}
                   alt="Michael Filzwieser signature"
                   onError={() => setSignatureSrc("/michael-signature.jpg")}
