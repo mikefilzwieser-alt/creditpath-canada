@@ -104,7 +104,7 @@ export default function AboutPage() {
                 />
                 <p className={`text-lg font-bold text-[#0F1923] ${h}`}>Michael Filzwieser</p>
                 <p className="mt-1 text-sm text-[#0F1923]/80">
-                  Founder, Credit Path Canada · Finance Director · Titanium Ford
+                  Founder, Credit Path Canada | Finance Director, Titanium Ford
                 </p>
                 <p className="mt-1 text-xs text-[#0F1923]/50">
                   Steve Marshall Auto Group · Serving BC for 60 years
