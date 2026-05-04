@@ -115,7 +115,7 @@ export default function LandingV2Page() {
                 CANADA&apos;S CREDIT EDUCATION PLATFORM
               </p>
               <h1 className={`mt-4 max-w-4xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
-                What if you finally knew exactly what to do with your credit?
+                What if you finally knew <span style={{ color: "#00C9A7" }}>exactly</span> what to do with your credit?
               </h1>
               <p className={`mt-5 text-xl font-semibold text-[#00C9A7] ${h}`}>
                 Not generic tips. Not a score app. A real plan.
