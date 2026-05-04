@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendBrandonEmail } from "@/lib/send-brandon-email";
 import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
+import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 
 export async function GET(request: Request) {
   return POST(request);
@@ -18,11 +19,11 @@ export async function POST(request: Request) {
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
-  const results = { brandon: 0, reengagement: 0, day14: 0 };
+  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0 };
 
   const { data: clients } = await admin
     .from("clients")
-    .select("id, full_name, email, subscription_status, free_trial, trial_start, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent")
+    .select("id, full_name, email, subscription_status, free_trial, trial_start, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, last_bureau_at")
     .in("subscription_status", ["active", "trial"]);
 
   if (!clients) return NextResponse.json({ error: "No clients" }, { status: 500 });
@@ -60,6 +61,19 @@ export async function POST(request: Request) {
       if (result.sent) {
         await admin.from("clients").update({ reengagement_email_sent: true }).eq("id", client.id);
         results.reengagement++;
+      }
+    }
+
+    // Bureau refresh — 110+ days since last bureau upload, not yet sent
+    const lastBureau = client.last_bureau_at ? new Date(client.last_bureau_at) : null;
+    const daysSinceBureau = lastBureau
+      ? Math.floor((now.getTime() - lastBureau.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    if (daysSinceBureau !== null && daysSinceBureau >= 110 && !client.bureau_refresh_email_sent) {
+      const result = await sendBureauRefreshEmail(client.email, client.full_name ?? "");
+      if (result.sent) {
+        await admin.from("clients").update({ bureau_refresh_email_sent: true }).eq("id", client.id);
+        results.bureauRefresh++;
       }
     }
   }
