@@ -10,9 +10,10 @@ type SiteHeaderProps = {
   faqActive?: boolean;
   /** Highlights "Free Resources" when true (e.g. on /resources). */
   resourcesActive?: boolean;
+  aboutActive?: boolean;
 };
 
-export function SiteHeader({ blogActive = false, faqActive = false, resourcesActive = false }: SiteHeaderProps) {
+export function SiteHeader({ blogActive = false, faqActive = false, resourcesActive = false, aboutActive = false }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -125,6 +126,9 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
           ☰
         </button>
         <div className="cp-site-header__desktop-nav">
+          <Link href="/about" style={linkStyle(aboutActive)}>
+            About
+          </Link>
           <Link href="/blog" style={linkStyle(blogActive)}>
             Blog
           </Link>
@@ -191,6 +195,13 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ ...linkStyle(aboutActive), padding: "6px 0", textAlign: "center" }}
+            >
+              About
+            </Link>
             <Link
               href="/blog"
               onClick={() => setMobileMenuOpen(false)}

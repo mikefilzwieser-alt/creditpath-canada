@@ -20,10 +20,8 @@ export default function AboutPage() {
 
   return (
     <div className={`min-h-full bg-[#F5F7FA] text-[#0F1923] ${montserrat.variable}`}>
-      <SiteHeader />
+      <SiteHeader aboutActive />
       <main>
-
-        {/* Hero */}
         <section className="border-b border-black/10 bg-white">
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20">
             <div className="border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
@@ -40,7 +38,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Story */}
         <section className="border-b border-black/10 bg-[#0F1923] py-14 text-white sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className={`text-2xl font-bold sm:text-3xl ${h}`}>
@@ -59,7 +56,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Stats */}
         <section className="border-b border-black/10 bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="grid gap-6 sm:grid-cols-3">
@@ -82,7 +78,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Michael */}
         <section className="border-b border-black/10 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>
@@ -125,7 +120,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Compliance */}
         <section className="border-b border-black/10 bg-[#F5F7FA] py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <p className="text-xs leading-relaxed text-[#0F1923]/50">
@@ -134,7 +128,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="py-14 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <h2 className={`text-3xl font-bold text-[#0F1923] sm:text-4xl ${h}`}>
@@ -151,7 +144,6 @@ export default function AboutPage() {
             </Link>
           </div>
         </section>
-
       </main>
 
       <footer className="border-t border-black/10 bg-white py-8 text-center text-xs text-[#0F1923]/50">
