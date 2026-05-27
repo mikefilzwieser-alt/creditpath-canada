@@ -5,16 +5,14 @@ import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
 import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 
-export async function GET(request: Request) {
-  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
-  const url = new URL(request.url);
-  const secret = url.searchParams.get("secret");
-  const expected = process.env.EMAIL_TRIGGER_SECRET;
-
-  if (!isVercelCron && secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return POST(request);
+export async function GET() {
+  return POST(new Request("http://localhost/api/email-triggers", {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${process.env.EMAIL_TRIGGER_SECRET ?? ""}`,
+      "content-type": "application/json",
+    },
+  }));
 }
 
 export async function POST(request: Request) {
