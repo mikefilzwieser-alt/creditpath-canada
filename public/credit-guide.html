@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7 Habits That Move Your Credit Score — Credit Path Canada</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #00C9A7;
+  --navy: #0F1923;
+  --warm: #F8F6F1;
+  --muted: #7A8694;
+  --border: rgba(15,25,35,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #fff;
+  color: var(--navy);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* COVER */
+.cover {
+  background: var(--navy);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(32px, 6vw, 56px) clamp(24px, 6vw, 56px);
+  position: relative;
+  overflow: hidden;
+}
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.glow-1 { top: -80px; right: -80px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(0,201,167,0.15) 0%, transparent 65%); }
+.glow-2 { bottom: -40px; left: -40px; width: 260px; height: 260px; background: radial-gradient(circle, rgba(0,201,167,0.07) 0%, transparent 65%); }
+
+.cover-top {
+  display: flex; align-items: center; gap: 8px;
+  position: relative; z-index: 1;
+  margin-bottom: auto;
+}
+.dot { width: 7px; height: 7px; background: var(--teal); border-radius: 50%; flex-shrink: 0; }
+.brand { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; }
+
+.cover-mid {
+  flex: 1;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: clamp(40px, 8vw, 72px) 0 clamp(32px, 6vw, 52px);
+  position: relative; z-index: 1;
+}
+.eyebrow {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 16px;
+}
+.cover-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(36px, 8vw, 52px);
+  font-weight: 900; line-height: 1.04;
+  color: #fff; margin-bottom: 8px;
+}
+.cover-title span { color: var(--teal); display: block; }
+.rule { width: 40px; height: 3px; background: var(--teal); border-radius: 2px; margin: 22px 0; }
+.cover-sub {
+  font-size: clamp(14px, 3.5vw, 16px);
+  line-height: 1.68; color: rgba(255,255,255,0.58);
+  max-width: 380px;
+}
+.cover-sub em { color: rgba(255,255,255,0.82); font-style: normal; font-weight: 600; }
+
+.cover-bottom {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.author { display: flex; align-items: center; gap: 12px; }
+.headshot {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 2px solid var(--teal); object-fit: cover; flex-shrink: 0;
+}
+.headshot-fb {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 2px solid var(--teal);
+  background: rgba(0,201,167,0.15);
+  display: none; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--teal);
+  flex-shrink: 0;
+}
+.author-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; color: #fff; margin-bottom: 2px; }
+.author-role { font-size: 11px; color: rgba(255,255,255,0.42); line-height: 1.4; }
+.badge {
+  background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.26);
+  border-radius: 100px; padding: 7px 15px;
+  font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700;
+  color: var(--teal); letter-spacing: 0.06em; white-space: nowrap;
+}
+
+/* PAGE */
+.page { padding: clamp(32px, 6vw, 52px) clamp(24px, 6vw, 52px); }
+
+.pg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: clamp(28px, 5vw, 40px);
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+.pg-brand { display: flex; align-items: center; gap: 7px; }
+.pg-brand-name { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: var(--teal); letter-spacing: 0.08em; }
+.pg-title { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+/* OPENER */
+.opener {
+  background: var(--navy); border-radius: 16px;
+  padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 36px);
+  margin-bottom: clamp(28px, 5vw, 40px);
+  position: relative; overflow: hidden;
+}
+.opener::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,201,167,0.14) 0%, transparent 70%);
+}
+.opener-label {
+  font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 10px; position: relative; z-index: 1;
+}
+.opener-text {
+  font-size: clamp(14px, 3.5vw, 15px); line-height: 1.7;
+  color: rgba(255,255,255,0.76); position: relative; z-index: 1;
+}
+.opener-text strong { color: #fff; font-weight: 600; }
+
+/* FACTORS */
+.factors {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: clamp(28px, 5vw, 40px);
+}
+.factor {
+  flex: 1; min-width: calc(33% - 8px);
+  background: var(--warm); border-radius: 10px;
+  padding: 12px 14px; border: 1px solid var(--border);
+  text-align: center;
+}
+.factor.hot { background: rgba(0,201,167,0.07); border-color: rgba(0,201,167,0.22); }
+.factor-pct { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 900; color: var(--teal); margin-bottom: 3px; }
+.factor-lbl { font-size: 10px; font-weight: 600; color: var(--navy); line-height: 1.3; }
+.factor-lbl small { display: block; font-size: 9px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+/* HABIT */
+.habit {
+  display: flex; gap: 18px;
+  margin-bottom: 28px; padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.habit:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.num {
+  flex-shrink: 0; width: 36px; height: 36px;
+  background: var(--navy); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 900;
+  color: var(--teal); margin-top: 2px;
+}
+.hbody { flex: 1; }
+.htop { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; flex-wrap: wrap; }
+.htitle { font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 3.5vw, 16px); font-weight: 800; color: var(--navy); }
+.tag {
+  font-size: 8px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; padding: 3px 8px; border-radius: 100px;
+}
+.tag-teal { background: rgba(0,201,167,0.12); color: var(--teal); }
+.tag-gray { background: rgba(15,25,35,0.06); color: var(--muted); }
+.htext { font-size: clamp(13px, 3vw, 14px); line-height: 1.7; color: #4B5563; }
+.callout {
+  background: var(--warm); border-left: 3px solid var(--teal);
+  border-radius: 0 7px 7px 0; padding: 10px 13px; margin-top: 10px;
+  font-size: clamp(12px, 2.8vw, 13px); line-height: 1.6; color: var(--navy);
+}
+.callout strong { color: var(--teal); }
+
+/* PRODUCTS */
+.products {
+  background: var(--warm); border-radius: 16px;
+  padding: clamp(22px, 5vw, 32px) clamp(18px, 4vw, 32px);
+  margin-bottom: 24px;
+}
+.section-title { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 3px; }
+.section-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .pgrid { grid-template-columns: 1fr; } .factors { flex-direction: row; } .factor { min-width: calc(50% - 4px); } }
+.product { background: #fff; border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border); }
+.product-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: var(--navy); margin-bottom: 4px; }
+.product-desc { font-size: 11px; line-height: 1.55; color: var(--muted); margin-bottom: 10px; }
+.product-link { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: var(--teal); text-decoration: none; }
+
+/* BRANDON */
+.brandon {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 14px; padding: clamp(20px, 4vw, 26px) clamp(18px, 4vw, 28px);
+  margin-bottom: 24px;
+  display: flex; align-items: flex-start; gap: 16px;
+}
+.brandon-icon {
+  width: 40px; height: 40px; background: rgba(0,201,167,0.1);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.brandon-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px; color: var(--navy); margin-bottom: 5px; }
+.brandon-text { font-size: 12px; line-height: 1.6; color: var(--muted); margin-bottom: 12px; }
+.brandon-btn {
+  display: inline-block; background: var(--navy); color: #fff;
+  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+  padding: 9px 18px; border-radius: 7px; text-decoration: none; letter-spacing: 0.04em;
+}
+
+/* CTA */
+.cta {
+  background: var(--navy); border-radius: 16px;
+  padding: clamp(28px, 6vw, 38px) clamp(22px, 5vw, 40px);
+  text-align: center; position: relative; overflow: hidden;
+}
+.cta::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 340px; height: 340px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,201,167,0.1) 0%, transparent 65%);
+}
+.cta-eye { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; position: relative; z-index: 1; }
+.cta-title { font-family: 'Montserrat', sans-serif; font-size: clamp(20px, 5vw, 24px); font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 10px; position: relative; z-index: 1; }
+.cta-title span { color: var(--teal); }
+.cta-sub { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.55); max-width: 360px; margin: 0 auto 22px; position: relative; z-index: 1; }
+.cta-btn {
+  display: inline-block; background: var(--teal); color: var(--navy);
+  font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800;
+  padding: 12px 28px; border-radius: 9px; text-decoration: none;
+  letter-spacing: 0.06em; text-transform: uppercase; position: relative; z-index: 1;
+}
+.cta-note { margin-top: 10px; font-size: 10px; color: rgba(255,255,255,0.32); position: relative; z-index: 1; }
+
+/* AUTHOR FOOTER */
+.author-foot {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.af-img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--teal); object-fit: cover; flex-shrink: 0; }
+.af-fb {
+  width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--teal);
+  background: rgba(0,201,167,0.1); display: none; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px; color: var(--teal); flex-shrink: 0;
+}
+.af-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: var(--navy); margin-bottom: 2px; }
+.af-role { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.af-contact { font-size: 11px; color: var(--teal); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <div class="cover-top">
+    <div class="dot"></div>
+    <div class="brand">Credit Path Canada</div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="eyebrow">Free Credit Guide · Built for Canadians</div>
+    <h1 class="cover-title">7 Habits That<span>Move Your Score</span></h1>
+    <div class="rule"></div>
+    <p class="cover-sub">They don't teach this in school. Your bank won't explain it. <em>Here's exactly what moves your score — and in what order.</em></p>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="author">
+      <img src="/headshot.jpg" alt="Michael Filzwieser" class="headshot"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="headshot-fb">M</div>
+      <div>
+        <div class="author-name">Michael Filzwieser</div>
+        <div class="author-role">Founder, Credit Path Canada<br>Finance Director, Titanium Ford</div>
+      </div>
+    </div>
+    <div class="badge">30 days free · creditpathcanada.ca</div>
+  </div>
+</div>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="pg-header">
+    <div class="pg-brand"><div class="dot" style="width:6px;height:6px;"></div><div class="pg-brand-name">Credit Path Canada</div></div>
+    <div class="pg-title">7 Habits That Move Your Score</div>
+  </div>
+
+  <div class="opener">
+    <div class="opener-label">Why This Guide Exists</div>
+    <p class="opener-text">I see 30 credit applications every day. Twenty-nine get declined — not because people are irresponsible, but because <strong>nobody ever gave them a clear plan.</strong> These 7 habits are what separate clients who get approved in 6–8 months from the ones still stuck in 2 years.</p>
+  </div>
+
+  <div style="background:#1a0a0a;border:1.5px solid rgba(220,38,38,0.35);border-radius:14px;padding:18px 20px;margin-bottom:28px;display:flex;align-items:flex-start;gap:14px;">
+    <div style="font-size:20px;flex-shrink:0;margin-top:1px;">🚨</div>
+    <div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#ef4444;margin-bottom:7px;">The #1 Thing That Kills Approvals</div>
+      <p style="font-size:13px;line-height:1.65;color:rgba(255,255,255,0.78);">If you get a text or call saying you're approved — <strong style="color:#fff;">do not respond.</strong> These callers submit your application without your permission. Every hard inquiry drops your score and can delay your approval by months. <strong style="color:#00C9A7;">Contact Credit Path Canada first. Always.</strong></p>
+    </div>
+  </div>
+
+  <div class="factors">
+    <div class="factor hot"><div class="factor-pct">35%</div><div class="factor-lbl">Payment History<small>Highest impact</small></div></div>
+    <div class="factor hot"><div class="factor-pct">30%</div><div class="factor-lbl">Utilization<small>Highest impact</small></div></div>
+    <div class="factor"><div class="factor-pct">15%</div><div class="factor-lbl">Credit Age<small>Medium</small></div></div>
+    <div class="factor"><div class="factor-pct">10%</div><div class="factor-lbl">Inquiries<small>Medium</small></div></div>
+    <div class="factor"><div class="factor-pct">10%</div><div class="factor-lbl">Credit Mix<small>Lower</small></div></div>
+  </div>
+
+  <div class="habit">
+    <div class="num">01</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Pay on time. Every time.</div><div class="tag tag-teal">Highest Impact</div></div>
+      <p class="htext">One missed payment stays on your file for up to 7 years. Set up pre-authorized payments on every account — this week, not eventually.</p>
+      <div class="callout"><strong>Rule #1:</strong> Pre-authorized payments on every account. This single habit protects everything else you build.</div>
+    </div>
+  </div>
+
+  <div class="habit">
+    <div class="num">02</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Keep utilization under 30%</div><div class="tag tag-teal">Highest Impact</div></div>
+      <p class="htext">High utilization signals risk — even if you pay in full every month. Keep every card under 30% of its individual limit, not just overall.</p>
+      <div class="callout"><strong>Quick win:</strong> Pay balances before your statement date. That's what gets reported — not your end-of-month balance.</div>
+    </div>
+  </div>
+
+  <div class="habit">
+    <div class="num">03</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Stop applying for credit</div><div class="tag tag-gray">Medium Impact</div></div>
+      <p class="htext">Every application is a hard inquiry. Multiple hard inquiries signal financial stress and can drop your score 15–40 points. Do not apply for anything without contacting us first.</p>
+      <div class="callout"><strong>Credit Path Rule:</strong> Contact us before any application. We'll tell you exactly when and what to apply for.</div>
+    </div>
+  </div>
+
+  <div class="habit">
+    <div class="num">04</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Don't close old accounts</div><div class="tag tag-gray">Medium Impact</div></div>
+      <p class="htext">A card you've had for 8 years is worth far more than a new one. Closing old accounts shrinks your credit history and raises your utilization. Keep them open.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+  <div class="pg-header">
+    <div class="pg-brand"><div class="dot" style="width:6px;height:6px;"></div><div class="pg-brand-name">Credit Path Canada</div></div>
+    <div class="pg-title">7 Habits That Move Your Score</div>
+  </div>
+
+  <div class="habit">
+    <div class="num">05</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Build to 3 network cards</div><div class="tag tag-gray">Medium Impact</div></div>
+      <p class="htext">3 Visa, Mastercard, or Amex cards actively reporting to Equifax is one of the fastest ways to build your score. Secured cards count. Use each monthly, pay in full, stay under 30%.</p>
+      <div class="callout"><strong>Where to start:</strong> Neo Financial and Koho — no credit check required. See below.</div>
+    </div>
+  </div>
+
+  <div class="habit">
+    <div class="num">06</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Handle collections strategically</div><div class="tag tag-gray">Medium Impact</div></div>
+      <p class="htext">Not all collections should be paid. The wrong move can restart the clock and extend damage by years.</p>
+      <div class="callout">
+        <strong>Within 24 months of fall-off:</strong> Do not pay — let it age off.<br>
+        <strong>Over 24 months, under $500:</strong> Pay with written deletion confirmation.<br>
+        <strong>Over 24 months, over $500:</strong> Negotiate 30–40 cents, pay-for-delete in writing first.<br>
+        <strong>Always contact us before taking action.</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="habit">
+    <div class="num">07</div>
+    <div class="hbody">
+      <div class="htop"><div class="htitle">Monitor your bureau monthly</div><div class="tag tag-gray">Ongoing</div></div>
+      <p class="htext">Errors on your bureau are common — wrong balances, duplicate collections, accounts that aren't yours. Every error costs you points. Use Borrowell for free weekly Equifax updates and dispute anything inaccurate immediately.</p>
+    </div>
+  </div>
+
+  <div class="products">
+    <div class="section-title">Recommended Products</div>
+    <p class="section-sub">No credit check. All report to the bureaus. These are what we put our clients on.</p>
+    <div class="pgrid">
+      <div class="product">
+        <div class="product-name">Neo Financial</div>
+        <p class="product-desc">Canada's top credit-building card. No credit check. Use monthly, pay in full.</p>
+        <a href="https://neo.cc/refer/G3Y6L5A9" class="product-link">neo.cc/refer/G3Y6L5A9 →</a>
+      </div>
+      <div class="product">
+        <div class="product-name">Tangerine</div>
+        <p class="product-desc">No annual fee. Reports to both bureaus. $50 bonus with referral code.</p>
+        <a href="https://www.tangerine.ca" class="product-link">tangerine.ca · Code: 79976711S1</a>
+      </div>
+      <div class="product">
+        <div class="product-name">Koho</div>
+        <p class="product-desc">Secured path, no credit check. Great for rebuilding from scratch.</p>
+        <a href="https://www.koho.ca" class="product-link">koho.ca →</a>
+      </div>
+      <div class="product">
+        <div class="product-name">Borrowell</div>
+        <p class="product-desc">Free weekly Equifax score. No hard inquiry — ever.</p>
+        <a href="https://www.borrowell.com" class="product-link">borrowell.com →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="brandon">
+    <div class="brandon-icon">📅</div>
+    <div>
+      <div class="brandon-title">Free 15-Min Financial Planning Session</div>
+      <p class="brandon-text">Book a free session with Brandon Kirk — licensed financial specialist and Credit Path Canada partner. No cost, no obligation. Just an honest conversation about your situation.</p>
+      <a href="https://calendly.com/brandonkirk/" class="brandon-btn">Book Free Session →</a>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="cta-eye">Your Next Step</div>
+    <h2 class="cta-title">Get a plan built from <span>your actual file</span></h2>
+    <p class="cta-sub">These 7 habits are the foundation. Your Credit Path Canada blueprint shows exactly which ones matter most for your file — in what order, this month.</p>
+    <a href="https://www.creditpathcanada.ca" class="cta-btn">Start Free — 30 Days On Us</a>
+    <p class="cta-note">$4.44/week after trial · Cancel anytime · No contracts</p>
+  </div>
+
+  <div class="author-foot">
+    <img src="/headshot.jpg" alt="Michael Filzwieser" class="af-img"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="af-fb">M</div>
+    <div>
+      <div class="af-name">Michael Filzwieser</div>
+      <div class="af-role">Founder, Credit Path Canada · Finance Director, Titanium Ford</div>
+      <div class="af-contact">(604) 442-0894 · info@creditpathcanada.ca · creditpathcanada.ca</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
