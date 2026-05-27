@@ -6,6 +6,11 @@ import { sendDay14Email } from "@/lib/send-day14-email";
 import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 
 export async function GET(request: Request) {
+  const cronSecret = process.env.CRON_SECRET ?? process.env.EMAIL_TRIGGER_SECRET;
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   return POST(request);
 }
 
