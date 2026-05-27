@@ -112,7 +112,7 @@ export default function LandingV2Page() {
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
             <div className="border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
               <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
-                CANADA&apos;S CREDIT EDUCATION PLATFORM
+                Built for Canadian families the system forgot.
               </p>
               <h1 className={`mt-4 max-w-4xl text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
                 What if you finally knew <span style={{ color: "#00C9A7" }}>exactly</span> what to do with your credit?
@@ -129,7 +129,7 @@ export default function LandingV2Page() {
                   href="/onboarding"
                   className={`inline-flex rounded-xl bg-[#00C9A7] px-7 py-3 text-sm font-extrabold uppercase tracking-wide text-[#0F1923] shadow-[0_10px_32px_rgba(0,201,167,0.35)] ${h}`}
                 >
-                  START FREE — 30 DAYS ON US →
+                  Start Free — 30 Days On Us
                 </Link>
                 <Link href="/login" className={`text-base font-semibold text-[#0F1923] ${h}`}>
                   Sign in →
