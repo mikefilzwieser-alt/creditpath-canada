@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/email-triggers",
+      "path": "/api/email-triggers?secret=YOUR_SECRET_HERE",
       "schedule": "0 14 * * *"
     }
   ]
