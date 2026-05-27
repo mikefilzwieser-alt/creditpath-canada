@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/email-triggers?secret=YOUR_SECRET_HERE",
+      "path": "/api/email-triggers?secret=cpc-cron-trigger-2026",
       "schedule": "0 14 * * *"
     }
   ]
