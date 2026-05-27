@@ -533,9 +533,7 @@ export default function DashboardPage() {
         role="alert"
       >
         <p className={`text-sm font-semibold leading-relaxed ${h}`}>
-          Important: <span style={{ color: "#00C9A7" }}>Do not apply for credit anywhere without contacting us first.</span> Every application
-          is a hard inquiry that damages your score and could delay your approval. We are your credit
-          specialist — reach out before you act.
+          <span style={{ color: "#ef4444" }}>⚠️ Do not apply for credit anywhere without contacting us first.</span> If you receive a text or call saying you are approved — do not respond. Every application is a hard inquiry that damages your score and could delay your approval by months. We are your credit specialist — reach out before you act.
         </p>
       </section>
 
