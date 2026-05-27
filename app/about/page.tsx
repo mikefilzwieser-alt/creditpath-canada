@@ -26,7 +26,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20">
             <div className="border-l-[6px] border-[#00C9A7] pl-6 sm:pl-8">
               <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
-                ABOUT CREDIT PATH CANADA
+                Built for Canadian families the system forgot.
               </p>
               <h1 className={`mt-4 text-3xl font-bold leading-tight tracking-tight text-[#0F1923] sm:text-5xl ${h}`}>
                 Built for the people the banks keep saying no to.
