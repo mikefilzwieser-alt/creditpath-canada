@@ -6,6 +6,7 @@ import { sendDay14Email } from "@/lib/send-day14-email";
 import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 
 async function runEmailTriggers() {
+  try {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
@@ -67,6 +68,10 @@ async function runEmailTriggers() {
   }
 
   return NextResponse.json({ ok: true, results });
+  } catch (err) {
+    console.error("[email-triggers] crash:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 export async function GET() {
