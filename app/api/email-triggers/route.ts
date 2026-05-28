@@ -7,7 +7,11 @@ import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 
 async function runEmailTriggers() {
   try {
+  console.log("[email-triggers] starting, checking admin...");
+  console.log("[email-triggers] SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "missing");
+  console.log("[email-triggers] SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "set" : "missing");
   const admin = getSupabaseAdmin();
+  console.log("[email-triggers] admin:", admin ? "ready" : "null");
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
