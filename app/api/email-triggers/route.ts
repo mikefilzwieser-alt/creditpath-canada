@@ -19,7 +19,7 @@ async function runEmailTriggers() {
 
   const { data: clients, error } = await admin
     .from("clients")
-    .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, last_bureau_at")
+    .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -55,18 +55,6 @@ async function runEmailTriggers() {
       if (result.sent) {
         await admin.from("clients").update({ reengagement_email_sent: true }).eq("id", client.id);
         results.reengagement++;
-      }
-    }
-
-    const lastBureau = client.last_bureau_at ? new Date(client.last_bureau_at) : null;
-    const daysSinceBureau = lastBureau
-      ? Math.floor((now.getTime() - lastBureau.getTime()) / (1000 * 60 * 60 * 24))
-      : null;
-    if (daysSinceBureau !== null && daysSinceBureau >= 110 && !client.bureau_refresh_email_sent) {
-      const result = await sendBureauRefreshEmail(client.email, client.full_name ?? "");
-      if (result.sent) {
-        await admin.from("clients").update({ bureau_refresh_email_sent: true }).eq("id", client.id);
-        results.bureauRefresh++;
       }
     }
   }
