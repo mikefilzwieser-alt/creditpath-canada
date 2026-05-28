@@ -69,13 +69,7 @@ async function runEmailTriggers() {
   return NextResponse.json({ ok: true, results });
 }
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const secret = url.searchParams.get("secret");
-  const expected = process.env.EMAIL_TRIGGER_SECRET;
-  if (!expected || secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function GET() {
   return runEmailTriggers();
 }
 
