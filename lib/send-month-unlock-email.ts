@@ -27,7 +27,7 @@ export async function sendMonthUnlockEmail(to: string, name: string, month: numb
   <div style="padding: 32px;">
     <p>Hi ${escapeHtml(firstName || name)},</p>
     <p>You did it. All actions complete. 28 days in. <strong>Month ${month} is now unlocked.</strong></p>
-    <p>Most people drop off before they get here. You didn't. That matters — and your score is going to reflect it.</p>
+    <p>Most people drop off before they get here. You didn't. <span style="color: #00C9A7; font-weight: 700;">That matters — and your score is going to reflect it.</span></p>
     <p>Log in now to see your Month ${month} actions. They're built directly from where your file stands today.</p>
     <p style="text-align: center; margin: 32px 0;">
       <a href="https://www.creditpathcanada.ca/dashboard/blueprint" style="background: #00C9A7; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">See My Month ${month} Actions →</a>
