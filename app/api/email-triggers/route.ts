@@ -22,8 +22,11 @@ async function runEmailTriggers() {
     .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
+  console.log("[email-triggers] query error:", error?.message ?? "none");
+  console.log("[email-triggers] clients count:", clients?.length ?? "null");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!clients) return NextResponse.json({ error: "No clients" }, { status: 500 });
+  console.log("[email-triggers] starting loop...");
 
   for (const client of clients) {
     if (!client.email) continue;
