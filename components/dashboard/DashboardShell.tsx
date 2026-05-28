@@ -46,9 +46,9 @@ export function useDashboardAuth(): DashboardAuthContextValue {
 }
 
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
+  { href: "/dashboard/blueprint#monthly-actions", label: "My Actions" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/blueprint", label: "Blueprint" },
-  { href: "/dashboard/blueprint#monthly-actions", label: "Actions" },
   { href: "/dashboard/upload", label: "Upload" },
   { href: "/dashboard/goals", label: "Goals" },
   { href: "/dashboard/resources", label: "Resources" },
@@ -123,6 +123,9 @@ export function DashboardShell({
       }
       setUser(data.user);
       setLoading(false);
+      if (typeof window !== "undefined" && window.location.pathname === "/dashboard") {
+        router.replace("/dashboard/blueprint#monthly-actions");
+      }
     })();
 
     const {
@@ -437,16 +440,16 @@ export function DashboardShell({
                   {firstLoginSlide === 0 ? (
                     <p>
                       You just made the most important decision for your financial future. Over the next{" "}
-                      <span style={{ color: TEAL }}>8-12 months</span>{" "}we&apos;re going to move your credit score — month
+                      <span style={{ color: TEAL }}>8–10 months</span> we&apos;re going to move your credit score — month
                       by month — based on your actual file. No generic tips. No guesswork.{" "}
-                      <span style={{ color: TEAL }}>A real plan built for you</span>.
+                      <span style={{ color: TEAL }}>A real plan built for you.</span>
                     </p>
                   ) : firstLoginSlide === 1 ? (
                     <p>
                       Every recommendation is built from your <span style={{ color: TEAL }}>actual Equifax bureau</span>{" "}
                       — your tradelines, your collections, your inquiries. Nothing generic. Log in anytime to see{" "}
                       <span style={{ color: TEAL }}>exactly where you stand</span> and{" "}
-                      <span style={{ color: TEAL }}>what to do next</span>.
+                      <span style={{ color: TEAL }}>what to do next.</span>
                     </p>
                   ) : (
                     <p>
