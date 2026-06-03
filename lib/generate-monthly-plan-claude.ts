@@ -21,6 +21,9 @@ HARD RULES (apply to every month):
 - Return JSON only: {"actions":[{"action":"string","impact":"string","timeline":"string"}]}
 - Generate exactly 3 actions, no more, no less
 - Each action must be specific, Canadian context, and achievable this month
+- ACTION LENGTH: Each action string must be ONE sentence maximum — 20 words or fewer. Direct coaching voice. No explanations, no clauses, no parentheticals. Write like a coach giving a clear instruction, not a report.
+- IMPACT LENGTH: Each impact string must be 6 words or fewer.
+- TIMELINE LENGTH: Each timeline string must be 3 words or fewer.
 `;
 
   const monthGuides: Record<number, string> = {
