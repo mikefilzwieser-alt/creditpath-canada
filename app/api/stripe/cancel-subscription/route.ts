@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getStripe } from "@/lib/stripe-server";
+import { sendWinbackEmail } from "@/lib/send-winback-email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,6 +90,10 @@ export async function POST() {
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
     }
+    const clientData2 = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
+    if (clientData2.data?.email) {
+      void sendWinbackEmail(clientData2.data.email, clientData2.data.full_name ?? "").catch(() => null);
+    }
     return NextResponse.json({ ok: true });
   }
 
@@ -97,6 +102,10 @@ export async function POST() {
     const r = await setCancelledInDb(null);
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
+    }
+    const clientData2 = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
+    if (clientData2.data?.email) {
+      void sendWinbackEmail(clientData2.data.email, clientData2.data.full_name ?? "").catch(() => null);
     }
     return NextResponse.json({ ok: true });
   }
@@ -168,6 +177,13 @@ export async function POST() {
     }
 
     console.log("[cancel-subscription] Step 6: success — Stripe + DB updated");
+
+    // Fire win-back email
+    const clientData = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
+    if (clientData.data?.email) {
+      void sendWinbackEmail(clientData.data.email, clientData.data.full_name ?? "").catch(() => null);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Stripe error.";
