@@ -440,27 +440,26 @@ export function DashboardShell({
                     <>3 actions. Every month. That&apos;s it.</>
                   )}
                 </h2>
-                <div className="mt-4 space-y-3 text-sm leading-relaxed" style={{ color: "rgba(15, 25, 35, 0.82)" }}>
+                <div className="mt-4 text-sm leading-relaxed" style={{ color: "rgba(15, 25, 35, 0.75)" }}>
                   {firstLoginSlide === 0 ? (
-                    <p>
-                      You just made the most important decision for your financial future. Over the next{" "}
-                      <span style={{ color: TEAL }}>8–10 months</span> we&apos;re going to move your credit score — month
-                      by month — based on your actual file. No generic tips. No guesswork.{" "}
-                      <span style={{ color: TEAL }}>A real plan built for you.</span>
+                    <p style={{ lineHeight: 1.8 }}>
+                      You made the most important decision for your financial future.{" "}
+                      Over the next <span style={{ color: TEAL, fontWeight: 700 }}>8–10 months</span> we&apos;re going to move your credit score — based on your actual file.{" "}
+                      No guesswork. <span style={{ color: TEAL, fontWeight: 700 }}>A real plan built for you.</span>
                     </p>
                   ) : firstLoginSlide === 1 ? (
-                    <p>
-                      Every recommendation is built from your <span style={{ color: TEAL }}>actual Equifax bureau</span>{" "}
-                      — your tradelines, your collections, your inquiries. Nothing generic. Log in anytime to see{" "}
-                      <span style={{ color: TEAL }}>exactly where you stand</span> and{" "}
-                      <span style={{ color: TEAL }}>what to do next.</span>
+                    <p style={{ lineHeight: 1.8 }}>
+                      Every action is built from your{" "}
+                      <span style={{ color: TEAL, fontWeight: 700 }}>actual Equifax bureau</span>{" "}
+                      — your tradelines, your collections, your inquiries. Log in anytime to see{" "}
+                      <span style={{ color: TEAL, fontWeight: 700 }}>exactly where you stand</span>{" "}
+                      and <span style={{ color: TEAL, fontWeight: 700 }}>what to do next.</span>
                     </p>
                   ) : (
-                    <p>
-                      Each month you get <span style={{ color: TEAL }}>3 clear actions</span> ranked by score impact.
-                      Complete them, wait <span style={{ color: TEAL }}>28 days</span>, and your next month unlocks
-                      automatically.{" "}
-                      <span style={{ color: TEAL }}>The clients who follow through are the ones who get approved.</span>
+                    <p style={{ lineHeight: 1.8 }}>
+                      Each month you get <span style={{ color: TEAL, fontWeight: 700 }}>3 clear actions</span> ranked by score impact.
+                      Complete them, wait <span style={{ color: TEAL, fontWeight: 700 }}>28 days</span>, and your next month unlocks automatically.{" "}
+                      <span style={{ color: TEAL, fontWeight: 700 }}>The clients who follow through are the ones who get approved.</span>
                     </p>
                   )}
                 </div>
