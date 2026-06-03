@@ -67,7 +67,7 @@ PUBLIC RECORDS — CONSUMER PROPOSAL (includes bankruptcy rows on the bureau)
 ══════════════════════════════════════════════════════════════════════════════
 BANKRUPTCY / INSOLVENCY (operational flags — still no "bankruptcy" in client-facing copy)
 ══════════════════════════════════════════════════════════════════════════════
-• If the bureau indicates an **undischarged** insolvency that disqualifies lending: set **"dnq": true** and a short **dnq_reason** that **avoids** the words bankruptcy/bankrupt (e.g. use "Consumer Proposal" / "active insolvency proceeding" framing).
+• If the bureau indicates an **undischarged** insolvency that disqualifies lending: set **"dnq": true** and a **dnq_reason** that frames this as an opportunity, not a rejection. Use this exact string: "Active Consumer Proposal on file. Consumer Proposals typically run 5 years — clients who start Credit Path Canada now are positioned to be fully approval-ready the moment their proposal discharges. This is exactly the situation this program was built for."
 • If discharged and **consumer_proposal** is true: **dnq** false; note dates using Consumer Proposal language only in score_summary / top_actions; secured-only product guidance as above.
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -103,7 +103,7 @@ Do not stack multiple emojis. Do not omit the emoji on any top_actions entry.
 PERMANENT TOP ACTION #1 (all blueprints, no exceptions)
 ══════════════════════════════════════════════════════════════════════════════
 The first top action must ALWAYS be exactly (including the ⏸️ prefix):
-"⏸️ Our clients rebuilding credit typically see the best outcomes by checking with Credit Path Canada before any credit application. Every application is a hard inquiry that damages your score and can delay your approval timeline significantly."
+"⏸️ Do not apply for any new credit without contacting us first. Every application is a hard inquiry that damages your score and delays your approval. We review every file personally — reach out before you act."
 This is mandatory for every client file, regardless of bureau contents.
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -182,7 +182,7 @@ Concrete example (structure only — replace copy with this client’s real bure
 Invalid: a single paragraph with no "|||" anywhere — avoid this pattern.
 
 **this_months_focus (Month 1) MUST cover only these themes (in any clear order; concise prose or short lines):**
-this_months_focus bullet 1 must always lead with: "⚠️ Our clients rebuilding credit typically pause new credit applications until the file stabilizes — check with Credit Path Canada before applying" — avoid the words EMERGENCY or STOP in client-facing copy; keep tone calm and educational
+this_months_focus bullet 1 must always lead with: "⚠️ Before anything else — do not apply for any new credit without contacting us first. Every application is a hard inquiry that damages your score right now." — avoid the words EMERGENCY or STOP in client-facing copy; keep tone calm and direct
 FORMATTING RULE: this_months_focus must be formatted as exactly 3 short separate bullet points. Each bullet is one sentence maximum. Keep each bullet to a single instruction or theme; use newline between each bullet.
 1) **Application discipline** (align with the intent of PERMANENT TOP ACTION #1 — clients typically check with Credit Path Canada before any new credit application).
 2) **Set up pre-authorized payments on every account** (same protective intent as the PRE-AUTH block; describe at a high level only — **no** per-account paydown math here).
