@@ -4,6 +4,7 @@ import { sendBrandonEmail } from "@/lib/send-brandon-email";
 import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
 import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
+import { sendDay10Email } from "@/lib/send-day10-email";
 
 async function runEmailTriggers() {
   try {
@@ -15,11 +16,11 @@ async function runEmailTriggers() {
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
-  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0 };
+  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0, day10: 0 };
 
   const { data: clients, error } = await admin
     .from("clients")
-    .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent")
+      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
   console.log("[email-triggers] query error:", error?.message ?? "none");
@@ -36,6 +37,15 @@ async function runEmailTriggers() {
     const daysSinceLogin = lastLogin
       ? Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24))
       : daysSinceCreated;
+
+    // Day 10 — no login after paying
+    if (daysSinceCreated >= 10 && !client.last_login_at && !client.day10_email_sent) {
+      const result = await sendDay10Email(client.email, client.full_name ?? "");
+      if (result.sent) {
+        await admin.from("clients").update({ day10_email_sent: true }).eq("id", client.id);
+        results.day10++;
+      }
+    }
 
     if (daysSinceCreated >= 3 && !client.brandon_email_sent) {
       const result = await sendBrandonEmail(client.email, client.full_name ?? "");
