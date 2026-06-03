@@ -398,6 +398,10 @@ export function DashboardShell({
             <div className="mt-auto border-t border-white/10 px-3 py-4 md:px-3 md:pb-8">
               <div className="px-4 pb-4 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
                 Questions? <a href="mailto:info@creditpathcanada.ca" style={{ color: "#00C9A7" }}>info@creditpathcanada.ca</a>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                  <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", fontSize: "10px" }}>Privacy Policy</a>
+                  <a href="/user-agreement" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", fontSize: "10px" }}>User Agreement</a>
+                </div>
               </div>
               <button
                 type="button"

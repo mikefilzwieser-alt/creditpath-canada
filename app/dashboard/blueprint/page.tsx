@@ -760,9 +760,18 @@ export default function BlueprintPage() {
     const syncActionsHash = () => {
       if (window.location.hash !== "#monthly-actions") return;
       setTab("overview");
-      queueMicrotask(() => {
-        document.getElementById("monthly-actions")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      // Retry scroll until element is in DOM
+      let attempts = 0;
+      const tryScroll = () => {
+        const el = document.getElementById("monthly-actions");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (attempts < 10) {
+          attempts++;
+          setTimeout(tryScroll, 150);
+        }
+      };
+      queueMicrotask(tryScroll);
     };
     syncActionsHash();
     window.addEventListener("hashchange", syncActionsHash);
@@ -1643,37 +1652,45 @@ export default function BlueprintPage() {
                 {plan?.this_months_focus ? (
                   (() => {
                     const raw = plan?.this_months_focus ?? "";
-                    let bullets = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+                    // Split on newlines first, then fall back to sentence splitting
+                    let bullets = raw.split(/\n+/).map((s: string) => s.trim()).filter(Boolean);
                     if (bullets.length === 1) {
-                      bullets = raw.split(/(?<=[.!])\s+/).map(s => s.trim()).filter(Boolean);
+                      bullets = raw.split(/(?<=[.!])\s+(?=[⚠✅💳📈🔍📋🏦⏳📞🤝💰📊A-Z])/u).map((s: string) => s.trim()).filter(Boolean);
+                    }
+                    if (bullets.length === 1) {
+                      bullets = raw.split(/(?<=[.!])\s+/).map((s: string) => s.trim()).filter(Boolean);
                     }
                     bullets = bullets.slice(0, 3);
                     return (
                       <ol style={{ paddingLeft: 0, margin: 0, listStyle: "none" }}>
-                        {bullets.map((b, i) => (
+                        {bullets.map((b: string, i: number) => (
                           <li
                             key={i}
                             style={{
-                              marginBottom: 10,
-                              lineHeight: 1.6,
+                              marginBottom: 14,
+                              lineHeight: 1.7,
                               fontSize: 14,
                               display: "flex",
                               alignItems: "flex-start",
-                              gap: 10,
+                              gap: 12,
+                              padding: "10px 14px",
+                              background: "rgba(255,255,255,0.6)",
+                              borderRadius: 10,
+                              border: "1px solid rgba(0,201,167,0.15)",
                             }}
                           >
                             <span
                               style={{
                                 color: "#00C9A7",
-                                fontWeight: 700,
-                                fontSize: 16,
+                                fontWeight: 800,
+                                fontSize: 15,
                                 flexShrink: 0,
                                 marginTop: 1,
                               }}
                             >
                               {i + 1}.
                             </span>
-                            <span style={{ fontWeight: 600 }}>{b.replace(/^[-•]\s*/, "")}</span>
+                            <span style={{ fontWeight: 500, color: "#0F1923" }}>{b.replace(/^[-•]\s*/, "")}</span>
                           </li>
                         ))}
                       </ol>
