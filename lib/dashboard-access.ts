@@ -1,8 +1,15 @@
 /** Stripe / manual comp: when set (case-insensitive), user may use the dashboard without a paid `active` status. */
 export const CCVIP2026_PROMO_CODE = "CCVIP2026";
+export const FIRSTNATIONS_PROMO_CODE = "FIRSTNATIONS";
+
+const LIFETIME_PROMO_CODES = [CCVIP2026_PROMO_CODE, FIRSTNATIONS_PROMO_CODE];
 
 export function normalizeAppliedPromoCode(code: string | null | undefined): string {
   return (code ?? "").trim().toUpperCase();
+}
+
+export function isLifetimePromoCode(code: string | null | undefined): boolean {
+  return LIFETIME_PROMO_CODES.includes(normalizeAppliedPromoCode(code));
 }
 
 /**
@@ -33,6 +40,9 @@ export function hasDashboardPaywallAccess(params: {
   stripeCustomerId?: string | null | undefined;
   accessUntil?: string | null | undefined;
 }): boolean {
+  // Lifetime promo codes always grant access regardless of subscription status
+  if (isLifetimePromoCode(params.appliedPromoCode)) return true;
+
   const status = (params.subscriptionStatus ?? "").trim().toLowerCase();
   if (status === "active") return true;
   if (status === "trial") {
@@ -41,6 +51,5 @@ export function hasDashboardPaywallAccess(params: {
   if (status === "cancelled") {
     return cancelledWithAccessWindowAllowsDashboard(params.accessUntil);
   }
-  if (normalizeAppliedPromoCode(params.appliedPromoCode) === CCVIP2026_PROMO_CODE) return true;
   return false;
 }
