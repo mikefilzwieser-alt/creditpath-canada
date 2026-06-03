@@ -104,13 +104,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: selectErr.message }, { status: 500 });
     }
     const rowId = (existingRow as { id?: string } | null)?.id;
-    const { error: saveErr } = rowId
-      ? await admin.from("action_completions").update({ action_text: actionText, completed_at: completedAt }).eq("id", rowId)
-      : await admin.from("action_completions").insert({
-          ...match,
-          action_text: actionText,
-          completed_at: completedAt,
-        });
+    const { error: saveErr } = await admin
+      .from("action_completions")
+      .upsert(
+        { ...match, action_text: actionText, completed_at: completedAt },
+        { onConflict: "client_id,blueprint_id,program_month,action_index" },
+      );
     if (saveErr) {
       return NextResponse.json({ error: saveErr.message }, { status: 500 });
     }
