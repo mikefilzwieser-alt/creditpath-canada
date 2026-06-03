@@ -1583,11 +1583,18 @@ export default function BlueprintPage() {
       {parsed?.dnq ? (
         <div
           className="rounded-2xl border-2 px-5 py-4 text-sm font-semibold shadow-sm"
-          style={{ borderColor: "#b91c1c", backgroundColor: "rgba(220, 38, 38, 0.08)", color: "#7f1d1d" }}
-          role="alert"
+          style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.08)", color: NAVY }}
+          role="status"
         >
-          <p className={`text-base font-bold ${h}`}>Does not qualify at this time</p>
-          <p className="mt-1 font-medium leading-relaxed">{formatDisplay(parsed.dnq_reason)}</p>
+          <p className={`text-base font-bold ${h}`} style={{ color: TEAL }}>
+            🎯 Consumer Proposal — Your Program Starts Now
+          </p>
+          <p className="mt-2 font-medium leading-relaxed" style={{ color: NAVY, opacity: 0.85 }}>
+            {formatDisplay(parsed.dnq_reason)}
+          </p>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: NAVY, opacity: 0.65 }}>
+            Credit Path Canada was built for exactly this situation. Clients who start now are positioned to be fully approval-ready the moment their proposal discharges.
+          </p>
         </div>
       ) : null}
 
