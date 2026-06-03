@@ -359,6 +359,11 @@ export default function LandingV2Page() {
           </a>
         </p>
         <p className="mt-4">34 W 7th Ave #401, Vancouver, BC V5Y 1L6</p>
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <a href="/privacy-policy" style={{ color: "#00C9A7", textDecoration: "none", fontSize: 12 }}>Privacy Policy</a>
+          <span style={{ color: "#0F1923", opacity: 0.3 }}>·</span>
+          <a href="/user-agreement" style={{ color: "#00C9A7", textDecoration: "none", fontSize: 12 }}>User Agreement</a>
+        </div>
       </footer>
     </div>
   );
