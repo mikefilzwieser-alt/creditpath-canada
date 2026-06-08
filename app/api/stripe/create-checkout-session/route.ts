@@ -50,9 +50,8 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       allow_promotion_codes: true,
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      payment_method_types: ["card", "acss_debit"],
+      payment_method_collection: "always",
       payment_method_options: {
         acss_debit: {
           mandate_options: {
