@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 
+const FONT_STACK = "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-mont" });
 
 const TEAL = "#00C9A7";
@@ -17,7 +19,7 @@ export default function DriveReadyPage() {
     <div className={`${montserrat.variable} min-h-full`} style={{ background: NAVY_DEEP, color: "#fff" }}>
       <div style={{ background: "#fff" }}><SiteHeader /></div>
 
-      <main className={m}>
+      <main className={m} style={{ fontFamily: FONT_STACK }}>
 
         {/* HERO */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px 72px", position: "relative", overflow: "hidden" }}>
@@ -33,7 +35,7 @@ export default function DriveReadyPage() {
               <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
             </div>
 
-            <h1 style={{ fontSize: "clamp(28px, 3.4vw, 44px)", fontWeight: 800, lineHeight: 1.04, letterSpacing: "-0.03em", color: "#fff", marginBottom: 24 }}>
+            <h1 style={{ fontFamily: FONT_STACK, fontSize: "clamp(28px, 3.4vw, 44px)", fontWeight: 800, lineHeight: 1.04, letterSpacing: "-0.03em", color: "#fff", marginBottom: 24 }}>
               Your name.<br/>Zero down.<br/><span style={{ color: TEAL }}>Approved.</span>
             </h1>
 
@@ -61,7 +63,7 @@ export default function DriveReadyPage() {
             </div>
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>The banks said no</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
+              <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
                 I see why every day. <span style={{ color: TEAL }}>And I built the answer.</span>
               </h2>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
@@ -82,7 +84,7 @@ export default function DriveReadyPage() {
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1080, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16, textAlign: "center" }}>The Drive Ready Program</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, textAlign: "center" }}>
               Four steps. <span style={{ color: TEAL }}>Here's what happens.</span>
             </h2>
 
@@ -108,7 +110,7 @@ export default function DriveReadyPage() {
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 900, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16, textAlign: "center" }}>Non-negotiables</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40, textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40, textAlign: "center" }}>
               Three rules. <span style={{ fontWeight: 300, color: "rgba(255,255,255,0.6)" }}>No exceptions.</span>
             </h2>
 
@@ -155,7 +157,7 @@ export default function DriveReadyPage() {
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
               Your score moves — <span style={{ color: TEAL }}>or we work for free.</span>
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
@@ -167,7 +169,7 @@ export default function DriveReadyPage() {
         {/* CTA */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", textAlign: "center" }}>
           <div style={{ maxWidth: 700, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "clamp(22px, 2.6vw, 32px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(22px, 2.6vw, 32px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
               Built for Canadian families <span style={{ color: TEAL }}>the system forgot.</span>
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", marginBottom: 36 }}>

@@ -5,6 +5,8 @@ import { Montserrat } from "next/font/google";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { useEffect, useState } from "react";
 
+const FONT_STACK = "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
@@ -65,7 +67,7 @@ export default function HomepageV2() {
     <div className={`${montserrat.variable} min-h-full`} style={{ background: NAVY_DEEP, color: "#fff" }}>
       <div style={{ background: "#fff" }}><SiteHeader /></div>
 
-      <main className={m}>
+      <main className={m} style={{ fontFamily: FONT_STACK }}>
 
         {/* HERO */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px 72px", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
@@ -80,7 +82,7 @@ export default function HomepageV2() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
               <div>
-                <h1 style={{ fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 20 }}>
+                <h1 style={{ fontFamily: FONT_STACK, fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 20 }}>
                   What if you finally knew <span style={{ color: TEAL }}>exactly what to do</span> with your credit?
                 </h1>
 
@@ -145,7 +147,7 @@ export default function HomepageV2() {
             </div>
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>Meet the founder</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
+              <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
                 I see 30 applications a day. <span style={{ color: TEAL }}>Twenty-nine get declined.</span>
               </h2>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
@@ -166,7 +168,7 @@ export default function HomepageV2() {
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>How it works</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
               Four steps. <span style={{ color: TEAL }}>One clear path forward.</span>
             </h2>
 
@@ -191,7 +193,7 @@ export default function HomepageV2() {
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>What you get</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
               Everything you need to <span style={{ color: TEAL }}>move your score.</span>
             </h2>
 
@@ -214,7 +216,7 @@ export default function HomepageV2() {
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>The math is undeniable</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40 }}>
               A 580 vs 680 score on a $30,000 auto loan:
             </h2>
 
@@ -262,7 +264,7 @@ export default function HomepageV2() {
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
               Follow the program for 12 months and your score will move.
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
@@ -274,7 +276,7 @@ export default function HomepageV2() {
         {/* CTA */}
         <section style={{ background: NAVY, padding: "56px 24px", textAlign: "center" }}>
           <div style={{ maxWidth: 700, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "clamp(22px, 2.6vw, 32px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(22px, 2.6vw, 32px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
               Your blueprint is <span style={{ color: TEAL }}>3 minutes away.</span>
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", marginBottom: 36 }}>
