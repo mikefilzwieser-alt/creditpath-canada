@@ -170,20 +170,19 @@ export default function HomepageV2() {
               </div>
             </div>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>Meet the founder</p>
-              <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
-                I see 30 applications a day. <span style={{ color: TEAL }}>Twenty-nine get declined.</span>
-              </h2>
-              <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
-                I'm Michael Filzwieser — Finance Director at Titanium Ford, part of TD's #1 dealer group in Canada. For years I watched good people walk away with nothing — not because they couldn't be helped, but because <strong style={{ color: "#fff" }}>nobody gave them a clear plan.</strong>
-              </p>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>Meet the founder:</p>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)" }}>
-                I built Credit Path Canada because those 29 people deserved better than a rejection slip. <span style={{ color: TEAL, fontWeight: 600 }}>They deserved a roadmap.</span>
+                "I'm Michael Filzwieser — Finance Director at Titanium Ford, part of TD's #1 dealer group in Canada.<br /><br />
+                I see 30 applications a day. Twenty-nine get declined.<br /><br />
+                For years I watched good people walk away with nothing — not because they couldn't be helped, but because nobody gave them a clear plan.<br /><br />
+                I built Credit Path Canada because everyone deserves something more than a rejection slip. They deserved a roadmap."
               </p>
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Founder, Credit Path Canada · Finance Director, Titanium Ford · TD's #1 dealer in Canada</p>
-                <img src="/sig.jpg" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
+                <p style={{ fontSize: 11, color: TEAL, marginTop: 4 }}>Founder, Credit Path Canada</p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Finance Director, Titanium Ford</p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>TD's #1 dealer in Canada</p>
+                <img src="/sig.jpg" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85, borderRadius: "12px" }} />
               </div>
             </div>
           </div>
