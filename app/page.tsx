@@ -172,10 +172,10 @@ export default function HomepageV2() {
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>Meet the founder:</p>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)" }}>
-                "I'm Michael Filzwieser — Finance Director at Titanium Ford, part of TD's #1 dealer group in Canada.<br /><br />
+                "I'm Michael Filzwieser — Finance Director at Titanium Ford, part of <span style={{ color: TEAL, fontWeight: 600 }}>TD's #1 dealer group in Canada</span>.<br /><br />
                 I see 30 applications a day. Twenty-nine get declined.<br /><br />
-                For years I watched good people walk away with nothing — not because they couldn't be helped, but because nobody gave them a clear plan.<br /><br />
-                I built Credit Path Canada because everyone deserves something more than a rejection slip. They deserved a roadmap."
+                For years I watched good people walk away with nothing — not because they couldn't be helped, but because <span style={{ color: TEAL, fontWeight: 600 }}>nobody gave them a clear plan</span>.<br /><br />
+                I built Credit Path Canada because everyone deserves something more than a rejection slip. <span style={{ color: TEAL, fontWeight: 600 }}>They deserved a roadmap</span>."
               </p>
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
