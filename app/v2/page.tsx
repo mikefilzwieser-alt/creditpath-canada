@@ -159,19 +159,6 @@ export default function HomepageV2() {
           </div>
         </section>
 
-        {/* GUARANTEE */}
-        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-              Follow the program for 12 months and your score will move.
-            </h2>
-            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
-            </p>
-          </div>
-        </section>
-
         {/* MICHAEL */}
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center" }} className="michael-grid">
@@ -196,7 +183,7 @@ export default function HomepageV2() {
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Founder, Credit Path Canada · Finance Director, Titanium Ford · TD's #1 dealer in Canada</p>
-                <img src="/michael-signature.png" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
+                <img src="/sig.jpg" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
               </div>
             </div>
           </div>
@@ -283,6 +270,19 @@ export default function HomepageV2() {
             <Link href="/onboarding" style={{ background: TEAL, color: NAVY, padding: "18px 44px", borderRadius: 100, fontSize: 14, fontWeight: 800, textDecoration: "none", letterSpacing: "0.08em", textTransform: "uppercase", display: "inline-block", transition: "transform 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
               Get My Blueprint
             </Link>
+          </div>
+        </section>
+
+        {/* GUARANTEE */}
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+              Follow the program for 12 months and your score will move.
+            </h2>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
+              If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
+            </p>
           </div>
         </section>
 

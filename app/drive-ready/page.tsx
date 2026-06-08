@@ -42,11 +42,6 @@ export default function DriveReadyPage() {
               Start My Drive Ready Program
             </Link>
 
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,201,167,0.08)", border: "1px solid rgba(0,201,167,0.22)", borderRadius: 100, padding: "7px 14px", marginTop: 20 }}>
-              <div style={{ width: 6, height: 6, background: TEAL, borderRadius: "50%" }}></div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
-            </div>
-
             <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>30 days free · ~50¢/day after · Cancel anytime</p>
           </div>
         </section>
@@ -63,19 +58,22 @@ export default function DriveReadyPage() {
             </div>
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>The banks said no</p>
-              <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
-                I see why every day. <span style={{ color: TEAL }}>And I built the answer.</span>
-              </h2>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
-                I'm Michael Filzwieser — Finance Director at Titanium Ford, part of TD's #1 dealer group in Canada. Applications get declined daily because <strong style={{ color: "#fff" }}>nobody gave them a plan.</strong>
+                A decline today means your file needs a plan — and <span style={{ color: TEAL, fontWeight: 600 }}>that's exactly what you now have.</span>
+              </p>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
+                The banks decline without telling you why; <span style={{ color: TEAL, fontWeight: 600 }}>we show you the blueprint.</span> They don't teach us this stuff in school.
+              </p>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
+                If you follow the plan, complete your actions, <span style={{ color: TEAL, fontWeight: 600 }}>we're going to get you approved — you have my word.</span>
               </p>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)" }}>
-                The Drive Ready Program is the blueprint: <span style={{ color: TEAL, fontWeight: 600 }}>a personalized credit plan that gets you approved.</span>
+                <span style={{ color: TEAL, fontWeight: 600 }}>Welcome to the program. Let's get to work.</span>
               </p>
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Founder, Credit Path Canada · Finance Director, Titanium Ford · TD's #1 dealer in Canada</p>
-                <img src="/michael-signature.png" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
+                <img src="/sig.jpg" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
               </div>
             </div>
           </div>
@@ -171,6 +169,13 @@ export default function DriveReadyPage() {
             </p>
           </div>
         </section>
+
+        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", padding: "0 24px 32px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,201,167,0.08)", border: "1px solid rgba(0,201,167,0.22)", borderRadius: 100, padding: "7px 14px" }}>
+            <div style={{ width: 6, height: 6, background: TEAL, borderRadius: "50%" }}></div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
+          </div>
+        </div>
 
         {/* GUARANTEE */}
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
