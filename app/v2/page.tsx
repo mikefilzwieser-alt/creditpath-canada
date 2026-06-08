@@ -36,12 +36,12 @@ const testimonials = [
 ];
 
 const valueCards = [
-  { icon: "◆", title: "Your Credit Blueprint", tag: "$497 value", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
-  { icon: "△", title: "Monthly Action Plan", tag: "$197/yr value", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
-  { icon: "◇", title: "Recommended Credit Products", tag: "$199 value", body: "The exact cards that move your score fastest — with referral bonuses built in." },
-  { icon: "◉", title: "Financial Planning Session", tag: "$199 value", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
-  { icon: "◈", title: "Direct Line to a Finance Director", tag: "Priceless", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he gets you approved." },
-  { icon: "●", title: "Personal Loan Access", tag: "No hard check", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
+  { icon: "📋", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
+  { icon: "📅", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
+  { icon: "💳", title: "Recommended Credit Products", body: "The exact cards that move your score fastest — with referral bonuses built in." },
+  { icon: "🤝", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
+  { icon: "🏆", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he gets you approved." },
+  { icon: "🔓", title: "Personal Loan Access", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
 ];
 
 const scoreBars = [
@@ -135,6 +135,47 @@ export default function HomepageV2() {
           </div>
         </section>
 
+        {/* HOW IT WORKS */}
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>How it works</p>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
+              Four steps. <span style={{ color: TEAL }}>One clear path forward.</span>
+            </h2>
+
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {[
+                { n: "01", t: "Upload your credit report", b: "We analyze your Equifax bureau — every tradeline, every collection, every inquiry. Built from your real file." },
+                { n: "02", t: "Get matched to your goal", b: "A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your specific outcome — never a template." },
+                { n: "03", t: "Get your blueprint", b: "Your file analyzed and turned into a clear month-by-month plan. 3 priorities, ranked by score impact." },
+                { n: "04", t: "Hit your goals", b: "Complete your actions, unlock the next month, watch your score move. Month by month. No guesswork." },
+              ].map((step, i, arr) => (
+                <div key={step.n} style={{ display: "flex", gap: 24 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: 44 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: TEAL, color: NAVY, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, letterSpacing: "-0.02em" }}>{step.n}</div>
+                    {i < arr.length - 1 ? (
+                      <div style={{ width: 2, flex: 1, minHeight: 48, background: "rgba(0,201,167,0.25)", marginTop: 8, marginBottom: 8 }} />
+                    ) : null}
+                  </div>
+                  <div style={{ paddingBottom: i < arr.length - 1 ? 32 : 0, paddingTop: 8 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{step.t}</h3>
+                    <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>{step.b}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA — between How it works and founder */}
+        <section style={{ background: NAVY_DEEP, padding: "0 24px 56px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+            <Link href="/onboarding" style={{ display: "block", width: "100%", textAlign: "center", background: TEAL, color: NAVY, padding: "18px 44px", borderRadius: 100, fontSize: 14, fontWeight: 800, textDecoration: "none", letterSpacing: "0.08em", textTransform: "uppercase", transition: "transform 0.2s", boxSizing: "border-box" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
+              Get My Credit Blueprint
+            </Link>
+          </div>
+        </section>
+
         {/* MICHAEL */}
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center" }} className="michael-grid">
@@ -164,31 +205,6 @@ export default function HomepageV2() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>How it works</p>
-            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
-              Four steps. <span style={{ color: TEAL }}>One clear path forward.</span>
-            </h2>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
-              {[
-                { n: "01", t: "Upload your credit report", b: "We analyze your Equifax bureau — every tradeline, every collection, every inquiry. Built from your real file." },
-                { n: "02", t: "Get matched to your goal", b: "A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your specific outcome — never a template." },
-                { n: "03", t: "Get your blueprint", b: "Your file analyzed and turned into a clear month-by-month plan. 3 priorities, ranked by score impact." },
-                { n: "04", t: "Hit your goals", b: "Complete your actions, unlock the next month, watch your score move. Month by month. No guesswork." },
-              ].map((step) => (
-                <div key={step.n} style={{ background: NAVY, border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24, transition: "transform 0.25s ease, border-color 0.25s ease" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(0,201,167,0.25)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                  <p style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 12, letterSpacing: "-0.02em" }}>{step.n}</p>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{step.t}</h3>
-                  <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>{step.b}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* VALUE STACK */}
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
@@ -200,10 +216,7 @@ export default function HomepageV2() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
               {valueCards.map((card) => (
                 <div key={card.title} style={{ background: NAVY_DEEP, border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 28, transition: "transform 0.25s ease, border-color 0.25s ease" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(0,201,167,0.25)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                    <span style={{ fontSize: 22, color: TEAL }}>{card.icon}</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: TEAL, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(0,201,167,0.1)", padding: "4px 10px", borderRadius: 100 }}>{card.tag}</span>
-                  </div>
+                  <span style={{ fontSize: 22, display: "block", marginBottom: 16 }}>{card.icon}</span>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{card.title}</h3>
                   <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>{card.body}</p>
                 </div>
