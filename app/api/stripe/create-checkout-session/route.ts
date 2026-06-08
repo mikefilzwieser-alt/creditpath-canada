@@ -50,6 +50,17 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       allow_promotion_codes: true,
+      payment_method_types: ["card", "acss_debit"],
+      payment_method_options: {
+        acss_debit: {
+          mandate_options: {
+            payment_schedule: "interval",
+            transaction_type: "personal",
+            interval_description: "On the 1st and 15th of every month",
+          },
+          currency: "cad",
+        },
+      },
       client_reference_id: user.id,
       customer_email: email,
       line_items: [{ price: priceId, quantity: 1 }],
