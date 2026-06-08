@@ -90,7 +90,7 @@ export default function DriveReadyPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
               {[
-                { n: "01", t: "Sign up — we take care of everything", b: "We create your login and upload your Equifax.", h: "Don't lift a finger." },
+                { n: "01", t: "Sign up — we take care of everything.", b: "We create your login and upload your Equifax.", h: "Don't lift a finger." },
                 { n: "02", t: "Get your personalized blueprint", b: "We soft-pull your Equifax — every tradeline analyzed.", h: "Built from your live file." },
                 { n: "03", t: "3 actions — every month, that's it.", b: "Ranked by what moves your score fastest.", h: "Always know exactly what to do." },
                 { n: "04", t: "The day everything changes.", b: "Michael reviews and gets you approved.", h: "Your name. Zero down." },
@@ -103,6 +103,17 @@ export default function DriveReadyPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIAL */}
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+            <div style={{ fontSize: 18, color: TEAL, marginBottom: 24, letterSpacing: "0.1em" }}>★★★★★</div>
+            <p style={{ fontSize: "clamp(16px, 1.8vw, 20px)", fontWeight: 600, lineHeight: 1.5, color: "#fff", marginBottom: 28, letterSpacing: "-0.01em" }}>
+              "My credit (was) shot and I wasn't sure how I was going to get back into a vehicle. Michael took great care of me — incredibly patient with all my anxiety. As long as I make my payments on time… <span style={{ color: TEAL, fontWeight: 700 }}>(I had) the vehicle I wanted in a year.</span>"
+            </p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: TEAL }}>— Cassandra Brinson</p>
           </div>
         </section>
 
@@ -139,17 +150,6 @@ export default function DriveReadyPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* TESTIMONIAL */}
-        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-            <div style={{ fontSize: 18, color: TEAL, marginBottom: 24, letterSpacing: "0.1em" }}>★★★★★</div>
-            <p style={{ fontSize: "clamp(16px, 1.8vw, 20px)", fontWeight: 600, lineHeight: 1.5, color: "#fff", marginBottom: 28, letterSpacing: "-0.01em" }}>
-              "My credit (was) shot and I wasn't sure how I was going to get back into a vehicle. Michael took great care of me — incredibly patient with all my anxiety. As long as I make my payments on time… <span style={{ color: TEAL, fontWeight: 700 }}>(I had) the vehicle I wanted in a year.</span>"
-            </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: TEAL }}>— Cassandra Brinson</p>
           </div>
         </section>
 
