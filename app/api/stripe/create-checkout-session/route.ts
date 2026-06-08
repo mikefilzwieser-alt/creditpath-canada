@@ -50,15 +50,18 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       allow_promotion_codes: true,
-      payment_method_types: ["card", "acss_debit"],
+      automatic_payment_methods: {
+        enabled: true,
+      },
       payment_method_options: {
         acss_debit: {
           mandate_options: {
             payment_schedule: "interval",
             transaction_type: "personal",
-            interval_description: "On the 1st and 15th of every month",
+            interval_description: "Biweekly Credit Path Canada subscription",
           },
           currency: "cad",
+          verification_method: "automatic",
         },
       },
       client_reference_id: user.id,
