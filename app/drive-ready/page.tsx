@@ -30,11 +30,6 @@ export default function DriveReadyPage() {
               Canada's Drive Ready Program 🍁
             </p>
 
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,201,167,0.08)", border: "1px solid rgba(0,201,167,0.22)", borderRadius: 100, padding: "7px 14px", marginBottom: 28 }}>
-              <div style={{ width: 6, height: 6, background: TEAL, borderRadius: "50%" }}></div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
-            </div>
-
             <h1 style={{ fontFamily: FONT_STACK, fontSize: "clamp(28px, 3.4vw, 44px)", fontWeight: 800, lineHeight: 1.04, letterSpacing: "-0.03em", color: "#fff", marginBottom: 24 }}>
               Your name.<br/>Zero down.<br/><span style={{ color: TEAL }}>Approved.</span>
             </h1>
@@ -46,6 +41,11 @@ export default function DriveReadyPage() {
             <Link href="/onboarding" style={{ background: TEAL, color: NAVY, padding: "18px 44px", borderRadius: 100, fontSize: 13, fontWeight: 800, textDecoration: "none", letterSpacing: "0.08em", textTransform: "uppercase", display: "inline-block", transition: "transform 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
               Start My Drive Ready Program
             </Link>
+
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,201,167,0.08)", border: "1px solid rgba(0,201,167,0.22)", borderRadius: 100, padding: "7px 14px", marginTop: 20 }}>
+              <div style={{ width: 6, height: 6, background: TEAL, borderRadius: "50%" }}></div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
+            </div>
 
             <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>30 days free · ~50¢/day after · Cancel anytime</p>
           </div>
@@ -75,6 +75,7 @@ export default function DriveReadyPage() {
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Founder, Credit Path Canada · Finance Director, Titanium Ford · TD's #1 dealer in Canada</p>
+                <img src="/michael-signature.png" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
               </div>
             </div>
           </div>
@@ -153,19 +154,6 @@ export default function DriveReadyPage() {
           </div>
         </section>
 
-        {/* GUARANTEE */}
-        <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-              Your score moves — <span style={{ color: TEAL }}>or we work for free.</span>
-            </h2>
-            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              Follow the program for 12 months, and if your score doesn't move — we work with you at no charge until you're <span style={{ color: TEAL, fontWeight: 700 }}>approved.</span>
-            </p>
-          </div>
-        </section>
-
         {/* CTA */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", textAlign: "center" }}>
           <div style={{ maxWidth: 700, margin: "0 auto" }}>
@@ -180,6 +168,19 @@ export default function DriveReadyPage() {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: "rgba(0,201,167,0.65)" }}>
               <strong style={{ color: TEAL }}>~50¢/day</strong> after your free trial · Cancel anytime · No contracts
+            </p>
+          </div>
+        </section>
+
+        {/* GUARANTEE */}
+        <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+              Your score moves — <span style={{ color: TEAL }}>or we work for free.</span>
+            </h2>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
+              Follow the program for 12 months, and if your score doesn't move — we work with you at no charge until you're <span style={{ color: TEAL, fontWeight: 700 }}>approved.</span>
             </p>
           </div>
         </section>

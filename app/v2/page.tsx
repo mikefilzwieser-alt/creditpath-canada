@@ -36,12 +36,12 @@ const testimonials = [
 ];
 
 const valueCards = [
-  { icon: "📋", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
-  { icon: "📅", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
-  { icon: "💳", title: "Recommended Credit Products", body: "The exact cards that move your score fastest — with referral bonuses built in." },
-  { icon: "🤝", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
-  { icon: "🏆", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he gets you approved." },
-  { icon: "🔓", title: "Personal Loan Access", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
+  { icon: "📋", tag: "$497 value", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
+  { icon: "📅", tag: "$197/yr value", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
+  { icon: "💳", tag: "Saves $200+", title: "Recommended Credit Products", body: "The exact cards that move your score fastest — with referral bonuses built in." },
+  { icon: "🤝", tag: "$150 value", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
+  { icon: "🏆", tag: "Priceless", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he gets you approved." },
+  { icon: "🔓", tag: "No hard check", title: "Personal Loan Access", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
 ];
 
 const scoreBars = [
@@ -75,11 +75,6 @@ export default function HomepageV2() {
 
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,201,167,0.08)", border: "1px solid rgba(0,201,167,0.22)", borderRadius: 100, padding: "7px 14px", marginBottom: 32 }}>
-              <div style={{ width: 6, height: 6, background: TEAL, borderRadius: "50%" }}></div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.06em", textTransform: "uppercase" }}>First graduates approved · April & May 2026</span>
-            </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
               <div>
                 <h1 style={{ fontFamily: FONT_STACK, fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 20 }}>
@@ -89,18 +84,6 @@ export default function HomepageV2() {
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: 28, fontWeight: 500 }}>
                   Not generic tips. Not a score app. <span style={{ color: TEAL, fontWeight: 700 }}>A real plan.</span>
                 </p>
-
-                <div style={{ display: "flex", gap: 32, alignItems: "center", marginBottom: 40 }}>
-                  <div>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", lineHeight: 1, letterSpacing: "-0.03em" }}>580</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.06em" }}>vs 680 score</div>
-                  </div>
-                  <div style={{ color: TEAL, fontSize: 24 }}>→</div>
-                  <div>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: TEAL, lineHeight: 1, letterSpacing: "-0.03em" }}>$9,000<span style={{ fontSize: 32 }}>+</span></div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.06em" }}>saved on a $30K auto loan</div>
-                  </div>
-                </div>
 
                 <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
                   <Link href="/onboarding" style={{ background: TEAL, color: NAVY, padding: "16px 32px", borderRadius: 100, fontSize: 13, fontWeight: 800, textDecoration: "none", letterSpacing: "0.06em", textTransform: "uppercase", display: "inline-block", transition: "transform 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
@@ -145,10 +128,10 @@ export default function HomepageV2() {
 
             <div style={{ display: "flex", flexDirection: "column" }}>
               {[
-                { n: "01", t: "Upload your credit report", b: "We analyze your Equifax bureau — every tradeline, every collection, every inquiry. Built from your real file." },
-                { n: "02", t: "Get matched to your goal", b: "A vehicle. A mortgage. A clean slate. Your blueprint stays focused on your specific outcome — never a template." },
-                { n: "03", t: "Get your blueprint", b: "Your file analyzed and turned into a clear month-by-month plan. 3 priorities, ranked by score impact." },
-                { n: "04", t: "Hit your goals", b: "Complete your actions, unlock the next month, watch your score move. Month by month. No guesswork." },
+                { n: "01", t: "Upload your credit report", b: <>We analyze your Equifax bureau — every tradeline, every collection, every inquiry. <span style={{ color: TEAL, fontWeight: 600 }}>Built from your real file.</span></> },
+                { n: "02", t: "Get matched to your goal", b: <>A vehicle. A mortgage. A clean slate. Your blueprint stays <span style={{ color: TEAL, fontWeight: 600 }}>focused on your specific outcome</span> — never a template.</> },
+                { n: "03", t: "Get your blueprint", b: <>Your file analyzed and turned into a clear <span style={{ color: TEAL, fontWeight: 600 }}>month-by-month plan</span>. 3 priorities, ranked by score impact.</> },
+                { n: "04", t: "Hit your goals", b: <>Complete your actions, unlock the next month, <span style={{ color: TEAL, fontWeight: 600 }}>watch your score move</span>. Month by month. No guesswork.</> },
               ].map((step, i, arr) => (
                 <div key={step.n} style={{ display: "flex", gap: 24 }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: 44 }}>
@@ -176,6 +159,19 @@ export default function HomepageV2() {
           </div>
         </section>
 
+        {/* GUARANTEE */}
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
+            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+              Follow the program for 12 months and your score will move.
+            </h2>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
+              If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
+            </p>
+          </div>
+        </section>
+
         {/* MICHAEL */}
         <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center" }} className="michael-grid">
@@ -200,6 +196,7 @@ export default function HomepageV2() {
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Michael Filzwieser</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Founder, Credit Path Canada · Finance Director, Titanium Ford · TD's #1 dealer in Canada</p>
+                <img src="/michael-signature.png" alt="Michael Filzwieser signature" style={{ width: "120px", marginTop: "12px", opacity: 0.85 }} />
               </div>
             </div>
           </div>
@@ -216,7 +213,8 @@ export default function HomepageV2() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
               {valueCards.map((card) => (
                 <div key={card.title} style={{ background: NAVY_DEEP, border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 28, transition: "transform 0.25s ease, border-color 0.25s ease" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(0,201,167,0.25)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                  <span style={{ fontSize: 22, display: "block", marginBottom: 16 }}>{card.icon}</span>
+                  <span style={{ fontSize: 22, display: "block", marginBottom: 12 }}>{card.icon}</span>
+                  <span style={{ display: "inline-block", marginBottom: 12, background: "rgba(0,201,167,0.12)", border: "1px solid rgba(0,201,167,0.25)", borderRadius: 100, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: TEAL }}>{card.tag}</span>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{card.title}</h3>
                   <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>{card.body}</p>
                 </div>
@@ -270,19 +268,6 @@ export default function HomepageV2() {
                 <button key={i} onClick={() => setActiveTestimonial(i)} aria-label={`Show testimonial ${i + 1}`} style={{ width: i === activeTestimonial ? 24 : 8, height: 8, borderRadius: 100, background: i === activeTestimonial ? TEAL : "rgba(255,255,255,0.2)", border: "none", cursor: "pointer", transition: "all 0.3s" }} />
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* GUARANTEE */}
-        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-              Follow the program for 12 months and your score will move.
-            </h2>
-            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
-            </p>
           </div>
         </section>
 
