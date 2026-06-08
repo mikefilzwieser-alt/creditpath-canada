@@ -1719,7 +1719,7 @@ export default function BlueprintPage() {
                       <p className={`font-bold ${h}`}>Pre-authorized payments</p>
                       <p className={`mt-1 font-semibold leading-relaxed ${h}`} style={{ opacity: 0.9 }}>
                         Your bureau shows late payment history. Set up pre-authorized payments on every account so nothing
-                        slips — this is the fastest way to stabilize your score.
+                        slips — this is one of the most effective ways to stabilize your score.
                       </p>
                     </div>
                   </div>
@@ -1961,6 +1961,9 @@ export default function BlueprintPage() {
                                   {impactLine}
                                 </p>
                               ) : null}
+                              <p className="mt-1 text-xs text-[#0F1923]/45">
+                                This is educational guidance based on your file. Individual results vary.
+                              </p>
                             </div>
                           </li>
                         );

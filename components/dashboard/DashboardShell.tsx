@@ -444,7 +444,7 @@ export function DashboardShell({
                   {firstLoginSlide === 0 ? (
                     <p style={{ lineHeight: 1.8 }}>
                       You made the most important decision for your financial future.{" "}
-                      Over the next <span style={{ color: TEAL, fontWeight: 700 }}>8–10 months</span> we&apos;re going to move your credit score — based on your actual file.{" "}
+                      Over the next <span style={{ color: TEAL, fontWeight: 700 }}>8–10 months</span> we&apos;re going to give you the plan to move your credit score — based on your actual file.{" "}
                       No guesswork. <span style={{ color: TEAL, fontWeight: 700 }}>A real plan built for you.</span>
                     </p>
                   ) : firstLoginSlide === 1 ? (
@@ -459,7 +459,7 @@ export function DashboardShell({
                     <p style={{ lineHeight: 1.8 }}>
                       Each month you get <span style={{ color: TEAL, fontWeight: 700 }}>3 clear actions</span> ranked by score impact.
                       Complete them, wait <span style={{ color: TEAL, fontWeight: 700 }}>28 days</span>, and your next month unlocks automatically.{" "}
-                      <span style={{ color: TEAL, fontWeight: 700 }}>The clients who follow through are the ones who get approved.</span>
+                      <span style={{ color: TEAL, fontWeight: 700 }}>Clients who follow through consistently see the best results.</span>
                     </p>
                   )}
                 </div>

@@ -794,34 +794,9 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex shrink-0 items-center justify-center py-1 sm:py-0" aria-hidden>
-              <svg
-                width="40"
-                height="24"
-                viewBox="0 0 40 24"
-                fill="none"
-                className="rotate-90 text-white/45 sm:rotate-0"
-                aria-hidden
-              >
-                <path
-                  d="M4 12h22M22 6l8 6-8 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
             <div className="min-w-0 w-full flex-1 text-center sm:text-right">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
-                Estimated Score After 1 Month
-              </p>
-              <p
-                className="mt-2 text-4xl font-bold tabular-nums leading-none tracking-tight"
-                style={{ color: TEAL }}
-              >
-                {estimatedRangeEnd}
+              <p className="text-sm leading-relaxed text-white/60">
+                Score Trend — based on your bureau upload. Individual results vary.
               </p>
             </div>
           </div>

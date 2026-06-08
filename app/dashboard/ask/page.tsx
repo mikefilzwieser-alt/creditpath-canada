@@ -67,7 +67,7 @@ export default function AskMichaelPage() {
       <header>
         <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${h}`}>Ask Michael</h1>
         <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/70">
-          Have a question about your credit, finances, loans, or anything on your file? Ask below and Michael will personally respond within 3 business days.
+          Have a question about your program or your blueprint actions? Ask below and Michael will personally respond within 3 business days.
         </p>
       </header>
 
@@ -112,12 +112,9 @@ export default function AskMichaelPage() {
       <section className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
         <p className={`text-sm font-bold ${h}`}>What you can ask about:</p>
         <ul className="mt-3 space-y-2 text-sm text-[#0F1923]/75">
-          <li>→ Collections — pay, negotiate, or wait?</li>
-          <li>→ Credit cards — which one, when to apply?</li>
-          <li>→ Your blueprint actions — anything unclear?</li>
-          <li>→ Auto loans — when are you ready?</li>
-          <li>→ Consumer Proposal — what you can and can't do</li>
-          <li>→ Anything else on your mind</li>
+          <li>→ Your monthly blueprint actions — anything unclear?</li>
+          <li>→ Your program progress</li>
+          <li>→ General questions about the Drive Ready Program</li>
         </ul>
       </section>
     </div>

@@ -36,10 +36,10 @@ const testimonials = [
 ];
 
 const valueCards = [
-  { icon: "📋", tag: "$497 value", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
-  { icon: "📅", tag: "$197/yr value", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
-  { icon: "💳", tag: "Saves $200+", title: "Recommended Credit Products", body: "Credit products we've seen work well for files like yours — with referral codes and bonuses built in." },
-  { icon: "🤝", tag: "$150 value", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
+  { icon: "📋", tag: "$997 value", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
+  { icon: "📅", tag: "$97/mo value", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
+  { icon: "💳", tag: "Saves $297+", title: "Recommended Credit Products", body: "Credit products we've seen work well for files like yours — with referral codes and bonuses built in." },
+  { icon: "🤝", tag: "$197 value", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
   { icon: "🏆", tag: "Priceless", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your file is ready — he connects you with the right financing options." },
   { icon: "🔓", tag: "No hard check", title: "Personal Loan Access", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
 ];
