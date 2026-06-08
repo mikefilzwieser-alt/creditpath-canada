@@ -68,7 +68,7 @@ export default function HomepageV2() {
       <main className={m}>
 
         {/* HERO */}
-        <section style={{ background: NAVY_DEEP, padding: "80px 24px 100px", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px 72px", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ position: "absolute", top: "-200px", right: "-150px", width: "600px", height: "600px", borderRadius: "50%", background: `radial-gradient(circle, rgba(0,201,167,0.08) 0%, transparent 65%)`, pointerEvents: "none" }}></div>
 
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative", zIndex: 1 }}>
@@ -80,22 +80,22 @@ export default function HomepageV2() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
               <div>
-                <h1 style={{ fontSize: "clamp(36px, 5.5vw, 64px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 20 }}>
+                <h1 style={{ fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 20 }}>
                   What if you finally knew <span style={{ color: TEAL }}>exactly what to do</span> with your credit?
                 </h1>
 
-                <p style={{ fontSize: 18, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: 36, fontWeight: 500 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: 28, fontWeight: 500 }}>
                   Not generic tips. Not a score app. <span style={{ color: TEAL, fontWeight: 700 }}>A real plan.</span>
                 </p>
 
                 <div style={{ display: "flex", gap: 32, alignItems: "center", marginBottom: 40 }}>
                   <div>
-                    <div style={{ fontSize: 56, fontWeight: 800, color: "#fff", lineHeight: 1, letterSpacing: "-0.03em" }}>580</div>
+                    <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", lineHeight: 1, letterSpacing: "-0.03em" }}>580</div>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.06em" }}>vs 680 score</div>
                   </div>
                   <div style={{ color: TEAL, fontSize: 24 }}>→</div>
                   <div>
-                    <div style={{ fontSize: 56, fontWeight: 800, color: TEAL, lineHeight: 1, letterSpacing: "-0.03em" }}>$9,000<span style={{ fontSize: 32 }}>+</span></div>
+                    <div style={{ fontSize: 36, fontWeight: 800, color: TEAL, lineHeight: 1, letterSpacing: "-0.03em" }}>$9,000<span style={{ fontSize: 32 }}>+</span></div>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.06em" }}>saved on a $30K auto loan</div>
                   </div>
                 </div>
@@ -125,7 +125,7 @@ export default function HomepageV2() {
 
                   <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Target</span>
-                    <span style={{ fontSize: 32, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>680</span>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>680</span>
                   </div>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function HomepageV2() {
         </section>
 
         {/* MICHAEL */}
-        <section style={{ background: NAVY, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center" }} className="michael-grid">
             <div>
               <img src="/headshot.jpg" alt="Michael Filzwieser" style={{ width: "100%", maxWidth: 380, borderRadius: 16, display: "block", border: `3px solid ${TEAL}` }} />
@@ -145,13 +145,13 @@ export default function HomepageV2() {
             </div>
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>Meet the founder</p>
-              <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
+              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 24 }}>
                 I see 30 applications a day. <span style={{ color: TEAL }}>Twenty-nine get declined.</span>
               </h2>
-              <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>
                 I'm Michael Filzwieser — Finance Director at Titanium Ford, part of TD's #1 dealer group in Canada. For years I watched good people walk away with nothing — not because they couldn't be helped, but because <strong style={{ color: "#fff" }}>nobody gave them a clear plan.</strong>
               </p>
-              <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(255,255,255,0.65)" }}>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.65)" }}>
                 I built Credit Path Canada because those 29 people deserved better than a rejection slip. <span style={{ color: TEAL, fontWeight: 600 }}>They deserved a roadmap.</span>
               </p>
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
@@ -163,10 +163,10 @@ export default function HomepageV2() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section style={{ background: NAVY_DEEP, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>How it works</p>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
+            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
               Four steps. <span style={{ color: TEAL }}>One clear path forward.</span>
             </h2>
 
@@ -178,7 +178,7 @@ export default function HomepageV2() {
                 { n: "04", t: "Hit your goals", b: "Complete your actions, unlock the next month, watch your score move. Month by month. No guesswork." },
               ].map((step) => (
                 <div key={step.n} style={{ background: NAVY, border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24, transition: "transform 0.25s ease, border-color 0.25s ease" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(0,201,167,0.25)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                  <p style={{ fontSize: 32, fontWeight: 800, color: TEAL, marginBottom: 14, letterSpacing: "-0.02em" }}>{step.n}</p>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 12, letterSpacing: "-0.02em" }}>{step.n}</p>
                   <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{step.t}</h3>
                   <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>{step.b}</p>
                 </div>
@@ -188,10 +188,10 @@ export default function HomepageV2() {
         </section>
 
         {/* VALUE STACK */}
-        <section style={{ background: NAVY, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>What you get</p>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
+            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 48, maxWidth: 700 }}>
               Everything you need to <span style={{ color: TEAL }}>move your score.</span>
             </h2>
 
@@ -211,41 +211,41 @@ export default function HomepageV2() {
         </section>
 
         {/* PRICE ANCHOR */}
-        <section style={{ background: NAVY_DEEP, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 16 }}>The math is undeniable</p>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40 }}>
+            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 40 }}>
               A 580 vs 680 score on a $30,000 auto loan:
             </h2>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }} className="anchor-grid">
               <div style={{ background: NAVY, border: "1px solid rgba(239,68,68,0.2)", borderRadius: 16, padding: 28 }}>
-                <p style={{ fontSize: 48, fontWeight: 800, color: "#ef4444", lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 8 }}>580</p>
+                <p style={{ fontSize: 32, fontWeight: 800, color: "#ef4444", lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 8 }}>580</p>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>12% interest</p>
-                <p style={{ fontSize: 28, fontWeight: 800, color: "#ef4444", letterSpacing: "-0.02em" }}>~$13,000+</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: "#ef4444", letterSpacing: "-0.02em" }}>~$13,000+</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>in interest paid</p>
               </div>
               <div style={{ background: NAVY, border: `1px solid rgba(0,201,167,0.25)`, borderRadius: 16, padding: 28 }}>
-                <p style={{ fontSize: 48, fontWeight: 800, color: TEAL, lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 8 }}>680</p>
+                <p style={{ fontSize: 32, fontWeight: 800, color: TEAL, lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 8 }}>680</p>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>6% interest</p>
-                <p style={{ fontSize: 28, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>~$4,000</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>~$4,000</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>in interest paid</p>
               </div>
             </div>
 
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
-              Difference: <span style={{ fontSize: 22, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>$9,000+</span> out of your pocket.
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
+              Difference: <span style={{ fontSize: 16, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>$9,000+</span> out of your pocket.
             </p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Credit Path Canada costs ~50¢/day.</p>
           </div>
         </section>
 
         {/* TESTIMONIAL */}
-        <section style={{ background: NAVY, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 32 }}>Real Canadians. Real outcomes.</p>
             <div style={{ fontSize: 18, color: TEAL, marginBottom: 24, letterSpacing: "0.1em" }}>★★★★★</div>
-            <p style={{ fontSize: "clamp(20px, 2.6vw, 28px)", fontWeight: 600, lineHeight: 1.5, color: "#fff", marginBottom: 28, letterSpacing: "-0.01em" }}>
+            <p style={{ fontSize: "clamp(16px, 1.8vw, 20px)", fontWeight: 600, lineHeight: 1.5, color: "#fff", marginBottom: 28, letterSpacing: "-0.01em" }}>
               "{testimonials[activeTestimonial]?.quote}"
             </p>
             <p style={{ fontSize: 13, fontWeight: 700, color: TEAL }}>{testimonials[activeTestimonial]?.by}</p>
@@ -259,25 +259,25 @@ export default function HomepageV2() {
         </section>
 
         {/* GUARANTEE */}
-        <section style={{ background: NAVY_DEEP, padding: "80px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <section style={{ background: NAVY_DEEP, padding: "56px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+            <h2 style={{ fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
               Follow the program for 12 months and your score will move.
             </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
               If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
             </p>
           </div>
         </section>
 
         {/* CTA */}
-        <section style={{ background: NAVY, padding: "80px 24px", textAlign: "center" }}>
+        <section style={{ background: NAVY, padding: "56px 24px", textAlign: "center" }}>
           <div style={{ maxWidth: 700, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
+            <h2 style={{ fontSize: "clamp(22px, 2.6vw, 32px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.03em", color: "#fff", marginBottom: 16 }}>
               Your blueprint is <span style={{ color: TEAL }}>3 minutes away.</span>
             </h2>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", marginBottom: 36 }}>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", marginBottom: 36 }}>
               30 days free. Cancel anytime. ~50¢/day after.
             </p>
             <Link href="/onboarding" style={{ background: TEAL, color: NAVY, padding: "18px 44px", borderRadius: 100, fontSize: 14, fontWeight: 800, textDecoration: "none", letterSpacing: "0.08em", textTransform: "uppercase", display: "inline-block", transition: "transform 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
