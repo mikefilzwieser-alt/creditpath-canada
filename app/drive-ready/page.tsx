@@ -35,7 +35,7 @@ export default function DriveReadyPage() {
             </h1>
 
             <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 36, maxWidth: 600, margin: "0 auto 36px" }}>
-              Canada's Drive Ready Program gets you approved for a car loan — in <strong style={{ color: TEAL }}>8–10 months</strong>, <strong style={{ color: TEAL }}>guaranteed.</strong>
+              Canada's Drive Ready Program gets you approved for a car loan — in as little as 8–10 months.
             </p>
 
             <Link href="/onboarding" style={{ background: TEAL, color: NAVY, padding: "18px 44px", borderRadius: 100, fontSize: 13, fontWeight: 800, textDecoration: "none", letterSpacing: "0.08em", textTransform: "uppercase", display: "inline-block", transition: "transform 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.02)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}>
@@ -182,10 +182,10 @@ export default function DriveReadyPage() {
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
             <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-              Your score moves — <span style={{ color: TEAL }}>or we work for free.</span>
+              Your score moves — <span style={{ color: TEAL }}>or we keep working with you.</span>
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              Follow the program for 12 months, and if your score doesn't move — we work with you at no charge until you're <span style={{ color: TEAL, fontWeight: 700 }}>approved.</span>
+              Clients who follow the program consistently see their score move. If yours doesn't after 12 months — we keep working with you at no charge. Results vary.
             </p>
           </div>
         </section>
@@ -195,6 +195,9 @@ export default function DriveReadyPage() {
           <p style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.12em", textTransform: "uppercase" }}>Credit Path Canada — Drive Ready Program</p>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 10 }}>(604) 442-0894 · info@creditpathcanada.ca</p>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 16, maxWidth: 720, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+            Credit Path Canada provides financial education and credit information only. We do not provide financial, legal, or lending advice. Results vary. Always consult a licensed financial advisor before making financial decisions.
+          </p>
           <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
             <a href="/privacy-policy" style={{ fontSize: 11, color: TEAL, textDecoration: "none" }}>Privacy Policy</a>
             <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>

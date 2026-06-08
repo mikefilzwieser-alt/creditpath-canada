@@ -38,9 +38,9 @@ const testimonials = [
 const valueCards = [
   { icon: "📋", tag: "$497 value", title: "Your Credit Blueprint", body: "A personalized 24-month plan built from your Equifax bureau. Not a template. Your file, your plan, your path." },
   { icon: "📅", tag: "$197/yr value", title: "Monthly Action Plan", body: "3 clear priorities every month, ranked by score impact. Always know what to do next." },
-  { icon: "💳", tag: "Saves $200+", title: "Recommended Credit Products", body: "The exact cards that move your score fastest — with referral bonuses built in." },
+  { icon: "💳", tag: "Saves $200+", title: "Recommended Credit Products", body: "Credit products we've seen work well for files like yours — with referral codes and bonuses built in." },
   { icon: "🤝", tag: "$150 value", title: "Financial Planning Session", body: "Access a licensed financial specialist through Brandon Kirk at Safe Wealth Planners." },
-  { icon: "🏆", tag: "Priceless", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your window opens — he gets you approved." },
+  { icon: "🏆", tag: "Priceless", title: "Direct Line to a Finance Director", body: "Michael Filzwieser at Titanium Ford reviews your file personally. When your file is ready — he connects you with the right financing options." },
   { icon: "🔓", tag: "No hard check", title: "Personal Loan Access", body: "Pre-qualify without a hard inquiry. We connect you with trusted lending partners when the timing is right." },
 ];
 
@@ -235,6 +235,9 @@ export default function HomepageV2() {
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
               Difference: <span style={{ fontSize: 16, fontWeight: 800, color: TEAL, letterSpacing: "-0.02em" }}>$9,000+</span> out of your pocket.
             </p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>
+              Rates shown are illustrative. Actual rates vary by lender, term, and individual credit profile.
+            </p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Credit Path Canada costs ~50¢/day.</p>
           </div>
         </section>
@@ -277,10 +280,10 @@ export default function HomepageV2() {
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: TEAL, marginBottom: 20 }}>Our promise</p>
             <h2 style={{ fontFamily: FONT_STACK, fontSize: "clamp(20px, 2.4vw, 28px)", fontWeight: 800, lineHeight: 1.18, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-              Follow the program for 12 months and your score will move.
+              Clients who follow the program consistently see their score move.
             </h2>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              If it doesn't — we work with you <span style={{ color: TEAL, fontWeight: 600 }}>at no charge until you're approved.</span>
+              If yours doesn't after 12 months — we keep working with you at no charge. Results vary.
             </p>
           </div>
         </section>
@@ -290,6 +293,9 @@ export default function HomepageV2() {
           <p style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: "0.12em", textTransform: "uppercase" }}>Credit Path Canada</p>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 10 }}>(604) 442-0894 · info@creditpathcanada.ca</p>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 16, maxWidth: 720, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+            Credit Path Canada provides financial education and credit information only. We do not provide financial, legal, or lending advice. Results vary. Always consult a licensed financial advisor before making financial decisions.
+          </p>
           <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: "center" }}>
             <a href="/privacy-policy" style={{ fontSize: 11, color: TEAL, textDecoration: "none" }}>Privacy Policy</a>
             <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
