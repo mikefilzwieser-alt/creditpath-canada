@@ -26,7 +26,7 @@ STRICT RULES (Canada / Equifax):
 Return ONLY valid JSON with these keys:
 rebuild_score (0-100), rebuild_score_label (short label), score_summary (string), this_months_focus (string), top_actions (array of 5 {action, impact, timeline}), tradeline_priorities (array of {creditor, action, target_balance, reason} or empty array), collection_strategy (string summarizing per-collection approach), pre_auth_required (boolean), auto_ready_alert (boolean), readiness_percentage (number).`;
 
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-5";
 
 export async function generateBlueprintPlanFromParsedData(
   parsedBureau: unknown,

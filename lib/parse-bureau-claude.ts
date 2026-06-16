@@ -1,7 +1,7 @@
 import { BUREAU_PARSE_SYSTEM_PROMPT } from "@/lib/bureau-parse-system-prompt";
 import { normalizeParsedBureau } from "@/lib/bureau-parse-normalize";
 
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-5";
 
 export function extractJsonFromAssistantText(text: string): unknown {
   const trimmed = text.trim();

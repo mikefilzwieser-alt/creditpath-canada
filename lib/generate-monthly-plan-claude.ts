@@ -1,7 +1,7 @@
 import { extractJsonFromAssistantText } from "@/lib/parse-bureau-claude";
 import { getProgramMonthThemeTitle } from "@/lib/monthly-progression-themes";
 
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-5";
 
 export type MonthlyPlanGeneratedAction = {
   action: string;
