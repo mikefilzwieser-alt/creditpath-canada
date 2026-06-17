@@ -440,24 +440,29 @@ export function DashboardShell({
                         style={{ lineHeight: 1.8, color: NAVY }}
                       >
                         You just made the{" "}
-                        <span style={{ color: "#FFD700" }}>most important decision of your financial future</span>.
+                        <span style={{ color: "#0F1923" }}>most important decision of your financial future</span>.
                       </p>
                       <p style={{ lineHeight: 1.8, marginTop: 12 }}>
-                        A plan built for you — based on your actual credit file.
+                        A plan built for you — based on <span style={{ color: TEAL }}>your actual credit file</span>.
                       </p>
                     </>
                   ) : firstLoginSlide === 1 ? (
                     <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      Log in anytime to see exactly where you stand, and what to do next.
+                      Log in anytime to see exactly where you stand, and <span style={{ color: TEAL }}>what to do next</span>.
                     </p>
                   ) : firstLoginSlide === 2 ? (
                     <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      3 actions, every month, ranked by score impact. Complete them, wait 28 days, build your score.
+                      3 actions, every month. Complete them, wait 28 days, <span style={{ color: TEAL }}>build your score</span>.
                     </p>
                   ) : (
-                    <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      Clients who complete their actions on time, every month, hit their upgrade window asap. Keep your eyes open for free bonuses, and check the free resource section.
-                    </p>
+                    <>
+                      <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
+                        Clients who complete their actions on time, every month, hit their <span style={{ color: TEAL }}>upgrade window asap</span>.
+                      </p>
+                      <p style={{ lineHeight: 1.8, marginTop: 12 }}>
+                        Keep your eyes open for free bonuses, and check the free resource section.
+                      </p>
+                    </>
                   )}
                 </div>
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
