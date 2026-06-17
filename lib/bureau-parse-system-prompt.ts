@@ -86,7 +86,7 @@ Every **top_actions[].action** string MUST begin with **exactly one** emoji from
 
 • ⏸️ Pause credit applications / stop applying / inquiry discipline before contacting Credit Path Canada
 • ✅ Set up pre-authorized payments / auto-pay / PAD habits
-• 💳 Pay down / reduce utilization on a specific card (named account or dollar target on one card)
+• 💳 Pay down / reduce utilization on a specific card (named account or directional paydown on one card)
 • 📈 Add a credit card / build tradelines / reach 3 network cards (unsecured path)
 • 🔍 Dispute an error on bureau / inaccuracies / errors_detected follow-ups
 • 📋 Deal with a collection account / collector / settlement or fall-off education tied to a collection
@@ -160,7 +160,8 @@ UTILIZATION (summary + tradelines)
 ══════════════════════════════════════════════════════════════════════════════
 • Calculate utilization ONLY on R-rated REVOLVING credit (cards/lines). Never flag or calculate utilization on O-rated or I-rated accounts (set utilization null or 0 for those).
 • Targets: under 30% per card and overall on R-rated revolving.
-• Flag any R-rated revolving card over 30% with the specific dollar amount to pay down to reach 30% in **tradelines[].action_recommended** for that tradeline (account-level math belongs here, **not** in Month 1 **this_months_focus** — see MONTH 1 PROGRAM section).
+• Never give specific dollar amounts for paydown targets. Never instruct a client to pay a large lump sum in a single month. Frame utilization and paydown actions as directional progress only — for example 'put any extra payment toward your highest-utilization card this month' or 'pay above the minimum on [card] this month,' never a fixed dollar figure or a percentage-utilization target tied to a specific payment amount. The goal is a small, achievable win the client can complete and check off within 28 days — not a mathematically correct but unrealistic target.
+• Flag any R-rated revolving card over 30% with directional paydown guidance in **tradelines[].action_recommended** for that tradeline (account-level prioritization belongs here, **not** in Month 1 **this_months_focus** — see MONTH 1 PROGRAM section).
 
 ══════════════════════════════════════════════════════════════════════════════
 MONTH 1 PROGRAM (initial blueprint_data — this bureau parse is Month 1)
