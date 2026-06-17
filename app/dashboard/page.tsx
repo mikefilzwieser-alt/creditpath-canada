@@ -2,9 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { getMonthlyProgramActionCount } from "@/lib/goals-milestone-helpers";
+import { logPostgrestError } from "@/lib/log-postgrest-error";
+import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
+import {
+  getProgramMonthThemeSubtitle,
+  getProgramMonthThemeTitle,
+  MAX_THEMED_PROGRAM_MONTH,
+  normalizeProgramMonth,
+} from "@/lib/monthly-progression-themes";
 import { supabase } from "@/lib/supabase";
 
 const TEAL = "#00C9A7";
@@ -104,7 +112,16 @@ type BlueprintRow = {
   raw_parse_data: ParsedBureau | null;
   blueprint_data: BlueprintPlan | null;
   current_month?: number | null;
+  month_unlocked_at?: string | null;
 };
+
+type MonthlyPlanRow = {
+  month_number: number;
+  theme: string | null;
+  actions: unknown;
+};
+
+const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
 
 function parseNumberLike(v: unknown): number {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -113,6 +130,40 @@ function parseNumberLike(v: unknown): number {
     if (Number.isFinite(n)) return n;
   }
   return 0;
+}
+
+function formatDisplay(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  if (typeof v === "string") return v.trim() || "—";
+  return String(v);
+}
+
+function renderMarkdownInlineLinks(text: string): React.ReactNode {
+  const t = text.trim();
+  if (!t || t === "—") return t || "—";
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  const nodes: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t)) !== null) {
+    if (m.index > last) nodes.push(t.slice(last, m.index));
+    nodes.push(
+      <a
+        key={`md-${m.index}`}
+        href={m[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold underline decoration-[#00C9A7]/50 underline-offset-2"
+        style={{ color: TEAL }}
+      >
+        {m[1]}
+      </a>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < t.length) nodes.push(t.slice(last));
+  return nodes.length > 0 ? nodes : t;
 }
 
 function isNetworkCard(tradeline: NonNullable<ParsedBureau["tradelines"]>[number]): boolean {
@@ -137,14 +188,17 @@ export default function DashboardPage() {
   const h = headingFontClass;
   const [checkoutActivating, setCheckoutActivating] = useState(false);
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
+  const [monthlyPlanRow, setMonthlyPlanRow] = useState<MonthlyPlanRow | null>(null);
   const [blueprintLoading, setBlueprintLoading] = useState(true);
-  const [timelineModalMonth, setTimelineModalMonth] = useState<number | null>(null);
   const [completedActionsCount, setCompletedActionsCount] = useState(0);
+  const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
+  const completionsRef = useRef<Set<number>>(new Set());
   const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
   const [brandonDismissed, setBrandonDismissed] = useState(false);
   const [eqDismissed, setEqDismissed] = useState(false);
   const [paywallUnlockBusy, setPaywallUnlockBusy] = useState(false);
   const [paywallUnlockError, setPaywallUnlockError] = useState("");
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const loadBlueprint = useCallback(async () => {
     if (!user) return;
@@ -163,16 +217,25 @@ export default function DashboardPage() {
 
     if (error) {
       setBlueprint(null);
+      setMonthlyPlanRow(null);
       setCompletedActionsCount(0);
     } else {
       const latest = data as BlueprintRow | null;
       setBlueprint(latest);
-      if (latest?.id && user?.id) {
-        const progMonth =
-          typeof (latest as { current_month?: number }).current_month === "number" &&
-          Number.isFinite((latest as { current_month?: number }).current_month)
-            ? Math.max(1, Math.floor((latest as { current_month: number }).current_month))
-            : 1;
+      if (latest?.id) {
+        const progMonth = normalizeProgramMonth(latest.current_month);
+        if (progMonth >= 2 && progMonth <= MAX_THEMED_PROGRAM_MONTH) {
+          const { data: mp, error: mpErr } = await supabase
+            .from("monthly_plans")
+            .select("month_number, theme, actions")
+            .eq("blueprint_id", latest.id)
+            .eq("month_number", progMonth)
+            .maybeSingle();
+          setMonthlyPlanRow(mpErr ? null : (mp as MonthlyPlanRow | null));
+        } else {
+          setMonthlyPlanRow(null);
+        }
+
         const { count, error: compErr } = await supabase
           .from("action_completions")
           .select("id", { count: "exact", head: true })
@@ -185,6 +248,7 @@ export default function DashboardPage() {
         }
         setCompletedActionsCount(compErr ? 0 : Math.min(3, count ?? 0));
       } else {
+        setMonthlyPlanRow(null);
         setCompletedActionsCount(0);
       }
     }
@@ -205,6 +269,62 @@ export default function DashboardPage() {
     if (typeof window === "undefined") return;
     setBrandonDismissed(window.localStorage.getItem("brandon_card_dismissed") === "true");
     setEqDismissed(window.localStorage.getItem("eq_card_dismissed") === "true");
+  }, []);
+
+  useEffect(() => {
+    completionsRef.current = completedSet;
+    setCompletedActionsCount(Math.min(3, completedSet.size));
+  }, [completedSet]);
+
+  useEffect(() => {
+    if (!user?.id || !blueprint?.id) {
+      const empty = new Set<number>();
+      completionsRef.current = empty;
+      setCompletedSet(empty);
+      return;
+    }
+    const programMonth = normalizeProgramMonth(blueprint.current_month);
+    let cancelled = false;
+    void (async () => {
+      const { data, error: qErr } = await supabase
+        .from("action_completions")
+        .select("action_index")
+        .eq("client_id", user.id)
+        .eq("blueprint_id", blueprint.id)
+        .eq("program_month", programMonth);
+      if (cancelled) return;
+      if (qErr) {
+        logPostgrestError("[dashboard] action_completions select failed", qErr, {
+          client_id: user.id,
+          blueprint_id: blueprint.id,
+          program_month: programMonth,
+        });
+        const empty = new Set<number>();
+        completionsRef.current = empty;
+        setCompletedSet(empty);
+        return;
+      }
+      const indexes = new Set<number>();
+      for (const row of (data ?? []) as Array<{ action_index?: number | null }>) {
+        if (typeof row.action_index === "number" && Number.isFinite(row.action_index)) {
+          indexes.add(row.action_index);
+        }
+      }
+      completionsRef.current = indexes;
+      setCompletedSet(indexes);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [blueprint?.id, blueprint?.current_month, user?.id]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -284,11 +404,7 @@ export default function DashboardPage() {
     return typeof s === "number" && Number.isFinite(s) ? Math.round(Math.min(900, Math.max(300, s))) : null;
   })();
 
-  const rawCurrentMonth = user?.user_metadata?.current_month;
-  const currentMonth =
-    typeof rawCurrentMonth === "number" && Number.isFinite(rawCurrentMonth)
-      ? Math.max(1, Math.min(TOTAL_MONTHS, Math.round(rawCurrentMonth)))
-      : 1;
+  const currentMonth = normalizeProgramMonth(blueprint?.current_month);
 
   const hasBlueprint = Boolean(blueprint) && !blueprintLoading;
 
@@ -375,6 +491,146 @@ export default function DashboardPage() {
   const estimatedRangeStart = estimatedScore;
   const estimatedRangeEnd =
     estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
+
+  const monthlyProgramActions: MonthlyProgramAction[] = useMemo(() => {
+    if (!blueprint || !parsed) return [];
+    if (currentMonth === 1) {
+      return buildFoundationMonthActions(parsed);
+    }
+    if (currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH) {
+      const raw = monthlyPlanRow?.actions;
+      if (!Array.isArray(raw) || raw.length === 0) return [];
+      const out: MonthlyProgramAction[] = [];
+      for (const item of raw) {
+        if (!item || typeof item !== "object") continue;
+        const o = item as Record<string, unknown>;
+        const action = typeof o.action === "string" ? o.action.trim() : "";
+        const impact = typeof o.impact === "string" ? o.impact.trim() : "Medium impact";
+        const timeline = typeof o.timeline === "string" ? o.timeline.trim() : "This month";
+        if (action) out.push({ action, impact, timeline });
+        if (out.length >= 3) break;
+      }
+      return out.slice(0, 3);
+    }
+    return [];
+  }, [blueprint, parsed, currentMonth, monthlyPlanRow?.actions]);
+
+  const allCurrentMonthActionsDone = useMemo(() => {
+    if (monthlyProgramActions.length < 3) return false;
+    return [0, 1, 2].every((i) => completedSet.has(i));
+  }, [monthlyProgramActions.length, completedSet]);
+
+  const nextUnlockMeta = useMemo(() => {
+    if (!blueprint || currentMonth >= 4) {
+      return { unlockAtMs: null as number | null, nextMonth: null as number | null };
+    }
+    const unlockedAt = blueprint.month_unlocked_at ?? blueprint.created_at;
+    const gateMs = new Date(unlockedAt ?? "").getTime();
+    if (!Number.isFinite(gateMs)) {
+      return { unlockAtMs: null, nextMonth: currentMonth + 1 };
+    }
+    return { unlockAtMs: gateMs + TWENTY_EIGHT_DAYS_MS, nextMonth: currentMonth + 1 };
+  }, [blueprint, currentMonth]);
+
+  const nextUnlockBadgeText = useMemo(() => {
+    const nextMonth = nextUnlockMeta.nextMonth;
+    const unlockAtMs = nextUnlockMeta.unlockAtMs;
+    if (nextMonth == null || unlockAtMs == null) return "";
+
+    const remainingMs = unlockAtMs - nowMs;
+    if (remainingMs > 0) {
+      const totalMinutes = Math.floor(remainingMs / (60 * 1000));
+      const days = Math.floor(totalMinutes / (60 * 24));
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+      const minutes = totalMinutes % 60;
+      return `Month ${nextMonth} unlocks in: ${days}d ${hours}h ${minutes}m`;
+    }
+    if (allCurrentMonthActionsDone) {
+      return `Month ${nextMonth} is ready. Check your blueprint.`;
+    }
+    return `Complete your actions to unlock Month ${nextMonth}.`;
+  }, [allCurrentMonthActionsDone, nextUnlockMeta.nextMonth, nextUnlockMeta.unlockAtMs, nowMs]);
+
+  const runSyncProgress = useCallback(async () => {
+    if (!user?.id) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess?.session?.access_token;
+    if (!token) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const res = await fetch(`${origin}/api/monthly-progress/sync`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const j = (await res.json()) as { ok?: boolean; updated?: boolean };
+    if (j.ok && j.updated) {
+      await loadBlueprint();
+    }
+  }, [loadBlueprint, user?.id]);
+
+  const saveCompletion = useCallback(
+    async (index: number, action: MonthlyProgramAction) => {
+      if (!user?.id || !blueprint?.id) return;
+      const blueprintId = blueprint.id;
+      const programMonth = normalizeProgramMonth(blueprint.current_month);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess?.session?.access_token;
+      if (!token) return;
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+
+      if (completionsRef.current.has(index)) {
+        completionsRef.current.delete(index);
+        const res = await fetch(`${origin}/api/action-completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            blueprintId,
+            programMonth,
+            actionIndex: index,
+            completed: false,
+          }),
+        });
+        if (!res.ok) {
+          completionsRef.current.add(index);
+          return;
+        }
+        setCompletedSet((prev) => {
+          const next = new Set(prev);
+          next.delete(index);
+          return next;
+        });
+        void runSyncProgress();
+        return;
+      }
+
+      completionsRef.current.add(index);
+      const actionText = typeof action?.action === "string" ? action.action : formatDisplay(action?.action);
+      const res = await fetch(`${origin}/api/action-completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          blueprintId,
+          programMonth,
+          actionIndex: index,
+          actionText,
+          completed: true,
+        }),
+      });
+      if (!res.ok) {
+        completionsRef.current.delete(index);
+        return;
+      }
+      setCompletedSet((prev) => new Set([...prev, index]));
+      void runSyncProgress();
+    },
+    [blueprint, runSyncProgress, user?.id],
+  );
 
   const allMonthlyActionsComplete =
     hasBlueprint && topActionsTotal > 0 && completedActionsCount === topActionsTotal;
@@ -553,74 +809,6 @@ export default function DashboardPage() {
         </p>
       </section>
 
-      {showBrandonCard ? (
-        <section
-          className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
-          style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
-        >
-          <p className={`text-base font-bold leading-snug ${h}`}>📅 Not sure what this all means for your financial picture?</p>
-          <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-            Book a free session with Brandon Kirk — licensed financial specialist and Credit Path Canada partner. No cost, no obligation.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <a
-              href="https://calendly.com/brandonkirk/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
-              style={{ backgroundColor: TEAL, color: NAVY }}
-            >
-              Book Free Session →
-            </a>
-            <button
-              type="button"
-              className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
-              onClick={() => {
-                setBrandonDismissed(true);
-                if (typeof window !== "undefined") window.localStorage.setItem("brandon_card_dismissed", "true");
-              }}
-            >
-              No thanks
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      {showEqCard ? (
-        <section
-          className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
-          style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
-        >
-          <p className={`text-base font-bold leading-snug ${h}`}>
-            💳 Did you know? One of the fastest ways to build your credit history is adding a card that reports to both bureaus.
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
-            EQ Bank&apos;s card has no credit check required and reports to both Equifax and TransUnion. It takes 5 minutes to apply.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <a
-              href="https://join.eqbank.ca/?code=MICHAEL1577"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
-              style={{ backgroundColor: TEAL, color: NAVY }}
-            >
-              Get EQ Bank Card →
-            </a>
-            <button
-              type="button"
-              className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
-              onClick={() => {
-                setEqDismissed(true);
-                if (typeof window !== "undefined") window.localStorage.setItem("eq_card_dismissed", "true");
-              }}
-            >
-              No thanks
-            </button>
-          </div>
-        </section>
-      ) : null}
-
       <section
         className="rounded-2xl border-2 p-5 shadow-sm sm:p-6"
         style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}
@@ -641,138 +829,6 @@ export default function DashboardPage() {
         </a>
       </section>
 
-      {allMonthlyActionsComplete ? (
-        <section
-          className="rounded-2xl border-2 bg-white p-5 shadow-sm sm:p-6"
-          style={{ borderColor: TEAL, boxShadow: "0 8px 28px rgba(0, 201, 167, 0.12)" }}
-          aria-live="polite"
-        >
-          <p className={`flex flex-wrap items-center gap-2 text-lg font-bold sm:text-xl ${h}`} style={{ color: NAVY }}>
-            <span className="text-2xl sm:text-3xl" aria-hidden>
-              🏆
-            </span>
-            You crushed it this month!
-          </p>
-        </section>
-      ) : null}
-
-      <section
-        className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
-        style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-      >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className={`text-lg font-bold ${h}`}>Monthly Progress Timeline</h2>
-          <p className="text-xs text-[#0F1923]/60">Current month highlighted in teal</p>
-        </div>
-        <div className="overflow-x-auto pb-1">
-          <div className="flex min-w-max items-center gap-2.5 pr-2">
-            {Array.from({ length: TOTAL_MONTHS }, (_, idx) => idx + 1).map((month) => {
-              const isCurrent = month === currentMonth;
-              const unlockedCutoff = Math.min(TOTAL_MONTHS, currentMonth + 2);
-              const blurredCutoff = Math.min(TOTAL_MONTHS, currentMonth + 5);
-              const isUnlocked = month <= unlockedCutoff;
-              const isBlurred = !isUnlocked && month <= blurredCutoff;
-              const themeLabel = MONTH_THEMES[month];
-
-              if (!isUnlocked && !isBlurred) {
-                return (
-                  <div
-                    key={month}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#0F1923]/15 bg-[#0F1923]/8"
-                    title={`Month ${month} locked`}
-                    aria-label={`Month ${month} locked`}
-                  >
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#0F1923]/35" />
-                  </div>
-                );
-              }
-
-              return (
-                <button
-                  key={month}
-                  type="button"
-                  onClick={() => {
-                    if (!isUnlocked) return;
-                    setTimelineModalMonth(month);
-                  }}
-                  className={`relative flex shrink-0 flex-col rounded-xl border px-3 py-2 text-left transition-all ${
-                    isCurrent ? "shadow-sm" : ""
-                  }`}
-                  style={{
-                    minWidth: 110,
-                    borderColor: isCurrent ? TEAL : "rgba(15, 25, 35, 0.12)",
-                    backgroundColor: isCurrent ? "rgba(0, 201, 167, 0.14)" : "#fff",
-                    color: NAVY,
-                    filter: isBlurred ? "blur(0.8px)" : "none",
-                    opacity: isBlurred ? 0.75 : 1,
-                    cursor: isUnlocked ? "pointer" : "not-allowed",
-                  }}
-                  aria-label={`Month ${month}${isCurrent ? ", current month" : ""}${isBlurred ? ", locked preview" : ""}`}
-                  disabled={!isUnlocked}
-                >
-                  <span className={`text-[11px] font-semibold uppercase tracking-wide ${h}`}>
-                    Mo {month}
-                  </span>
-                  <span className="mt-0.5 text-sm font-semibold leading-tight">
-                    {themeLabel ?? (isBlurred ? "Locked Preview" : "Unlocked")}
-                  </span>
-                  {isBlurred && (
-                    <span className="absolute right-2 top-2 text-xs" aria-hidden="true">
-                      🔒
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {hasBlueprint ? (
-        <section
-          className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-        >
-          <h2 className={`text-lg font-bold ${h}`}>Your Rebuild Progress</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-              <p className="text-sm text-[#0F1923]/75">Actions Completed</p>
-              <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-                {completedActionsCount} of {topActionsTotal} completed
-              </p>
-            </div>
-            <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-              <p className="text-sm text-[#0F1923]/75">Months Clean</p>
-              <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-                {monthsClean}
-              </p>
-            </div>
-            <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-              <p className="text-sm text-[#0F1923]/75">Credit Cards Reporting</p>
-              <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-                {cardsReporting} of 3 recommended
-              </p>
-            </div>
-            <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-              <p className="text-sm text-[#0F1923]/75">Auto Approval Readiness</p>
-              <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-                {readinessPercentage}%
-              </p>
-              <p className="mt-1 text-xs text-[#0F1923]/65">Readiness for auto approval</p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
-                <div
-                  className="h-full rounded-full transition-[width] duration-500 ease-out"
-                  style={{ width: `${readinessPercentage}%`, backgroundColor: TEAL }}
-                />
-              </div>
-            </div>
-          </div>
-          <p className="mt-4 text-xs font-medium" style={{ color: TEAL }}>
-            Complete your monthly actions to move these numbers forward.
-          </p>
-        </section>
-      ) : null}
-
       {hasBlueprint && equifaxScore !== null && estimatedRangeStart !== null && estimatedRangeEnd !== null ? (
         <section
           className={`rounded-2xl p-6 shadow-lg sm:p-8 ${h}`}
@@ -782,9 +838,7 @@ export default function DashboardPage() {
             boxShadow: "0 12px 40px rgba(15, 25, 35, 0.25)",
           }}
         >
-          <h2 className="text-lg font-bold tracking-tight text-white">Estimated Current Score</h2>
-
-          <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
             <div className="min-w-0 w-full flex-1 text-center sm:text-left">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
                 Current Score
@@ -795,29 +849,156 @@ export default function DashboardPage() {
             </div>
 
             <div className="min-w-0 w-full flex-1 text-center sm:text-right">
-              <p className="text-sm leading-relaxed text-white/60">
-                Score Trend — based on your bureau upload. Individual results vary.
+              <p className="text-sm font-semibold leading-relaxed text-white/60">
+                Where this month&apos;s actions could take you
+              </p>
+              <p className="mt-2 text-2xl font-bold tabular-nums leading-none tracking-tight" style={{ color: TEAL }}>
+                {estimatedRangeStart}–{estimatedRangeEnd}
               </p>
             </div>
-          </div>
-
-          <p className="mx-auto mt-6 max-w-xl text-center text-sm leading-relaxed text-white/60">
-            Based on your bureau upload. Upload a new report for an accurate reading.
-          </p>
-
-          <div className="mt-5 flex justify-center">
-            <Link
-              href="/dashboard/upload"
-              className={`inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-bold transition-opacity hover:opacity-92 sm:w-auto ${h}`}
-              style={{ backgroundColor: TEAL, color: NAVY }}
-            >
-              Upload New Report
-            </Link>
           </div>
         </section>
       ) : null}
 
-      {!hasBlueprint ? (
+      {hasBlueprint ? (
+        currentMonth >= 5 ? (
+          <section
+            id="monthly-actions"
+            className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+          >
+            <h2 className={`text-lg font-bold ${h}`}>Program progression</h2>
+            <p className={`mt-2 text-sm leading-relaxed text-[#0F1923]/75 ${h}`}>
+              {getProgramMonthThemeTitle(currentMonth)} — {getProgramMonthThemeSubtitle(currentMonth)}
+            </p>
+          </section>
+        ) : (
+          <section
+            id="monthly-actions"
+            className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+          >
+            <h2 className={`text-lg font-bold ${h}`}>Top actions</h2>
+            <p className="mt-1 text-sm text-[#0F1923]/65">
+              Check each action when complete to track your progress.
+            </p>
+            <p className={`mt-3 text-base font-bold leading-snug ${h}`} style={{ color: TEAL }}>
+              Month {currentMonth}: {getProgramMonthThemeTitle(currentMonth)}
+            </p>
+            <p className={`mt-1 text-sm leading-relaxed text-[#0F1923]/70 ${h}`}>
+              {getProgramMonthThemeSubtitle(currentMonth)}
+            </p>
+
+            {nextUnlockMeta.nextMonth != null && currentMonth < 4 ? (
+              <p className="mt-4 rounded-xl border border-black/10 bg-[#F5F7FA] px-4 py-3 text-sm leading-relaxed text-[#0F1923]/75">
+                Month {nextUnlockMeta.nextMonth} unlocks when all actions are complete and 28 days have passed.
+              </p>
+            ) : null}
+
+            {currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
+              <p className="mt-4 text-sm text-[#0F1923]/65">
+                Your personalized plan for this month is being prepared. Refresh the page in a moment — if this
+                message persists, contact Credit Path Canada.
+              </p>
+            ) : monthlyProgramActions.length > 0 ? (
+              <>
+                <ol className="mt-4 space-y-3">
+                  {monthlyProgramActions.map((item, idx) => {
+                    const done = completedSet.has(idx);
+                    const canSave = Boolean(user?.id && blueprint?.id);
+                    const impactLine = [formatDisplay(item.impact), formatDisplay(item.timeline)]
+                      .filter((x) => x !== "—")
+                      .join(" · ");
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 rounded-xl border border-black/5 bg-white px-3 py-3"
+                        style={{
+                          border: "1.5px solid #00C9A7",
+                          borderRadius: "8px",
+                          borderColor: done ? "rgba(0, 201, 167, 0.45)" : "rgba(15, 25, 35, 0.08)",
+                          backgroundColor: done ? "rgba(0, 201, 167, 0.06)" : "#fff",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className={`mt-0.5 flex shrink-0 items-center justify-center rounded border text-[13px] font-bold leading-none disabled:cursor-default ${
+                            done ? "text-white" : ""
+                          }`}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderColor: done ? TEAL : "var(--cp-border)",
+                            backgroundColor: done ? TEAL : "transparent",
+                            color: done ? "#FFFFFF" : NAVY,
+                            WebkitAppearance: "none",
+                            appearance: "none",
+                          }}
+                          disabled={!canSave}
+                          aria-label={done ? "Mark action not complete" : "Mark action complete"}
+                          onClick={() => void saveCompletion(idx, item)}
+                        >
+                          {done ? "✓" : null}
+                        </button>
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className={`text-sm font-bold leading-snug ${done ? "line-through" : ""} line-clamp-4 ${h}`}
+                            style={{ color: done ? TEAL : NAVY }}
+                          >
+                            {renderMarkdownInlineLinks(formatDisplay(item.action))}
+                          </p>
+                          {impactLine ? (
+                            <p
+                              className={`mt-1 text-xs leading-snug text-[#0F1923]/55 ${done ? "line-through" : ""}`}
+                              style={{ color: "#00C9A7" }}
+                            >
+                              {impactLine}
+                            </p>
+                          ) : null}
+                          <p className="mt-1 text-xs text-[#0F1923]/45">
+                            This is educational guidance based on your file. Individual results vary.
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <p className="mt-4 text-sm font-semibold" style={{ color: TEAL }}>
+                  {completedSet.size} of {monthlyProgramActions.length}{" "}
+                  {monthlyProgramActions.length === 1 ? "action" : "actions"} completed this month
+                </p>
+              </>
+            ) : null}
+
+            {currentMonth < 4 && nextUnlockBadgeText ? (
+              <div
+                className={`mt-4 inline-flex w-full max-w-full flex-wrap items-center justify-center gap-1 rounded-full border px-4 py-3 text-center text-sm font-semibold leading-snug sm:text-base ${h}`}
+                style={{
+                  borderColor: TEAL,
+                  backgroundColor: "rgba(0, 201, 167, 0.18)",
+                  color: NAVY,
+                }}
+                role="status"
+                aria-live="polite"
+              >
+                {nextUnlockBadgeText}
+              </div>
+            ) : null}
+
+            <div className="mt-6 border-t border-black/10 pt-5">
+              <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>Locked ahead</p>
+              <ul className="mt-2 space-y-2 text-sm text-[#0F1923]/65">
+                {Array.from({ length: Math.max(0, 5 - currentMonth) }, (_, i) => currentMonth + 1 + i).map((m) => (
+                  <li key={m}>
+                    <span className="font-semibold text-[#0F1923]/85">Month {m}</span> —{" "}
+                    {m >= 5 ? getProgramMonthThemeTitle(5) : "Locked until you complete the prior month and wait window"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )
+      ) : (
         <section
           className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
           style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
@@ -838,63 +1019,7 @@ export default function DashboardPage() {
             </Link>
           </div>
         </section>
-      ) : (
-        <section
-          className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className={`text-lg font-bold ${h}`}>Your Blueprint</h2>
-              <p className="mt-1 text-sm text-[#0F1923]/70">
-                View full details, tradelines, collections, and download your credit blueprint.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/blueprint"
-              className="inline-flex shrink-0 items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold text-[#0F1923] transition-opacity hover:opacity-90"
-              style={{ backgroundColor: TEAL }}
-            >
-              View your Blueprint
-            </Link>
-          </div>
-        </section>
       )}
-
-      {timelineModalMonth !== null ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="timeline-modal-title"
-          onClick={() => setTimelineModalMonth(null)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border-2 bg-white p-6 shadow-xl"
-            style={{ borderColor: TEAL, color: NAVY }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/50">Month</p>
-            <h2 id="timeline-modal-title" className={`mt-1 text-2xl font-bold ${h}`}>
-              Month {timelineModalMonth}
-            </h2>
-            <p className={`mt-2 text-sm font-semibold ${h}`} style={{ color: TEAL }}>
-              {timelineThemeName(timelineModalMonth, false)}
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-[#0F1923]/85">
-              {timelineMonthDescription(timelineModalMonth)}
-            </p>
-            <button
-              type="button"
-              onClick={() => setTimelineModalMonth(null)}
-              className={`mt-6 w-full rounded-xl py-3 text-sm font-bold text-[#0F1923] ${h}`}
-              style={{ backgroundColor: TEAL }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ) : null}
 
     </div>
   );

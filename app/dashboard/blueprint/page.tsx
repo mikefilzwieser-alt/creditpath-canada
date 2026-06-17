@@ -16,6 +16,31 @@ import { supabase } from "@/lib/supabase";
 
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
+const TOTAL_MONTHS = 24;
+const MONTH_THEMES: Record<number, string> = {
+  1: "Foundation",
+  2: "Stability",
+  3: "Momentum",
+};
+
+function timelineThemeName(month: number, isBlurred: boolean): string {
+  const named = MONTH_THEMES[month];
+  if (named) return named;
+  return isBlurred ? "Locked Preview" : "Unlocked";
+}
+
+function timelineMonthDescription(month: number): string {
+  switch (month) {
+    case 1:
+      return "Build a solid foundation: confirm your bureau snapshot, tighten payment consistency, and align everyday habits with your Blueprint priorities.";
+    case 2:
+      return "Stabilize momentum: keep utilization in check, follow through on quick-win actions, and reinforce a clean payment history across reporting accounts.";
+    case 3:
+      return "Push forward with confidence: stack responsible wins, refine your tradeline mix, and stay ready for the next visibility window in your rebuild.";
+    default:
+      return "Continue your structured rebuild: execute this phase's actions, watch for bureau updates, and keep your plan aligned as you move toward your goals.";
+  }
+}
 
 type ParsedBureau = {
   dnq?: boolean;
@@ -754,6 +779,7 @@ export default function BlueprintPage() {
   const [celebration, setCelebration] = useState<{ month: number; theme: string } | null>(null);
   const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const [timelineModalMonth, setTimelineModalMonth] = useState<number | null>(null);
 
   useEffect(() => {
     if (pathname !== "/dashboard/blueprint" || typeof window === "undefined") return;
@@ -1586,6 +1612,20 @@ export default function BlueprintPage() {
     equifaxScoreKnown && equifaxScore > 0
       ? Math.min(900, Math.max(300, Math.round(equifaxScore + month4GainBase + 15)))
       : null;
+  const createdAt = blueprint?.created_at ? new Date(blueprint.created_at) : null;
+  const monthsElapsed =
+    createdAt && Number.isFinite(createdAt.getTime())
+      ? Math.max(
+          0,
+          (new Date().getFullYear() - createdAt.getFullYear()) * 12 + (new Date().getMonth() - createdAt.getMonth()),
+        )
+      : 0;
+  const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
+  const readinessPercentage =
+    typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
+      ? Math.min(100, Math.max(0, Math.round(plan.readiness_percentage)))
+      : 0;
+  const topActionsTotal = monthlyProgramActions.length || 3;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8" style={{ color: NAVY }}>
@@ -1604,29 +1644,120 @@ export default function BlueprintPage() {
         </span>
       </header>
 
-      {equifaxScoreKnown ? (
-        <section
-          className="grid gap-4 rounded-2xl border border-black/5 bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-6"
-          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-        >
-          <div>
-            <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>Current Equifax score</p>
-            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: TEAL }}>
-              {equifaxScore}
+      <section
+        className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+        style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+      >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className={`text-lg font-bold ${h}`}>Monthly Progress Timeline</h2>
+          <p className="text-xs text-[#0F1923]/60">Current month highlighted in teal</p>
+        </div>
+        <div className="overflow-x-auto pb-1">
+          <div className="flex min-w-max items-center gap-2.5 pr-2">
+            {Array.from({ length: TOTAL_MONTHS }, (_, idx) => idx + 1).map((month) => {
+              const isCurrent = month === programMonth;
+              const unlockedCutoff = Math.min(TOTAL_MONTHS, programMonth + 2);
+              const blurredCutoff = Math.min(TOTAL_MONTHS, programMonth + 5);
+              const isUnlocked = month <= unlockedCutoff;
+              const isBlurred = !isUnlocked && month <= blurredCutoff;
+              const themeLabel = MONTH_THEMES[month];
+
+              if (!isUnlocked && !isBlurred) {
+                return (
+                  <div
+                    key={month}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#0F1923]/15 bg-[#0F1923]/8"
+                    title={`Month ${month} locked`}
+                    aria-label={`Month ${month} locked`}
+                  >
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#0F1923]/35" />
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={month}
+                  type="button"
+                  onClick={() => {
+                    if (!isUnlocked) return;
+                    setTimelineModalMonth(month);
+                  }}
+                  className={`relative flex shrink-0 flex-col rounded-xl border px-3 py-2 text-left transition-all ${
+                    isCurrent ? "shadow-sm" : ""
+                  }`}
+                  style={{
+                    minWidth: 110,
+                    borderColor: isCurrent ? TEAL : "rgba(15, 25, 35, 0.12)",
+                    backgroundColor: isCurrent ? "rgba(0, 201, 167, 0.14)" : "#fff",
+                    color: NAVY,
+                    filter: isBlurred ? "blur(0.8px)" : "none",
+                    opacity: isBlurred ? 0.75 : 1,
+                    cursor: isUnlocked ? "pointer" : "not-allowed",
+                  }}
+                  aria-label={`Month ${month}${isCurrent ? ", current month" : ""}${isBlurred ? ", locked preview" : ""}`}
+                  disabled={!isUnlocked}
+                >
+                  <span className={`text-[11px] font-semibold uppercase tracking-wide ${h}`}>
+                    Mo {month}
+                  </span>
+                  <span className="mt-0.5 text-sm font-semibold leading-tight">
+                    {themeLabel ?? (isBlurred ? "Locked Preview" : "Unlocked")}
+                  </span>
+                  {isBlurred && (
+                    <span className="absolute right-2 top-2 text-xs" aria-hidden="true">
+                      🔒
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+        style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+      >
+        <h2 className={`text-lg font-bold ${h}`}>Your Rebuild Progress</h2>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+            <p className="text-sm text-[#0F1923]/75">Actions Completed</p>
+            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+              {completedSet.size} of {topActionsTotal} completed
             </p>
           </div>
-          {month4RangeLow !== null && month4RangeHigh !== null ? (
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>
-                Where clients in similar situations often land by Month 4
-              </p>
-              <p className={`mt-2 text-2xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
-                {month4RangeLow}–{month4RangeHigh}
-              </p>
+          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+            <p className="text-sm text-[#0F1923]/75">Months Clean</p>
+            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+              {monthsClean}
+            </p>
+          </div>
+          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+            <p className="text-sm text-[#0F1923]/75">Credit Cards Reporting</p>
+            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+              {revolvingNetworkCount} of 3 recommended
+            </p>
+          </div>
+          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+            <p className="text-sm text-[#0F1923]/75">Auto Approval Readiness</p>
+            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+              {readinessPercentage}%
+            </p>
+            <p className="mt-1 text-xs text-[#0F1923]/65">Readiness for auto approval</p>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
+              <div
+                className="h-full rounded-full transition-[width] duration-500 ease-out"
+                style={{ width: `${readinessPercentage}%`, backgroundColor: TEAL }}
+              />
             </div>
-          ) : null}
-        </section>
-      ) : null}
+          </div>
+        </div>
+        <p className="mt-4 text-xs font-medium" style={{ color: TEAL }}>
+          Complete your monthly actions to move these numbers forward.
+        </p>
+      </section>
 
       <div className="flex justify-end">
         <button
