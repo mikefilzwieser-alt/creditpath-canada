@@ -17,6 +17,28 @@ import { supabase } from "@/lib/supabase";
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
+const CREDIT_PRODUCT_OFFERS = [
+  {
+    name: "Neo Financial",
+    description: "Canada's top credit-building card. Reports to Equifax. Apply now.",
+    href: "https://neo.cc/refer/G3Y6L5A9",
+    cta: "Apply now",
+  },
+  {
+    name: "Tangerine Money-Back Credit Card",
+    description:
+      "No credit check secured option. Reports to both Equifax and TransUnion.",
+    href: "https://www.tangerine.ca/en/products/spending/creditcard",
+    cta: "Apply now",
+  },
+  {
+    name: "Koho",
+    description: "No credit check. Build credit with every purchase. Reports to Equifax.",
+    href: "https://www.koho.ca",
+    cta: "Get started",
+  },
+] as const;
+
 function firstNameFromUser(
   user: {
     email?: string | null;
@@ -104,6 +126,21 @@ function parseNumberLike(v: unknown): number {
     if (Number.isFinite(n)) return n;
   }
   return 0;
+}
+
+function isNetworkCard(tradeline: NonNullable<ParsedBureau["tradelines"]>[number]): boolean {
+  const codeRaw = String(tradeline?.equifax_rating_code ?? tradeline?.rating_code ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s/g, "");
+  if (!/^R\d/.test(codeRaw)) return false;
+
+  const network = String(tradeline?.network ?? "").toLowerCase().trim();
+  if (network === "visa" || network === "mastercard" || network === "amex") return true;
+  if (network === "store_only" || network === "n/a") return false;
+
+  const merged = `${tradeline?.account_type ?? ""} ${tradeline?.creditor_name ?? ""}`.toLowerCase();
+  return /\bvisa\b|mastercard|master card|\bamex\b|american express/.test(merged);
 }
 
 function formatDisplay(v: unknown): string {
@@ -382,6 +419,10 @@ export default function DashboardPage() {
     return lateViaRating || lateViaColumns;
   });
   const hasCollections = collections.length > 0;
+  const revolvingNetworkCount =
+    typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
+      ? Math.max(0, Math.floor(plan.credit_cards_reporting))
+      : tradelines.filter(isNetworkCard).length;
   const estimatedGain = !hasAnyLate && !hasCollections ? Math.min(80, monthsElapsed * 8) : 0;
   const estimatedScore =
     equifaxScore !== null
@@ -530,7 +571,7 @@ export default function DashboardPage() {
       nextCompleted.add(index);
       const allDoneNow = [0, 1, 2].every((i) => nextCompleted.has(i)) && monthlyProgramActions.length >= 3;
       if (allDoneNow && programMonth > 0 && programMonth < 5 && typeof window !== "undefined") {
-        const key = `celebration_shown_month_${programMonth}`;
+        const key = `dashboard_actions_celebration_shown_month_${programMonth}`;
         if (window.localStorage.getItem(key) !== "1") {
           setShowMonthCompletionOverlay(true);
         }
@@ -744,29 +785,9 @@ export default function DashboardPage() {
         style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
         role="alert"
       >
-        <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#DC2626" }}>
+        <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#B45309" }}>
           Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
         </p>
-      </section>
-
-      <section
-        className="rounded-2xl border-2 p-5 shadow-sm sm:p-6"
-        style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}
-        aria-label="Vehicle upgrade"
-      >
-        <p className={`text-base font-bold leading-snug sm:text-lg ${h}`}>
-          🚗 Your vehicle upgrade window opens at Month 8.
-        </p>
-        <p className={`mt-2 text-sm leading-relaxed text-white/85 sm:text-base ${h}`}>
-          Stay on track with your monthly actions and we&apos;ll get you into something better.
-        </p>
-        <a
-          href="mailto:michaelf@titaniumford.ca"
-          className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-center text-sm font-bold transition-opacity hover:opacity-92 sm:w-auto ${h}`}
-          style={{ backgroundColor: TEAL, color: NAVY }}
-        >
-          Talk to Michael — Titanium Ford Finance Director
-        </a>
       </section>
 
       {hasBlueprint && equifaxScore !== null && estimatedRangeStart !== null && estimatedRangeEnd !== null ? (
@@ -818,10 +839,7 @@ export default function DashboardPage() {
             className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
             style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
           >
-            <h2 className={`text-lg font-bold ${h}`}>Top actions</h2>
-            <p className="mt-1 text-sm text-[#0F1923]/65">
-              Check each action when complete to track your progress.
-            </p>
+            <h2 className={`text-lg font-bold ${h}`}>Top actions — Check each action when complete.</h2>
             <p className={`mt-3 text-base font-bold leading-snug ${h}`} style={{ color: TEAL }}>
               Month {currentMonth}: {getProgramMonthThemeTitle(currentMonth)}
             </p>
@@ -895,9 +913,6 @@ export default function DashboardPage() {
                               {impactLine}
                             </p>
                           ) : null}
-                          <p className="mt-1 text-xs text-[#0F1923]/45">
-                            This is educational guidance based on your file. Individual results vary.
-                          </p>
                         </div>
                       </li>
                     );
@@ -906,6 +921,9 @@ export default function DashboardPage() {
                 <p className="mt-4 text-sm font-semibold" style={{ color: TEAL }}>
                   {completedSet.size} of {monthlyProgramActions.length}{" "}
                   {monthlyProgramActions.length === 1 ? "action" : "actions"} completed this month
+                </p>
+                <p className="mt-2 text-xs text-[#0F1923]/45">
+                  This is educational guidance based on your file. Individual results vary.
                 </p>
               </>
             ) : null}
@@ -961,6 +979,66 @@ export default function DashboardPage() {
         </section>
       )}
 
+      <section
+        className="rounded-2xl border-2 p-5 shadow-sm sm:p-6"
+        style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}
+        aria-label="Vehicle upgrade"
+      >
+        <p className={`text-base font-bold leading-snug sm:text-lg ${h}`}>
+          🚗 Your vehicle upgrade window opens at Month 8.
+        </p>
+        <p className={`mt-2 text-sm leading-relaxed text-white/85 sm:text-base ${h}`}>
+          Stay on track with your monthly actions and we&apos;ll get you into something better.
+        </p>
+        <a
+          href="mailto:michaelf@titaniumford.ca"
+          className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-center text-sm font-bold transition-opacity hover:opacity-92 sm:w-auto ${h}`}
+          style={{ backgroundColor: TEAL, color: NAVY }}
+        >
+          Talk to Michael — Titanium Ford Finance Director
+        </a>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className={`text-lg font-bold ${h}`} style={{ color: NAVY }}>
+          Recommended Credit Products
+        </h2>
+        <p className="rounded-xl border border-[rgba(15,25,35,0.1)] bg-[rgba(0,201,167,0.08)] px-4 py-3 text-sm leading-relaxed text-[#0F1923]/85">
+          You currently have {revolvingNetworkCount} revolving credit card
+          {revolvingNetworkCount === 1 ? "" : "s"}. We recommend 3 minimum.
+        </p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-stretch">
+          {CREDIT_PRODUCT_OFFERS.map((product) => (
+            <div
+              key={product.name}
+              className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+              style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+            >
+              <div className="min-w-0 flex-1">
+                <h3 className={`text-base font-bold ${h}`} style={{ color: NAVY }}>
+                  {product.name}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/65">{product.description}</p>
+                {product.name === "Tangerine Money-Back Credit Card" ? (
+                  <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
+                    💸 Use referral code 79976711S1 for a $50 bonus.
+                  </p>
+                ) : null}
+              </div>
+              <a
+                href={product.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex w-full items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-[#0F1923] transition-opacity hover:opacity-90"
+                style={{ backgroundColor: TEAL }}
+              >
+                {product.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {showMonthCompletionOverlay ? (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center px-6 py-10"
@@ -1001,7 +1079,7 @@ export default function DashboardPage() {
               style={{ backgroundColor: TEAL, color: NAVY }}
               onClick={() => {
                 if (typeof window !== "undefined") {
-                  window.localStorage.setItem(`celebration_shown_month_${currentMonth}`, "1");
+                  window.localStorage.setItem(`dashboard_actions_celebration_shown_month_${currentMonth}`, "1");
                 }
                 setShowMonthCompletionOverlay(false);
               }}
