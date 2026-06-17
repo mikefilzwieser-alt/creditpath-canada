@@ -446,16 +446,21 @@ export function DashboardShell({
                       Log in anytime to see exactly <span style={{ color: TEAL }}>where you stand</span>, and <span style={{ color: TEAL }}>what to do next</span>.
                     </p>
                   ) : firstLoginSlide === 2 ? (
-                    <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      3 actions, every month, based on what <span style={{ color: TEAL }}>moves your score most</span>. Complete them, <span style={{ color: TEAL }}>build your score</span>.
-                    </p>
+                    <>
+                      <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
+                        3 actions, every month, based on what <span style={{ color: TEAL }}>moves your score most</span>.
+                      </p>
+                      <p style={{ lineHeight: 1.8, marginTop: 12 }}>
+                        Complete them, <span style={{ color: TEAL }}>build your score</span>.
+                      </p>
+                    </>
                   ) : (
                     <>
                       <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                        Clients who complete their actions on time, every month, hit their <span style={{ color: TEAL }}>upgrade window asap</span>.
+                        Clients who <span style={{ color: TEAL }}>complete their actions on time</span>, every month, hit their <span style={{ color: TEAL }}>upgrade window asap</span>.
                       </p>
                       <p style={{ lineHeight: 1.8, marginTop: 12 }}>
-                        Keep your eyes open for free bonuses, and check the free resource section.
+                        Keep your eyes open for <span style={{ color: TEAL }}>free bonuses</span>, and check the <span style={{ color: TEAL }}>free resource section</span>.
                       </p>
                     </>
                   )}
