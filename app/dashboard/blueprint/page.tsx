@@ -6,8 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
 import {
-  getProgramMonthThemeSubtitle,
-  getProgramMonthThemeTitle,
   MAX_THEMED_PROGRAM_MONTH,
   normalizeProgramMonth,
 } from "@/lib/monthly-progression-themes";
@@ -135,35 +133,6 @@ function formatDisplay(v: unknown): string {
   if (typeof v === "number" && Number.isFinite(v)) return String(v);
   if (typeof v === "string") return v.trim() || "—";
   return String(v);
-}
-
-/** Renders `[label](https://...)` in action copy as clickable links; other text unchanged. */
-function renderMarkdownInlineLinks(text: string): React.ReactNode {
-  const t = text.trim();
-  if (!t || t === "—") return t || "—";
-  const re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
-  const nodes: React.ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(t)) !== null) {
-    if (m.index > last) nodes.push(t.slice(last, m.index));
-    nodes.push(
-      <a
-        key={`md-${m.index}`}
-        href={m[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline underline-offset-2"
-        style={{ color: "#00C9A7" }}
-      >
-        {m[1]}
-      </a>,
-    );
-    last = m.index + m[0].length;
-  }
-  if (nodes.length === 0) return t;
-  if (last < t.length) nodes.push(t.slice(last));
-  return <>{nodes}</>;
 }
 
 function formatPercent(v: unknown): string {
@@ -763,8 +732,6 @@ function PriorityBadge({ priority }: { priority: string }) {
   );
 }
 
-const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
-
 export default function BlueprintPage() {
   const pathname = usePathname();
   const { user, loading: authLoading, headingFontClass: h } = useDashboardAuth();
@@ -778,7 +745,6 @@ export default function BlueprintPage() {
   const completionsRef = useRef<Set<number>>(new Set());
   const [celebration, setCelebration] = useState<{ month: number; theme: string } | null>(null);
   const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
-  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [timelineModalMonth, setTimelineModalMonth] = useState<number | null>(null);
 
   useEffect(() => {
@@ -949,10 +915,6 @@ export default function BlueprintPage() {
     const raw = parsed as Record<string, unknown> | null | undefined;
     return normalizeScoreFactors(raw?.score_factors ?? parsed?.score?.score_factors);
   }, [parsed]);
-  const focusBullets = useMemo(
-    () => computeFocusBulletsForDisplay(plan, parsed, blueprint?.current_month),
-    [blueprint?.current_month, plan, parsed],
-  );
   const scoreSummaryParts = useMemo(() => {
     const raw = plan?.score_summary;
     const text = typeof raw === "string" ? raw.trim() : formatDisplay(raw);
@@ -1011,31 +973,8 @@ export default function BlueprintPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!allCurrentMonthActionsDone) return;
-    setShowMonthCompletionOverlay(true);
+    queueMicrotask(() => setShowMonthCompletionOverlay(true));
   }, [allCurrentMonthActionsDone]);
-
-  const nextUnlockMeta = useMemo(() => {
-    if (!blueprint || programMonth >= 4) {
-      return { daysRemaining: null as number | null, unlockAtMs: null as number | null, nextMonth: null as number | null };
-    }
-    const unlockedAt = blueprint.month_unlocked_at ?? blueprint.created_at;
-    const gateMs = new Date(unlockedAt).getTime();
-    if (!Number.isFinite(gateMs)) {
-      return { daysRemaining: null, unlockAtMs: null, nextMonth: programMonth + 1 };
-    }
-    const unlockAtMs = gateMs + TWENTY_EIGHT_DAYS_MS;
-    const daysRemaining = Math.max(0, Math.ceil((unlockAtMs - Date.now()) / (24 * 60 * 60 * 1000)));
-    return { daysRemaining, unlockAtMs, nextMonth: programMonth + 1 };
-  }, [blueprint, programMonth]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNowMs(Date.now());
-    }, 60_000);
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1045,27 +984,8 @@ export default function BlueprintPage() {
     if (window.localStorage.getItem(key) === "1") return;
     // Do not write localStorage here: React Strict Mode remounts reset overlay state while an early setItem would make
     // the second run skip opening — persist only when the user dismisses the celebration.
-    setShowMonthCompletionOverlay(true);
+    queueMicrotask(() => setShowMonthCompletionOverlay(true));
   }, [allCurrentMonthActionsDone, programMonth]);
-
-  const nextUnlockBadgeText = useMemo(() => {
-    const nextMonth = nextUnlockMeta.nextMonth;
-    const unlockAtMs = nextUnlockMeta.unlockAtMs;
-    if (nextMonth == null || unlockAtMs == null) return "";
-
-    const remainingMs = unlockAtMs - nowMs;
-    if (remainingMs > 0) {
-      const totalMinutes = Math.floor(remainingMs / (60 * 1000));
-      const days = Math.floor(totalMinutes / (60 * 24));
-      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-      const minutes = totalMinutes % 60;
-      return `Month ${nextMonth} unlocks in: ${days}d ${hours}h ${minutes}m`;
-    }
-    if (allCurrentMonthActionsDone) {
-      return `Month ${nextMonth} is ready. Check your blueprint.`;
-    }
-    return `Complete your actions to unlock Month ${nextMonth}.`;
-  }, [allCurrentMonthActionsDone, nextUnlockMeta.nextMonth, nextUnlockMeta.unlockAtMs, nowMs]);
 
   const runSyncProgress = useCallback(async () => {
     if (!user?.id) return;
@@ -1104,80 +1024,6 @@ export default function BlueprintPage() {
       cancelled = true;
     };
   }, [blueprint?.id, user?.id, runSyncProgress]);
-
-  const saveCompletion = useCallback(
-    async (index: number, action: MonthlyProgramAction) => {
-      if (!user?.id || !blueprint?.id) return;
-      const blueprintId = blueprint.id;
-      const pm = normalizeProgramMonth(blueprint.current_month);
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess?.session?.access_token;
-      if (!token) return;
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-
-      if (completionsRef.current.has(index)) {
-        completionsRef.current.delete(index);
-        const res = await fetch(`${origin}/api/action-completions`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            blueprintId,
-            programMonth: pm,
-            actionIndex: index,
-            completed: false,
-          }),
-        });
-        if (!res.ok) {
-          completionsRef.current.add(index);
-          return;
-        }
-        setCompletedSet((prev) => {
-          const next = new Set(prev);
-          next.delete(index);
-          return next;
-        });
-        void runSyncProgress();
-        return;
-      }
-
-      completionsRef.current.add(index);
-      const actionText = typeof action?.action === "string" ? action.action : formatDisplay(action?.action);
-      const res = await fetch(`${origin}/api/action-completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          blueprintId,
-          programMonth: pm,
-          actionIndex: index,
-          actionText,
-          completed: true,
-        }),
-      });
-      if (!res.ok) {
-        completionsRef.current.delete(index);
-        return;
-      }
-      setCompletedSet((prev) => {
-        const next = new Set([...prev, index]);
-        const allDoneNow = [0, 1, 2].every((i) => next.has(i)) && monthlyProgramActions.length >= 3;
-        if (allDoneNow && pm > 0 && pm < 5 && typeof window !== "undefined") {
-          const key = `celebration_shown_month_${pm}`;
-          if (window.localStorage.getItem(key) !== "1") {
-            setShowMonthCompletionOverlay(true);
-          }
-        }
-        return next;
-      });
-      void runSyncProgress();
-    },
-    [blueprint, user, runSyncProgress, monthlyProgramActions.length],
-  );
 
   const handleDownloadPdf = useCallback(() => {
     if (!blueprint || !parsed) return;
@@ -1603,15 +1449,6 @@ export default function BlueprintPage() {
     return lateViaRating || lateViaColumns;
   });
   const hasCollectionsOnFile = collections.length > 0;
-  const month4GainBase = !hasAnyLate && !hasCollectionsOnFile ? Math.min(80, 4 * 8) : 15;
-  const month4RangeLow =
-    equifaxScoreKnown && equifaxScore > 0
-      ? Math.min(900, Math.max(300, Math.round(equifaxScore + Math.max(10, month4GainBase - 15))))
-      : null;
-  const month4RangeHigh =
-    equifaxScoreKnown && equifaxScore > 0
-      ? Math.min(900, Math.max(300, Math.round(equifaxScore + month4GainBase + 15)))
-      : null;
   const createdAt = blueprint?.created_at ? new Date(blueprint.created_at) : null;
   const monthsElapsed =
     createdAt && Number.isFinite(createdAt.getTime())
@@ -1970,144 +1807,6 @@ export default function BlueprintPage() {
               </div>
             ) : null}
 
-            {programMonth >= 5 ? (
-              <section
-                id="monthly-actions"
-                className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-                style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-              >
-                <h2 className={`text-lg font-bold ${h}`}>Program progression</h2>
-                <p className={`mt-2 text-sm leading-relaxed text-[#0F1923]/75 ${h}`}>
-                  {getProgramMonthThemeTitle(programMonth)} — {getProgramMonthThemeSubtitle(programMonth)}
-                </p>
-              </section>
-            ) : (
-              <section
-                id="monthly-actions"
-                className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-                style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-              >
-                <h2 className={`text-lg font-bold ${h}`}>Top actions</h2>
-                <p className="mt-1 text-sm text-[#0F1923]/65">
-                  Check each action when complete to track your progress.
-                </p>
-                <p className={`mt-3 text-base font-bold leading-snug ${h}`} style={{ color: TEAL }}>
-                  Month {programMonth}: {getProgramMonthThemeTitle(programMonth)}
-                </p>
-                <p className={`mt-1 text-sm leading-relaxed text-[#0F1923]/70 ${h}`}>
-                  {getProgramMonthThemeSubtitle(programMonth)}
-                </p>
-
-                {nextUnlockMeta.nextMonth != null && programMonth < 4 ? (
-                  <p className="mt-4 rounded-xl border border-black/10 bg-[#F5F7FA] px-4 py-3 text-sm leading-relaxed text-[#0F1923]/75">
-                    Month {nextUnlockMeta.nextMonth} unlocks when all actions are complete and 28 days have passed.
-                  </p>
-                ) : null}
-
-                {programMonth >= 2 && programMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
-                  <p className="mt-4 text-sm text-[#0F1923]/65">
-                    Your personalized plan for this month is being prepared. Refresh the page in a moment — if this
-                    message persists, contact Credit Path Canada.
-                  </p>
-                ) : monthlyProgramActions.length > 0 ? (
-                  <>
-                    <ol className="mt-4 space-y-3">
-                      {monthlyProgramActions.map((item, idx) => {
-                        const done = completedSet.has(idx);
-                        const canSave = Boolean(user?.id && blueprint?.id);
-                        const impactLine = [formatDisplay(item.impact), formatDisplay(item.timeline)]
-                          .filter((x) => x !== "—")
-                          .join(" · ");
-                        return (
-                          <li
-                            key={idx}
-                            className="flex items-start gap-3 rounded-xl border border-black/5 bg-white px-3 py-3"
-                            style={{
-                              border: "1.5px solid #00C9A7",
-                              borderRadius: "8px",
-                              borderColor: done ? "rgba(0, 201, 167, 0.45)" : "rgba(15, 25, 35, 0.08)",
-                              backgroundColor: done ? "rgba(0, 201, 167, 0.06)" : "#fff",
-                            }}
-                          >
-                            <button
-                              type="button"
-                              className={`mt-0.5 flex shrink-0 items-center justify-center rounded border text-[13px] font-bold leading-none disabled:cursor-default ${
-                                done ? "text-white" : ""
-                              }`}
-                              style={{
-                                width: 24,
-                                height: 24,
-                                borderColor: done ? TEAL : "var(--cp-border)",
-                                backgroundColor: done ? TEAL : "transparent",
-                                color: done ? "#FFFFFF" : NAVY,
-                                WebkitAppearance: "none",
-                                appearance: "none",
-                              }}
-                              disabled={!canSave}
-                              aria-label={done ? "Mark action not complete" : "Mark action complete"}
-                              onClick={() => void saveCompletion(idx, item)}
-                            >
-                              {done ? "✓" : null}
-                            </button>
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className={`text-sm font-bold leading-snug ${done ? "line-through" : ""} line-clamp-4 ${h}`}
-                                style={{ color: done ? TEAL : NAVY }}
-                              >
-                                {renderMarkdownInlineLinks(formatDisplay(item.action))}
-                              </p>
-                              {impactLine ? (
-                                <p
-                                  className={`mt-1 text-xs leading-snug text-[#0F1923]/55 ${done ? "line-through" : ""}`}
-                                  style={{ color: "#00C9A7" }}
-                                >
-                                  {impactLine}
-                                </p>
-                              ) : null}
-                              <p className="mt-1 text-xs text-[#0F1923]/45">
-                                This is educational guidance based on your file. Individual results vary.
-                              </p>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                    <p className="mt-4 text-sm font-semibold" style={{ color: TEAL }}>
-                      {completedSet.size} of {monthlyProgramActions.length}{" "}
-                      {monthlyProgramActions.length === 1 ? "action" : "actions"} completed this month
-                    </p>
-                  </>
-                ) : null}
-
-                {programMonth < 4 && nextUnlockBadgeText ? (
-                  <div
-                    className={`mt-4 inline-flex w-full max-w-full flex-wrap items-center justify-center gap-1 rounded-full border px-4 py-3 text-center text-sm font-semibold leading-snug sm:text-base ${h}`}
-                    style={{
-                      borderColor: TEAL,
-                      backgroundColor: "rgba(0, 201, 167, 0.18)",
-                      color: NAVY,
-                    }}
-                    role="status"
-                    aria-live="polite"
-                  >
-                    {nextUnlockBadgeText}
-                  </div>
-                ) : null}
-
-                <div className="mt-6 border-t border-black/10 pt-5">
-                  <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>Locked ahead</p>
-                  <ul className="mt-2 space-y-2 text-sm text-[#0F1923]/65">
-                    {Array.from({ length: Math.max(0, 5 - programMonth) }, (_, i) => programMonth + 1 + i).map((m) => (
-                      <li key={m}>
-                        <span className="font-semibold text-[#0F1923]/85">Month {m}</span> —{" "}
-                        {m >= 5 ? getProgramMonthThemeTitle(5) : "Locked until you complete the prior month and wait window"}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-            )}
-
             <section className="space-y-4">
               <h2 className={`text-lg font-bold ${h}`} style={{ color: NAVY }}>
                 Recommended Credit Products
@@ -2341,6 +2040,40 @@ export default function BlueprintPage() {
           </ul>
         )}
       </div>
+      {timelineModalMonth !== null ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="timeline-modal-title"
+          onClick={() => setTimelineModalMonth(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border-2 bg-white p-6 shadow-xl"
+            style={{ borderColor: TEAL, color: NAVY }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/50">Month</p>
+            <h2 id="timeline-modal-title" className={`mt-1 text-2xl font-bold ${h}`}>
+              Month {timelineModalMonth}
+            </h2>
+            <p className={`mt-2 text-sm font-semibold ${h}`} style={{ color: TEAL }}>
+              {timelineThemeName(timelineModalMonth, false)}
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-[#0F1923]/85">
+              {timelineMonthDescription(timelineModalMonth)}
+            </p>
+            <button
+              type="button"
+              onClick={() => setTimelineModalMonth(null)}
+              className={`mt-6 w-full rounded-xl py-3 text-sm font-bold text-[#0F1923] ${h}`}
+              style={{ backgroundColor: TEAL }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
       {showMonthCompletionOverlay ? (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center px-6 py-10"

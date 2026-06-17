@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
-import { getMonthlyProgramActionCount } from "@/lib/goals-milestone-helpers";
 import { logPostgrestError } from "@/lib/log-postgrest-error";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
 import {
@@ -18,31 +17,6 @@ import { supabase } from "@/lib/supabase";
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
-const MONTH_THEMES: Record<number, string> = {
-  1: "Foundation",
-  2: "Stability",
-  3: "Momentum",
-};
-
-function timelineThemeName(month: number, isBlurred: boolean): string {
-  const named = MONTH_THEMES[month];
-  if (named) return named;
-  return isBlurred ? "Locked Preview" : "Unlocked";
-}
-
-function timelineMonthDescription(month: number): string {
-  switch (month) {
-    case 1:
-      return "Build a solid foundation: confirm your bureau snapshot, tighten payment consistency, and align everyday habits with your Blueprint priorities.";
-    case 2:
-      return "Stabilize momentum: keep utilization in check, follow through on quick-win actions, and reinforce a clean payment history across reporting accounts.";
-    case 3:
-      return "Push forward with confidence: stack responsible wins, refine your tradeline mix, and stay ready for the next visibility window in your rebuild.";
-    default:
-      return "Continue your structured rebuild: execute this phase’s actions, watch for bureau updates, and keep your plan aligned as you move toward your goals.";
-  }
-}
-
 function firstNameFromUser(
   user: {
     email?: string | null;
@@ -166,21 +140,6 @@ function renderMarkdownInlineLinks(text: string): React.ReactNode {
   return nodes.length > 0 ? nodes : t;
 }
 
-function isNetworkCard(tradeline: NonNullable<ParsedBureau["tradelines"]>[number]): boolean {
-  const codeRaw = String(tradeline?.equifax_rating_code ?? tradeline?.rating_code ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/\s/g, "");
-  if (!/^R\d/.test(codeRaw)) return false;
-
-  const network = String(tradeline?.network ?? "").toLowerCase().trim();
-  if (network === "visa" || network === "mastercard" || network === "amex") return true;
-  if (network === "store_only" || network === "n/a") return false;
-
-  const merged = `${tradeline?.account_type ?? ""} ${tradeline?.creditor_name ?? ""}`.toLowerCase();
-  return /\bvisa\b|mastercard|master card|\bamex\b|american express/.test(merged);
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, headingFontClass, hasDashboardAccess } = useDashboardAuth();
@@ -190,12 +149,15 @@ export default function DashboardPage() {
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
   const [monthlyPlanRow, setMonthlyPlanRow] = useState<MonthlyPlanRow | null>(null);
   const [blueprintLoading, setBlueprintLoading] = useState(true);
-  const [completedActionsCount, setCompletedActionsCount] = useState(0);
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
   const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
-  const [brandonDismissed, setBrandonDismissed] = useState(false);
-  const [eqDismissed, setEqDismissed] = useState(false);
+  const [brandonDismissed, setBrandonDismissed] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("brandon_card_dismissed") === "true",
+  );
+  const [eqDismissed, setEqDismissed] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("eq_card_dismissed") === "true",
+  );
   const [paywallUnlockBusy, setPaywallUnlockBusy] = useState(false);
   const [paywallUnlockError, setPaywallUnlockError] = useState("");
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
@@ -208,7 +170,7 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("blueprints")
       .select(
-        "id, client_id, month_number, status, raw_parse_data, blueprint_data, created_at, updated_at, current_month",
+        "id, client_id, month_number, status, raw_parse_data, blueprint_data, created_at, updated_at, current_month, month_unlocked_at",
       )
       .eq("client_id", user.id)
       .order("created_at", { ascending: false })
@@ -218,7 +180,6 @@ export default function DashboardPage() {
     if (error) {
       setBlueprint(null);
       setMonthlyPlanRow(null);
-      setCompletedActionsCount(0);
     } else {
       const latest = data as BlueprintRow | null;
       setBlueprint(latest);
@@ -236,20 +197,8 @@ export default function DashboardPage() {
           setMonthlyPlanRow(null);
         }
 
-        const { count, error: compErr } = await supabase
-          .from("action_completions")
-          .select("id", { count: "exact", head: true })
-          .eq("client_id", user.id)
-          .eq("blueprint_id", latest.id)
-          .eq("program_month", progMonth)
-          .in("action_index", [0, 1, 2]);
-        if (compErr) {
-          console.error("[dashboard] action_completions count failed", compErr);
-        }
-        setCompletedActionsCount(compErr ? 0 : Math.min(3, count ?? 0));
       } else {
         setMonthlyPlanRow(null);
-        setCompletedActionsCount(0);
       }
     }
     setBlueprintLoading(false);
@@ -266,21 +215,16 @@ export default function DashboardPage() {
   }, [loadBlueprint]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    setBrandonDismissed(window.localStorage.getItem("brandon_card_dismissed") === "true");
-    setEqDismissed(window.localStorage.getItem("eq_card_dismissed") === "true");
-  }, []);
-
-  useEffect(() => {
     completionsRef.current = completedSet;
-    setCompletedActionsCount(Math.min(3, completedSet.size));
   }, [completedSet]);
 
   useEffect(() => {
     if (!user?.id || !blueprint?.id) {
-      const empty = new Set<number>();
-      completionsRef.current = empty;
-      setCompletedSet(empty);
+      queueMicrotask(() => {
+        const empty = new Set<number>();
+        completionsRef.current = empty;
+        setCompletedSet(empty);
+      });
       return;
     }
     const programMonth = normalizeProgramMonth(blueprint.current_month);
@@ -384,17 +328,12 @@ export default function DashboardPage() {
   const plan = blueprint?.blueprint_data as BlueprintPlan | null | undefined;
   const consumerProposal = parsed?.consumer_proposal === true;
 
-  const topActionsTotal = useMemo(
-    () => getMonthlyProgramActionCount((blueprint as { current_month?: number } | null)?.current_month),
-    [blueprint],
-  );
-
   const enrollmentDays = useMemo(() => {
     if (!enrolledAt) return 0;
     const created = new Date(enrolledAt).getTime();
     if (!Number.isFinite(created)) return 0;
-    return Math.max(0, Math.floor((Date.now() - created) / (24 * 60 * 60 * 1000)));
-  }, [enrolledAt]);
+    return Math.max(0, Math.floor((nowMs - created) / (24 * 60 * 60 * 1000)));
+  }, [enrolledAt, nowMs]);
 
   const tradelines = Array.isArray(parsed?.tradelines) ? parsed.tradelines : [];
   const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
@@ -407,51 +346,6 @@ export default function DashboardPage() {
   const currentMonth = normalizeProgramMonth(blueprint?.current_month);
 
   const hasBlueprint = Boolean(blueprint) && !blueprintLoading;
-
-  if (authLoading || !user) {
-    return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
-          aria-label="Loading"
-        />
-        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading…</p>
-      </div>
-    );
-  }
-
-  if (checkoutActivating) {
-    return (
-      <div
-        className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center"
-        style={{ color: NAVY }}
-      >
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
-          aria-label="Setting up account"
-        />
-        <p className={`text-base font-semibold sm:text-lg ${headingFontClass}`}>Setting up your account...</p>
-        <p className={`max-w-sm text-sm opacity-70 ${headingFontClass}`}>
-          Finishing your subscription so you can use the dashboard.
-        </p>
-      </div>
-    );
-  }
-
-  if (!hasDashboardAccess && blueprintLoading) {
-    return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
-          aria-label="Loading"
-        />
-        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading your dashboard…</p>
-      </div>
-    );
-  }
 
   const createdAt = blueprint?.created_at ? new Date(blueprint.created_at) : null;
 
@@ -473,16 +367,6 @@ export default function DashboardPage() {
     return lateViaRating || lateViaColumns;
   });
   const hasCollections = collections.length > 0;
-  const monthsClean = hasAnyLate || hasCollections ? 0 : monthsElapsed;
-
-  const cardsReporting =
-    typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
-      ? Math.max(0, Math.floor(plan.credit_cards_reporting))
-      : tradelines.filter(isNetworkCard).length;
-  const readinessPercentage =
-    typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
-      ? Math.min(100, Math.max(0, Math.round(plan.readiness_percentage)))
-      : 0;
   const estimatedGain = !hasAnyLate && !hasCollections ? Math.min(80, monthsElapsed * 8) : 0;
   const estimatedScore =
     equifaxScore !== null
@@ -632,8 +516,6 @@ export default function DashboardPage() {
     [blueprint, runSyncProgress, user?.id],
   );
 
-  const allMonthlyActionsComplete =
-    hasBlueprint && topActionsTotal > 0 && completedActionsCount === topActionsTotal;
   const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
   const showEqCard = enrollmentDays >= 7 && !eqDismissed && !consumerProposal;
   const rebuildScoreNumber =
@@ -642,6 +524,51 @@ export default function DashboardPage() {
     .map((a) => (typeof a?.action === "string" ? a.action.trim() : ""))
     .filter(Boolean)
     .slice(0, 3);
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading…</p>
+      </div>
+    );
+  }
+
+  if (checkoutActivating) {
+    return (
+      <div
+        className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center"
+        style={{ color: NAVY }}
+      >
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Setting up account"
+        />
+        <p className={`text-base font-semibold sm:text-lg ${headingFontClass}`}>Setting up your account...</p>
+        <p className={`max-w-sm text-sm opacity-70 ${headingFontClass}`}>
+          Finishing your subscription so you can use the dashboard.
+        </p>
+      </div>
+    );
+  }
+
+  if (!hasDashboardAccess && blueprintLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading your dashboard…</p>
+      </div>
+    );
+  }
 
   if (!hasDashboardAccess && hasBlueprint) {
     return (
