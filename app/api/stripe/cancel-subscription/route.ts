@@ -117,7 +117,7 @@ export async function POST() {
 
     const list = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
+      status: "all",
       limit: 10,
     });
 
@@ -126,7 +126,9 @@ export async function POST() {
       subscriptionIds: list.data.map((s) => s.id),
     });
 
-    const first = list.data[0];
+    const first = list.data.find(
+      (s) => s.status === "trialing" || s.status === "active" || s.status === "past_due",
+    );
     if (!first) {
       console.log(
         "[cancel-subscription] Step 4: no active Stripe subscription — updating Supabase only and returning success",
