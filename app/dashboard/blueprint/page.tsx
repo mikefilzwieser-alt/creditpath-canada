@@ -1561,6 +1561,31 @@ export default function BlueprintPage() {
       ? Math.max(0, Math.floor(plan.credit_cards_reporting))
       : countNetworkCardsTowardMinimum(tradelines);
   const recommendedProducts = [...CREDIT_PRODUCT_OFFERS];
+  const hasAnyLate = tradelines.some((t) => {
+    const codeRaw = String(t.equifax_rating_code ?? t.rating_code ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s/g, "");
+    const digit = /^([RIO])(\d)/.exec(codeRaw)?.[2];
+    const lateViaRating = digit ? Number(digit) >= 2 : false;
+    const lateCount = (v: unknown) => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      const n = Number(String(v ?? "").replace(/[^\d.-]/g, ""));
+      return Number.isFinite(n) ? n : 0;
+    };
+    const lateViaColumns = lateCount(t.late_30) > 0 || lateCount(t.late_60) > 0 || lateCount(t.late_90) > 0;
+    return lateViaRating || lateViaColumns;
+  });
+  const hasCollectionsOnFile = collections.length > 0;
+  const month4GainBase = !hasAnyLate && !hasCollectionsOnFile ? Math.min(80, 4 * 8) : 15;
+  const month4RangeLow =
+    equifaxScoreKnown && equifaxScore > 0
+      ? Math.min(900, Math.max(300, Math.round(equifaxScore + Math.max(10, month4GainBase - 15))))
+      : null;
+  const month4RangeHigh =
+    equifaxScoreKnown && equifaxScore > 0
+      ? Math.min(900, Math.max(300, Math.round(equifaxScore + month4GainBase + 15)))
+      : null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8" style={{ color: NAVY }}>
@@ -1578,6 +1603,31 @@ export default function BlueprintPage() {
           Program month {programMonth} · {blueprint.status}
         </span>
       </header>
+
+      {equifaxScoreKnown ? (
+        <section
+          className="grid gap-4 rounded-2xl border border-black/5 bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-6"
+          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+        >
+          <div>
+            <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>Current Equifax score</p>
+            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: TEAL }}>
+              {equifaxScore}
+            </p>
+          </div>
+          {month4RangeLow !== null && month4RangeHigh !== null ? (
+            <div>
+              <p className={`text-xs font-bold uppercase tracking-wide text-[#0F1923]/55 ${h}`}>
+                Where clients in similar situations often land by Month 4
+              </p>
+              <p className={`mt-2 text-2xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
+                {month4RangeLow}–{month4RangeHigh}
+              </p>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       <div className="flex justify-end">
         <button
           type="button"
@@ -1637,93 +1687,15 @@ export default function BlueprintPage() {
       <div className="min-h-[320px]">
         {tab === "overview" && (
           <div className="space-y-8">
-            {hasPlan && (plan?.this_months_focus || plan?.pre_auth_required) ? (
+            {hasPlan ? (
               <section
-                className="rounded-2xl border-2 px-6 py-5 shadow-sm"
-                style={{
-                  borderColor: TEAL,
-                  backgroundColor: "rgba(0, 201, 167, 0.1)",
-                  color: NAVY,
-                }}
+                className="rounded-xl border-l-4 p-4 shadow-sm"
+                style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
+                role="alert"
               >
-                <p className={`text-xs font-bold uppercase tracking-wide ${h}`} style={{ color: TEAL, marginBottom: 12 }}>
-                  This month&apos;s focus
+                <p className={`text-sm font-semibold leading-relaxed ${h}`}>
+                  Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
                 </p>
-                {plan?.this_months_focus ? (
-                  (() => {
-                    const raw = plan?.this_months_focus ?? "";
-                    // Split on newlines first, then fall back to sentence splitting
-                    let bullets = raw.split(/\n+/).map((s: string) => s.trim()).filter(Boolean);
-                    if (bullets.length === 1) {
-                      bullets = raw.split(/(?<=[.!])\s+(?=[⚠✅💳📈🔍📋🏦⏳📞🤝💰📊A-Z])/u).map((s: string) => s.trim()).filter(Boolean);
-                    }
-                    if (bullets.length === 1) {
-                      bullets = raw.split(/(?<=[.!])\s+/).map((s: string) => s.trim()).filter(Boolean);
-                    }
-                    bullets = bullets.slice(0, 3);
-                    return (
-                      <ol style={{ paddingLeft: 0, margin: 0, listStyle: "none" }}>
-                        {bullets.map((b: string, i: number) => (
-                          <li
-                            key={i}
-                            style={{
-                              marginBottom: 14,
-                              lineHeight: 1.7,
-                              fontSize: 14,
-                              display: "flex",
-                              alignItems: "flex-start",
-                              gap: 12,
-                              padding: "10px 14px",
-                              background: "rgba(255,255,255,0.6)",
-                              borderRadius: 10,
-                              border: "1px solid rgba(0,201,167,0.15)",
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "#00C9A7",
-                                fontWeight: 800,
-                                fontSize: 15,
-                                flexShrink: 0,
-                                marginTop: 1,
-                              }}
-                            >
-                              {i + 1}.
-                            </span>
-                            <span style={{ fontWeight: 500, color: "#0F1923" }}>{b.replace(/^[-•]\s*/, "")}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    );
-                  })()
-                ) : null}
-                <div className="mt-5 border-t pt-5" style={{ borderColor: "rgba(15, 25, 35, 0.12)" }} role="alert">
-                  <div
-                    className="rounded-xl border-l-4 p-4 shadow-sm"
-                    style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
-                  >
-                    <p className={`text-sm font-semibold leading-relaxed ${h}`}>
-                      Important: Do not apply for credit anywhere without contacting us first. Every application is a
-                      hard inquiry that damages your score and could delay your approval. We are your credit specialist
-                      — reach out before you act.
-                    </p>
-                  </div>
-                </div>
-                {plan?.pre_auth_required ? (
-                  <div
-                    className="mt-5 border-t pt-5"
-                    style={{ borderColor: "rgba(15, 25, 35, 0.12)" }}
-                    role="status"
-                  >
-                    <div className="rounded-xl border border-amber-200/90 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
-                      <p className={`font-bold ${h}`}>Pre-authorized payments</p>
-                      <p className={`mt-1 font-semibold leading-relaxed ${h}`} style={{ opacity: 0.9 }}>
-                        Your bureau shows late payment history. Set up pre-authorized payments on every account so nothing
-                        slips — this is one of the most effective ways to stabilize your score.
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
               </section>
             ) : null}
 

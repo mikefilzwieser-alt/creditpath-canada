@@ -429,37 +429,34 @@ export function DashboardShell({
                 style={{ borderColor: "rgba(15, 25, 35, 0.1)", color: NAVY }}
               >
                 <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: TEAL }}>
-                  {firstLoginSlide + 1} / 3
+                  {firstLoginSlide + 1} / 4
                 </p>
-                <h2 id="first-login-modal-title" className="mt-4 text-xl font-bold leading-snug sm:text-2xl">
-                  {firstLoginSlide === 0 ? (
-                    <>Welcome to Credit Path Canada.</>
-                  ) : firstLoginSlide === 1 ? (
-                    <>Your Blueprint is your roadmap.</>
-                  ) : (
-                    <>3 actions. Every month. That&apos;s it.</>
-                  )}
-                </h2>
                 <div className="mt-4 text-sm leading-relaxed" style={{ color: "rgba(15, 25, 35, 0.75)" }}>
                   {firstLoginSlide === 0 ? (
-                    <p style={{ lineHeight: 1.8 }}>
-                      You made the most important decision for your financial future.{" "}
-                      Over the next <span style={{ color: TEAL, fontWeight: 700 }}>8–10 months</span> we&apos;re going to give you the plan to move your credit score — based on your actual file.{" "}
-                      No guesswork. <span style={{ color: TEAL, fontWeight: 700 }}>A real plan built for you.</span>
-                    </p>
+                    <>
+                      <p
+                        id="first-login-modal-title"
+                        className="text-lg font-bold leading-snug sm:text-xl"
+                        style={{ lineHeight: 1.8, color: NAVY }}
+                      >
+                        You just made the{" "}
+                        <span style={{ color: "#FFD700" }}>most important decision of your financial future</span>.
+                      </p>
+                      <p style={{ lineHeight: 1.8, marginTop: 12 }}>
+                        A plan built for you — based on your actual credit file.
+                      </p>
+                    </>
                   ) : firstLoginSlide === 1 ? (
-                    <p style={{ lineHeight: 1.8 }}>
-                      Every action is built from your{" "}
-                      <span style={{ color: TEAL, fontWeight: 700 }}>actual Equifax bureau</span>{" "}
-                      — your tradelines, your collections, your inquiries. Log in anytime to see{" "}
-                      <span style={{ color: TEAL, fontWeight: 700 }}>exactly where you stand</span>{" "}
-                      and <span style={{ color: TEAL, fontWeight: 700 }}>what to do next.</span>
+                    <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
+                      Log in anytime to see exactly where you stand, and what to do next.
+                    </p>
+                  ) : firstLoginSlide === 2 ? (
+                    <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
+                      3 actions, every month, ranked by score impact. Complete them, wait 28 days, build your score.
                     </p>
                   ) : (
-                    <p style={{ lineHeight: 1.8 }}>
-                      Each month you get <span style={{ color: TEAL, fontWeight: 700 }}>3 clear actions</span> ranked by score impact.
-                      Complete them, wait <span style={{ color: TEAL, fontWeight: 700 }}>28 days</span>, and your next month unlocks automatically.{" "}
-                      <span style={{ color: TEAL, fontWeight: 700 }}>Clients who follow through consistently see the best results.</span>
+                    <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
+                      Clients who complete their actions on time, every month, hit their upgrade window asap. Keep your eyes open for free bonuses, and check the free resource section.
                     </p>
                   )}
                 </div>
@@ -483,7 +480,7 @@ export function DashboardShell({
                         Back
                       </button>
                     ) : null}
-                    {firstLoginSlide < 2 ? (
+                    {firstLoginSlide < 3 ? (
                       <button
                         type="button"
                         onClick={() => setFirstLoginSlide((s) => s + 1)}

@@ -527,16 +527,6 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8" style={{ color: NAVY }}>
-      <section
-        className="rounded-xl border-l-4 p-4 shadow-sm"
-        style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
-        role="alert"
-      >
-        <p className={`text-sm font-semibold leading-relaxed ${h}`}>
-          <span style={{ color: "#ef4444" }}>⚠️ Do not apply for credit anywhere without contacting us first.</span> If you receive a text or call saying you are approved — do not respond. Every application is a hard inquiry that damages your score and could delay your approval by months. We are your credit specialist — reach out before you act.
-        </p>
-      </section>
-
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${h}`}>
           Welcome back, {firstName}
@@ -552,6 +542,16 @@ export default function DashboardPage() {
           Month {currentMonth} of {TOTAL_MONTHS}
         </span>
       </header>
+
+      <section
+        className="rounded-xl border-l-4 p-4 shadow-sm"
+        style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
+        role="alert"
+      >
+        <p className={`text-sm font-semibold leading-relaxed ${h}`}>
+          Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
+        </p>
+      </section>
 
       {showBrandonCard ? (
         <section
