@@ -518,8 +518,6 @@ export default function DashboardPage() {
 
   const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
   const showEqCard = enrollmentDays >= 7 && !eqDismissed && !consumerProposal;
-  const rebuildScoreNumber =
-    typeof plan?.rebuild_score === "number" && Number.isFinite(plan.rebuild_score) ? Math.round(plan.rebuild_score) : null;
   const monthOneActions = (Array.isArray(plan?.top_actions) ? plan.top_actions : [])
     .map((a) => (typeof a?.action === "string" ? a.action.trim() : ""))
     .filter(Boolean)
@@ -644,7 +642,7 @@ export default function DashboardPage() {
           </section>
         ) : null}
 
-        <section className="grid gap-4 sm:grid-cols-2">
+        <section className="grid gap-4">
           <div
             className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
             style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
@@ -652,15 +650,6 @@ export default function DashboardPage() {
             <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/60">Equifax Score</p>
             <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
               {equifaxScore ?? "—"}
-            </p>
-          </div>
-          <div
-            className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
-            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/60">Rebuild Score</p>
-            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
-              {rebuildScoreNumber ?? "—"}
             </p>
           </div>
         </section>
@@ -675,7 +664,7 @@ export default function DashboardPage() {
               <li
                 key={`${idx}-${action}`}
                 className="rounded-xl border border-black/10 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold leading-relaxed text-[#0F1923]"
-                style={{ filter: "blur(4px)", userSelect: "none" }}
+                style={idx === 2 ? { filter: "blur(4px)", userSelect: "none" } : undefined}
                 aria-hidden
               >
                 {action}
