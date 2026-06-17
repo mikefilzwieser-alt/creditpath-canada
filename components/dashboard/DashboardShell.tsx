@@ -46,8 +46,7 @@ export function useDashboardAuth(): DashboardAuthContextValue {
 }
 
 const NAV_ITEMS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: "/dashboard/blueprint#monthly-actions", label: "My Actions" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "My Actions" },
   { href: "/dashboard/blueprint", label: "Blueprint" },
   { href: "/dashboard/upload", label: "Upload" },
   { href: "/dashboard/goals", label: "Goals" },
@@ -61,7 +60,6 @@ function isNavItemActive(pathname: string, hash: string, href: string): boolean 
   if (href === "/dashboard") return pathname === "/dashboard";
   if (!pathname.startsWith(base)) return false;
   if (fragment) return hash === `#${fragment}`;
-  if (base === "/dashboard/blueprint") return hash !== "#monthly-actions";
   return true;
 }
 
@@ -91,7 +89,7 @@ export function DashboardShell({
 
   useEffect(() => {
     firstLoginDismissedRef.current = false;
-  }, [user?.id]);
+  }, [user]);
 
   const markFirstLoginSeen = useCallback(() => {
     if (!user?.id) return;
@@ -104,7 +102,7 @@ export function DashboardShell({
         console.error("[dashboard] first_login_seen update failed", error.message);
       }
     })();
-  }, [user?.id]);
+  }, [user]);
 
   const refreshUser = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
@@ -123,9 +121,6 @@ export function DashboardShell({
       }
       setUser(data.user);
       setLoading(false);
-      if (typeof window !== "undefined" && window.location.pathname === "/dashboard") {
-        router.replace("/dashboard/blueprint#monthly-actions");
-      }
     })();
 
     const {
@@ -252,7 +247,7 @@ export function DashboardShell({
     return () => {
       cancelled = true;
     };
-  }, [user?.id, loading, pathname, router]);
+  }, [user, loading, pathname, router]);
 
   useEffect(() => {
     if (!user || typeof window === "undefined") return;
@@ -440,7 +435,7 @@ export function DashboardShell({
                         style={{ lineHeight: 1.8, color: NAVY }}
                       >
                         You just made the{" "}
-                        <span style={{ color: "#0F1923" }}>most important decision of your financial future</span>.
+                        <span style={{ color: "#0F1923" }}>most important decision of your <span style={{ color: TEAL }}>financial future</span></span>.
                       </p>
                       <p style={{ lineHeight: 1.8, marginTop: 12 }}>
                         A plan built for you — based on <span style={{ color: TEAL }}>your actual credit file</span>.
@@ -448,11 +443,11 @@ export function DashboardShell({
                     </>
                   ) : firstLoginSlide === 1 ? (
                     <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      Log in anytime to see exactly where you stand, and <span style={{ color: TEAL }}>what to do next</span>.
+                      Log in anytime to see exactly <span style={{ color: TEAL }}>where you stand</span>, and <span style={{ color: TEAL }}>what to do next</span>.
                     </p>
                   ) : firstLoginSlide === 2 ? (
                     <p id="first-login-modal-title" style={{ lineHeight: 1.8 }}>
-                      3 actions, every month. Complete them, wait 28 days, <span style={{ color: TEAL }}>build your score</span>.
+                      3 actions, every month, based on what <span style={{ color: TEAL }}>moves your score most</span>. Complete them, <span style={{ color: TEAL }}>build your score</span>.
                     </p>
                   ) : (
                     <>

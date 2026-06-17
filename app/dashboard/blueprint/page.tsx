@@ -1661,7 +1661,7 @@ export default function BlueprintPage() {
                 style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
                 role="alert"
               >
-                <p className={`text-sm font-semibold leading-relaxed ${h}`}>
+                <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#DC2626" }}>
                   Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
                 </p>
               </section>

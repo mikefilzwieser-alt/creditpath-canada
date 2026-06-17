@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { logPostgrestError } from "@/lib/log-postgrest-error";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
@@ -140,6 +140,20 @@ function renderMarkdownInlineLinks(text: string): React.ReactNode {
   return nodes.length > 0 ? nodes : t;
 }
 
+function displayActionText(action: unknown): string {
+  const text = formatDisplay(action);
+  switch (text) {
+    case "Focus extra payments on your Lend Direct line of credit this month to reduce its 95% utilization.":
+      return "Pay $50+ extra on your Lend Direct line this month (currently 95% used).";
+    case "Confirm your pre-authorized payments are running smoothly on all accounts including Consumer Proposal payments.":
+      return "Confirm pre-authorized payments are active on every account, including your Consumer Proposal.";
+    case "Maintain your hard inquiry freeze — absolutely no new credit applications this month.":
+      return "Don't apply for any new credit this month.";
+    default:
+      return text;
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, headingFontClass, hasDashboardAccess } = useDashboardAuth();
@@ -161,6 +175,7 @@ export default function DashboardPage() {
   const [paywallUnlockBusy, setPaywallUnlockBusy] = useState(false);
   const [paywallUnlockError, setPaywallUnlockError] = useState("");
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
 
   const loadBlueprint = useCallback(async () => {
     if (!user) return;
@@ -511,9 +526,18 @@ export default function DashboardPage() {
         return;
       }
       setCompletedSet((prev) => new Set([...prev, index]));
+      const nextCompleted = new Set([...completionsRef.current]);
+      nextCompleted.add(index);
+      const allDoneNow = [0, 1, 2].every((i) => nextCompleted.has(i)) && monthlyProgramActions.length >= 3;
+      if (allDoneNow && programMonth > 0 && programMonth < 5 && typeof window !== "undefined") {
+        const key = `celebration_shown_month_${programMonth}`;
+        if (window.localStorage.getItem(key) !== "1") {
+          setShowMonthCompletionOverlay(true);
+        }
+      }
       void runSyncProgress();
     },
-    [blueprint, runSyncProgress, user?.id],
+    [blueprint, runSyncProgress, user?.id, monthlyProgramActions.length],
   );
 
   const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
@@ -720,7 +744,7 @@ export default function DashboardPage() {
         style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
         role="alert"
       >
-        <p className={`text-sm font-semibold leading-relaxed ${h}`}>
+        <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#DC2626" }}>
           Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
         </p>
       </section>
@@ -861,7 +885,7 @@ export default function DashboardPage() {
                             className={`text-sm font-bold leading-snug ${done ? "line-through" : ""} line-clamp-4 ${h}`}
                             style={{ color: done ? TEAL : NAVY }}
                           >
-                            {renderMarkdownInlineLinks(formatDisplay(item.action))}
+                            {renderMarkdownInlineLinks(displayActionText(item.action))}
                           </p>
                           {impactLine ? (
                             <p
@@ -936,6 +960,78 @@ export default function DashboardPage() {
           </div>
         </section>
       )}
+
+      {showMonthCompletionOverlay ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center px-6 py-10"
+          style={{ backgroundColor: "rgba(15, 25, 35, 0.94)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Month completion celebration"
+        >
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+            {Array.from({ length: 28 }, (_, i) => (
+              <span
+                key={i}
+                className="cp-confetti"
+                style={
+                  {
+                    left: `${(i * 3.7) % 100}%`,
+                    animationDelay: `${(i % 12) * 0.18}s`,
+                    animationDuration: `${4.8 + (i % 6) * 0.35}s`,
+                    backgroundColor: i % 2 === 0 ? "#00C9A7" : "#FFFFFF",
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+          <div className="relative z-10 mx-auto w-full max-w-xl text-center">
+            <p className={`text-6xl ${h}`} style={{ lineHeight: 1.1, color: TEAL }}>
+              🏆
+            </p>
+            <p className={`mt-5 text-3xl font-bold ${h}`} style={{ color: "#FFFFFF" }}>
+              🏆 You crushed Month {currentMonth}.
+            </p>
+            <p className={`mx-auto mt-4 max-w-lg text-base leading-relaxed ${h}`} style={{ color: "rgba(255,255,255,0.86)" }}>
+              Every action complete. Your progress is locked in. Keep this momentum going.
+            </p>
+            <button
+              type="button"
+              className={`mt-8 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold ${h}`}
+              style={{ backgroundColor: TEAL, color: NAVY }}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(`celebration_shown_month_${currentMonth}`, "1");
+                }
+                setShowMonthCompletionOverlay(false);
+              }}
+            >
+              Keep going →
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <style jsx>{`
+        .cp-confetti {
+          position: absolute;
+          top: -12%;
+          width: 8px;
+          height: 14px;
+          border-radius: 999px;
+          opacity: 0.95;
+          animation-name: cp-fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        @keyframes cp-fall {
+          0% {
+            transform: translate3d(0, -10vh, 0) rotate(0deg);
+          }
+          100% {
+            transform: translate3d(0, 112vh, 0) rotate(420deg);
+          }
+        }
+      `}</style>
 
     </div>
   );
