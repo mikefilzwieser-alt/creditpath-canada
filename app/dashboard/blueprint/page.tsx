@@ -15,11 +15,18 @@ import { supabase } from "@/lib/supabase";
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
+const SHOW_FORWARD_PROJECTION = false;
 const MONTH_THEMES: Record<number, string> = {
   1: "Foundation",
   2: "Stability",
   3: "Momentum",
 };
+const PLAIN_SCORE_FACTORS = [
+  { label: "Late-payment history", pill: "Focus area" },
+  { label: "Accounts currently 90+ days late", pill: "Fair" },
+  { label: "Accounts with a past-due balance", pill: "Fair" },
+  { label: "Recent credit applications", pill: "Fair" },
+] as const;
 
 function timelineThemeName(month: number, isBlurred: boolean): string {
   const named = MONTH_THEMES[month];
@@ -333,147 +340,11 @@ function normalizeSentenceCapitalization(raw: unknown): string {
   });
 }
 
-function normalizeActionText(raw: string): string {
-  return raw.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
-
-/**
- * True if normalized copy reads as a pre-auth / pre-authorized payment action (dedupe vs injected row).
- * Uses word-boundary "pre" plus "auth" nearby (covers pre-auth, pre-authorized, preauthorized, API rewrites).
- */
-function normalizedActionMentionsPreAuth(norm: string): boolean {
-  if (!norm) return false;
-  if (/\bpreauth\w*\b/.test(norm)) return true;
-  if (/\bpre\s+auth\w*\b/.test(norm)) return true;
-  const re = /\bpre\b/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(norm)) !== null) {
-    if (/\bauth\w*\b/.test(norm.slice(m.index, m.index + 40))) return true;
-  }
-  return false;
-}
-
-type BlueprintTopAction = NonNullable<BlueprintPlan["top_actions"]>[number];
-
-/** Second clause looks like "Capital One from $201…" (creditor then from $amount). */
-function secondSegmentIsCreditorFromAmount(s: string): boolean {
-  const t = s.trim();
-  return /^[A-Z][A-Za-z0-9\s\.'\-&]{1,120}\s+from\s+\$\d/.test(t);
-}
-
-/** Prefix before first creditor phrase that leads to "from $digits" (e.g. "Pay down " for "Pay down Canadian Tire…"). */
-function extractVerbPrefixBeforeFirstCreditorFrom(firstClause: string): string | null {
-  const idx = firstClause.search(/\s(?=[A-Z][\s\S]*?\bfrom\s+\$\d)/);
-  if (idx < 0) return null;
-  const prefix = firstClause.slice(0, idx + 1);
-  return prefix.trim() === "" ? null : prefix;
-}
-
-/**
- * If one action strings two card paydowns joined with " and ", split into two rows (same impact/timeline).
- */
-function splitDualCardTopAction(item: BlueprintTopAction): BlueprintTopAction[] {
-  const raw = typeof item.action === "string" ? item.action : formatDisplay(item.action);
-  if (!raw || raw === "—" || !/\s+and\s+/i.test(raw)) return [item];
-
-  const parts = raw.split(/\s+and\s+/i);
-  if (parts.length !== 2) return [item];
-
-  const firstClause = parts[0]!.trim();
-  const secondClause = parts[1]!.trim();
-  if (!firstClause || !secondClause) return [item];
-  if (!/\bfrom\s+\$\d/.test(firstClause) || !/\bfrom\s+\$\d/.test(secondClause)) return [item];
-  if (!secondSegmentIsCreditorFromAmount(secondClause)) return [item];
-
-  const verbPrefix = extractVerbPrefixBeforeFirstCreditorFrom(firstClause);
-  if (!verbPrefix) return [item];
-
-  const secondActionText = `${verbPrefix}${secondClause}`.replace(/\s+/g, " ").trim();
-  return [
-    { ...item, action: firstClause },
-    { ...item, action: secondActionText },
-  ];
-}
-
-function expandDualCardTopActions(rows: BlueprintTopAction[]): BlueprintTopAction[] {
-  return rows.flatMap((row) => splitDualCardTopAction(row));
-}
-
-/** When the client already has enough R-revolving cards, hide "apply for additional credit card" style actions. */
-function filterIrrelevantAdditionalCardApplicationActions(
-  rows: BlueprintTopAction[],
-  revolvingNetworkCount: number,
-): BlueprintTopAction[] {
-  if (revolvingNetworkCount < 3) return rows;
-  return rows.filter((item) => {
-    const norm = normalizeActionText(formatDisplay(item.action));
-    if (norm.includes("apply for") && norm.includes("additional") && norm.includes("credit card")) {
-      return false;
-    }
-    return true;
-  });
-}
-
 function monthsToFalloffValue(v: unknown): number | null {
   if (v === null || v === undefined) return null;
   const n = numericValue(v);
   if (!Number.isFinite(n) || n <= 0) return null;
   return Math.round(n);
-}
-
-function computeSeverityAdjustedRebuildScore(
-  planScore: number | undefined,
-  parsed: ParsedBureau | null | undefined,
-  equifaxScore: number,
-): number {
-  const baseline =
-    typeof planScore === "number" && Number.isFinite(planScore)
-      ? Math.round(Math.min(100, Math.max(0, planScore)))
-      : Math.round(Math.min(100, Math.max(0, (equifaxScore - 300) / 5.5)));
-
-  const summary = parsed?.summary ?? {};
-  const inquiries = numericValue(summary.hard_inquiries_12mo);
-  const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
-  const tradelines = Array.isArray(parsed?.tradelines) ? parsed.tradelines : [];
-
-  const collectionsCount = collections.length;
-  const collectionsTotal = collections.reduce((sum, c) => sum + numericValue(c.amount), 0);
-  const overLimitCount = tradelines.filter((t) => {
-    const limit = numericValue(t.credit_limit);
-    const bal = numericValue(t.balance);
-    return limit > 0 && bal > limit;
-  }).length;
-  const hasRepossession = tradelines.some((t) => {
-    const code = String(t.equifax_rating_code ?? t.rating_code ?? "")
-      .replace(/\s/g, "")
-      .toUpperCase();
-    return /[RIO]8\b/.test(code) || /repo/i.test(String(t.payment_status ?? ""));
-  });
-  const seriousDerogCount = tradelines.filter((t) => {
-    const code = String(t.equifax_rating_code ?? t.rating_code ?? "")
-      .replace(/\s/g, "")
-      .toUpperCase();
-    const digit = /^([RIO])(\d)/.exec(code)?.[2];
-    return digit ? Number(digit) >= 7 : false;
-  }).length;
-
-  const penalty = Math.min(
-    90,
-    inquiries * 0.35 +
-      collectionsCount * 12 +
-      (collectionsTotal / 1000) * 0.9 +
-      overLimitCount * 10 +
-      (hasRepossession ? 18 : 0) +
-      seriousDerogCount * 6,
-  );
-
-  let score = Math.round(Math.max(0, Math.min(100, baseline - penalty)));
-  const severeProfile =
-    inquiries >= 80 || collectionsTotal >= 20000 || hasRepossession || overLimitCount >= 2 || collectionsCount >= 3;
-  if (severeProfile) {
-    score = Math.min(35, Math.max(15, score));
-  }
-  return score;
 }
 
 function escapeHtml(v: string): string {
@@ -494,25 +365,6 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
     binary += String.fromCharCode(...slice);
   }
   return btoa(binary);
-}
-
-function scoreToLetterGrade(score: number): string {
-  if (!Number.isFinite(score) || score < 300) return "—";
-  if (score >= 760) return "A+";
-  if (score >= 720) return "A";
-  if (score >= 680) return "B";
-  if (score >= 640) return "C";
-  if (score >= 600) return "D";
-  return "F";
-}
-
-function inferFactorGrade(text: string): string {
-  const t = text.toLowerCase();
-  if (/positive|good|excellent|strong|length|established/.test(t)) return "A";
-  if (/fair|moderate|average/.test(t)) return "B";
-  if (/high util|balance|limit|inquiry|new account/.test(t)) return "C";
-  if (/late|delinq|missed|collection|charge|default|serious|negative/.test(t)) return "D";
-  return "B";
 }
 
 const CREDIT_PRODUCT_OFFERS = [
@@ -615,108 +467,62 @@ function countNetworkCardsTowardMinimum(tradelines: NonNullable<ParsedBureau["tr
   return n;
 }
 
-function normalizeScoreFactors(raw: unknown): { text: string; grade: string }[] {
-  if (raw == null) return [];
-  if (Array.isArray(raw)) {
-    return raw.map((item) => {
-      if (typeof item === "string") {
-        return { text: item, grade: inferFactorGrade(item) };
-      }
-      if (item && typeof item === "object") {
-        const o = item as Record<string, unknown>;
-        const text =
-          [o.factor, o.description, o.reason, o.name, o.message].find((x) => typeof x === "string") ?? "";
-        const label = String(text || "Factor");
-        const g = typeof o.grade === "string" && o.grade.trim() ? o.grade.trim().toUpperCase() : inferFactorGrade(label);
-        return { text: label, grade: g };
-      }
-      return { text: String(item), grade: "B" };
-    });
-  }
-  if (typeof raw === "string" && raw.trim()) {
-    return [{ text: raw, grade: inferFactorGrade(raw) }];
-  }
-  return [];
+function scoreToPercent(score: number): number {
+  return Math.min(100, Math.max(0, ((score - 300) / 600) * 100));
 }
 
-/** Center value font size: max 42px, scales down for longer labels so digits stay inside the ring. */
-function scoreRingCenterFontPx(centerValue: string): number {
-  const t = centerValue.trim();
-  if (t === "—" || t.length === 0) return 38;
-  const len = t.length;
-  if (len <= 2) return 42;
-  if (len === 3) return 34;
-  return Math.max(22, Math.round(126 / len));
+function scoreRangeLabel(low: number | null, high: number | null): string {
+  if (low === null || high === null) return "—";
+  return `${low}–${high}`;
 }
 
-function ScoreRing({
-  score,
-  maxScore,
-  centerValue,
-  subLabel,
-  headingFontClass = "",
+function ScorePathRow({
+  label,
+  value,
+  low,
+  high,
+  tone,
 }: {
-  score: number;
-  maxScore: number;
-  centerValue: string;
-  subLabel: string;
-  headingFontClass?: string;
+  label: string;
+  value: string;
+  low: number | null;
+  high: number | null;
+  tone: "grey" | "teal" | "softTeal";
 }) {
-  const vb = 200;
-  const cx = vb / 2;
-  const cy = vb / 2;
-  const r = 80;
-  const stroke = 8;
-  const c = 2 * Math.PI * r;
-  const pct = Math.min(1, Math.max(0, score / maxScore));
-  const offset = c * (1 - pct);
-  const track = "rgba(255,255,255,0.12)";
-  const fontPx = scoreRingCenterFontPx(centerValue);
-  const innerDiameter = 2 * (r - stroke * 0.55);
-
+  const barColor = tone === "grey" ? "rgba(15, 25, 35, 0.3)" : tone === "teal" ? TEAL : "rgba(0, 201, 167, 0.35)";
+  const endScore = high ?? low ?? 300;
   return (
-    <div className="relative inline-flex shrink-0" style={{ width: vb, height: vb }}>
-      <svg width={vb} height={vb} viewBox={`0 0 ${vb} ${vb}`} className="block" aria-hidden>
-        <g transform={`rotate(-90 ${cx} ${cy})`}>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke={track} strokeWidth={stroke} />
-          <circle
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke={TEAL}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={c}
-            strokeDashoffset={offset}
-          />
-        </g>
-      </svg>
-      <div
-        className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center ${headingFontClass}`}
-        style={{
-          paddingLeft: Math.max(10, stroke + 4),
-          paddingRight: Math.max(10, stroke + 4),
-          maxWidth: innerDiameter,
-          margin: "0 auto",
-        }}
-      >
-        <span
-          className="w-full overflow-hidden text-center font-bold tabular-nums leading-none tracking-tight text-white text-ellipsis whitespace-nowrap"
-          style={{
-            fontSize: fontPx,
-            maxWidth: innerDiameter,
-            lineHeight: 1,
-          }}
-        >
-          {centerValue}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+        <span className="text-[#0F1923]/70">{label}</span>
+        <span className="tabular-nums" style={{ color: tone === "grey" ? "rgba(15,25,35,0.7)" : TEAL }}>
+          {value}
         </span>
-        <span className="mt-1.5 max-w-full text-center text-[10px] font-semibold uppercase leading-tight tracking-wide text-white/60">
-          {subLabel}
-        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-[#E7ECEF]">
+        <div className="h-full rounded-full" style={{ width: `${scoreToPercent(endScore)}%`, backgroundColor: barColor }} />
       </div>
     </div>
   );
+}
+
+function tradelineStatus(row: NonNullable<ParsedBureau["tradelines"]>[number]): {
+  label: "Clean" | "High utilization" | "Helping";
+  bg: string;
+  color: string;
+} {
+  const util = numericValue(row.utilization);
+  const late30 = numericValue(row.late_30);
+  const late60 = numericValue(row.late_60);
+  const late90 = numericValue(row.late_90);
+  const statusText = String(row.payment_status ?? "").toLowerCase();
+  if (util >= 50) {
+    return { label: "High utilization", bg: "#FEF3C7", color: "#92400E" };
+  }
+  if (late30 > 0 || late60 > 0 || late90 > 0 || /late|past due|delinquent/.test(statusText)) {
+    return { label: "Clean", bg: "rgba(15,25,35,0.08)", color: "rgba(15,25,35,0.7)" };
+  }
+  return { label: "Helping", bg: "rgba(0,201,167,0.14)", color: NAVY };
 }
 
 function PriorityBadge({ priority }: { priority: string }) {
@@ -743,7 +549,6 @@ export default function BlueprintPage() {
   const [tab, setTab] = useState<TabId>("overview");
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
-  const [celebration, setCelebration] = useState<{ month: number; theme: string } | null>(null);
   const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
   const [timelineModalMonth, setTimelineModalMonth] = useState<number | null>(null);
 
@@ -896,7 +701,7 @@ export default function BlueprintPage() {
   const equifaxScore = useMemo(() => {
     const raw = parsed as Record<string, unknown> | null | undefined;
     const s = (typeof raw?.equifax_score === "number" ? raw.equifax_score : undefined) ?? parsed?.score?.equifax_score;
-    return typeof s === "number" && Number.isFinite(s) ? Math.round(Math.min(850, Math.max(0, s))) : 0;
+    return typeof s === "number" && Number.isFinite(s) ? Math.round(Math.min(900, Math.max(300, s))) : 0;
   }, [parsed]);
 
   const equifaxScoreKnown = useMemo(() => {
@@ -905,16 +710,6 @@ export default function BlueprintPage() {
     return typeof s === "number" && Number.isFinite(s);
   }, [parsed]);
 
-  const rebuildScore = Math.max(10, Math.round(plan?.rebuild_score ?? 10));
-
-  const rebuildScoreKnown = useMemo(() => {
-    return Number.isFinite(rebuildScore);
-  }, [rebuildScore]);
-
-  const factors = useMemo(() => {
-    const raw = parsed as Record<string, unknown> | null | undefined;
-    return normalizeScoreFactors(raw?.score_factors ?? parsed?.score?.score_factors);
-  }, [parsed]);
   const scoreSummaryParts = useMemo(() => {
     const raw = plan?.score_summary;
     const text = typeof raw === "string" ? raw.trim() : formatDisplay(raw);
@@ -1005,9 +800,6 @@ export default function BlueprintPage() {
       theme?: string | null;
     };
     if (!j.ok) return;
-    if (j.advancedToMonth != null && typeof j.theme === "string") {
-      setCelebration({ month: j.advancedToMonth, theme: j.theme });
-    }
     if (j.updated) {
       await load();
     }
@@ -1051,10 +843,8 @@ export default function BlueprintPage() {
       const clientName = formatDisplay(parsed.personal?.name || user?.user_metadata?.full_name || user?.email || "Client");
       const monthNumber = blueprint.month_number;
       const primaryGoal = formatDisplay(user?.user_metadata?.primary_goal || "Not set");
-      const rebuildScoreValue = rebuildScoreKnown ? String(rebuildScore) : "—";
-      const rebuildScoreLabel = hasPlan
-        ? formatDisplay(plan?.rebuild_score_label)
-        : `Overall grade ${scoreToLetterGrade(equifaxScore)}`;
+      const equifaxScoreValue = equifaxScoreKnown ? String(equifaxScore) : "—";
+      const coachingStatusLabel = hasPlan ? formatDisplay(plan?.rebuild_score_label) : "Blueprint generated from your Equifax snapshot.";
       const focusText = hasPlan ? formatDisplay(plan?.this_months_focus) : "Focus not available yet.";
       const topActions = monthlyProgramActions;
       const focusItems = hasPlan
@@ -1113,16 +903,12 @@ export default function BlueprintPage() {
           ? focusItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
           : `<li>${escapeHtml(focusText)}</li>`;
       const factorsHtml =
-        factors.length > 0
-          ? factors
-              .map(
-                (f) =>
-                  `<li class="factor-row"><span>${escapeHtml(f.text)}</span><span class="factor-grade">${escapeHtml(
-                    f.grade,
-                  )}</span></li>`,
-              )
-              .join("")
-          : `<li class="factor-row"><span>No score factors available.</span><span class="factor-grade">—</span></li>`;
+        PLAIN_SCORE_FACTORS.map(
+          (f) =>
+            `<li class="factor-row"><span>${escapeHtml(f.label)}</span><span class="factor-grade">${escapeHtml(
+              f.pill,
+            )}</span></li>`,
+        ).join("");
 
       const html = `<!doctype html>
 <html>
@@ -1202,12 +988,12 @@ export default function BlueprintPage() {
           <span class="muted">Your plan is ready. Follow it and your credit future changes.</span>
         </div>
         <div class="score-circle">
-          <strong>${escapeHtml(rebuildScoreValue)}</strong>
-          <span>Rebuild score</span>
+          <strong>${escapeHtml(equifaxScoreValue)}</strong>
+          <span>Equifax score</span>
         </div>
       </div>
       <div class="card" style="margin-top:10px;">
-        <span class="card-label">Current coaching status</span>${escapeHtml(rebuildScoreLabel)}
+        <span class="card-label">Current coaching status</span>${escapeHtml(coachingStatusLabel)}
       </div>
     </div>
     <div class="footer">Credit Path Canada · Generated fresh from latest upload</div>
@@ -1309,12 +1095,10 @@ export default function BlueprintPage() {
   }, [
     blueprint,
     equifaxScore,
-    factors,
     hasPlan,
     parsed,
     plan,
-    rebuildScore,
-    rebuildScoreKnown,
+    equifaxScoreKnown,
     monthlyProgramActions,
     user?.email,
     user?.user_metadata?.full_name,
@@ -1458,11 +1242,17 @@ export default function BlueprintPage() {
         )
       : 0;
   const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
-  const readinessPercentage =
-    typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
-      ? Math.min(100, Math.max(0, Math.round(plan.readiness_percentage)))
-      : 0;
   const topActionsTotal = monthlyProgramActions.length || 3;
+  const estimatedGain = !hasAnyLate && !hasCollectionsOnFile ? Math.min(80, monthsElapsed * 8) : 0;
+  const estimatedScore =
+    equifaxScoreKnown ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
+  const estimatedRangeStart = estimatedScore;
+  const estimatedRangeEnd =
+    estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
+  const month4RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 10) : null;
+  const month4RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 25) : null;
+  const month6RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 20) : null;
+  const month6RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 45) : null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8" style={{ color: NAVY }}>
@@ -1553,49 +1343,6 @@ export default function BlueprintPage() {
         </div>
       </section>
 
-      <section
-        className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-        style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-      >
-        <h2 className={`text-lg font-bold ${h}`}>Your Rebuild Progress</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-            <p className="text-sm text-[#0F1923]/75">Actions Completed</p>
-            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-              {completedSet.size} of {topActionsTotal} completed
-            </p>
-          </div>
-          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-            <p className="text-sm text-[#0F1923]/75">Months Clean</p>
-            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-              {monthsClean}
-            </p>
-          </div>
-          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-            <p className="text-sm text-[#0F1923]/75">Credit Cards Reporting</p>
-            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-              {revolvingNetworkCount} of 3 recommended
-            </p>
-          </div>
-          <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-            <p className="text-sm text-[#0F1923]/75">Auto Approval Readiness</p>
-            <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-              {readinessPercentage}%
-            </p>
-            <p className="mt-1 text-xs text-[#0F1923]/65">Readiness for auto approval</p>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
-              <div
-                className="h-full rounded-full transition-[width] duration-500 ease-out"
-                style={{ width: `${readinessPercentage}%`, backgroundColor: TEAL }}
-              />
-            </div>
-          </div>
-        </div>
-        <p className="mt-4 text-xs font-medium" style={{ color: TEAL }}>
-          Complete your monthly actions to move these numbers forward.
-        </p>
-      </section>
-
       <div className="flex justify-end">
         <button
           type="button"
@@ -1626,7 +1373,8 @@ export default function BlueprintPage() {
       ) : null}
 
       <div
-        className="flex flex-wrap gap-2 border-b border-black/10 pb-1"
+        className="flex w-full flex-wrap gap-1 rounded-2xl border border-black/5 bg-[#F5F7FA] p-1.5 shadow-sm sm:w-fit"
+        style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
         role="tablist"
         aria-label="Blueprint sections"
       >
@@ -1639,11 +1387,12 @@ export default function BlueprintPage() {
               role="tab"
               aria-selected={active}
               onClick={() => setTab(t.id)}
-              className={`rounded-t-lg px-4 py-2.5 text-sm font-semibold transition-colors ${h}`}
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${h}`}
               style={{
                 color: active ? NAVY : "rgba(15, 25, 35, 0.55)",
-                borderBottom: active ? `3px solid ${TEAL}` : "3px solid transparent",
-                marginBottom: "-1px",
+                border: active ? `1px solid ${TEAL}` : "1px solid transparent",
+                backgroundColor: active ? "#FFFFFF" : "transparent",
+                boxShadow: active ? "0 6px 18px rgba(15, 25, 35, 0.08)" : "none",
               }}
             >
               {t.label}
@@ -1655,113 +1404,72 @@ export default function BlueprintPage() {
       <div className="min-h-[320px]">
         {tab === "overview" && (
           <div className="space-y-8">
-            {hasPlan ? (
-              <section
-                className="rounded-xl border-l-4 p-4 shadow-sm"
-                style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
-                role="alert"
-              >
-                <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#DC2626" }}>
-                  Do not apply for credit anywhere without contacting us first. If you receive a text or call saying you are approved — do not respond.
-                </p>
-              </section>
-            ) : null}
-
-            {hasPlan &&
-            plan?.auto_ready_alert &&
-            typeof plan.readiness_percentage === "number" &&
-            Number.isFinite(plan.readiness_percentage) ? (
-              <section
-                className="rounded-2xl border-2 px-5 py-4 shadow-sm"
-                style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.12)", color: NAVY }}
-                role="status"
-              >
-                <p className={`text-sm font-bold uppercase tracking-wide ${h}`} style={{ color: TEAL }}>
-                  Auto loan readiness
-                </p>
-                <p className={`mt-1 text-2xl font-bold tabular-nums ${h}`}>
-                  {Math.round(Math.min(100, Math.max(0, plan.readiness_percentage)))}%
-                </p>
-                <p className="mt-2 text-sm leading-relaxed opacity-90">
-                  You&apos;ve crossed the readiness threshold we track for auto financing goals. Our team has been
-                  notified to follow up when appropriate.
-                </p>
-              </section>
-            ) : null}
+            <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-5" style={{ border: `1.5px solid ${TEAL}` }}>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className={`text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#0F1923]/50 ${h}`}>
+                    Current Score
+                  </p>
+                  <p className={`mt-1 text-[44px] font-extrabold leading-none tabular-nums ${h}`}>
+                    {equifaxScoreKnown ? equifaxScore : "—"}
+                  </p>
+                </div>
+                <div className="sm:text-right">
+                  <p className={`text-xs font-bold text-[#0F1923]/55 ${h}`}>Where this month could take you</p>
+                  <p className={`mt-1 text-2xl font-extrabold leading-none tabular-nums ${h}`} style={{ color: TEAL }}>
+                    {scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
+                  </p>
+                </div>
+              </div>
+              <div className="my-4 h-px bg-[#0F1923]/10" />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
+                  <span>300</span>
+                  <span>900</span>
+                </div>
+                <ScorePathRow
+                  label="Month 1"
+                  value={equifaxScoreKnown ? String(equifaxScore) : "—"}
+                  low={equifaxScoreKnown ? equifaxScore : null}
+                  high={equifaxScoreKnown ? equifaxScore : null}
+                  tone="grey"
+                />
+                <ScorePathRow
+                  label={`Month ${programMonth}`}
+                  value={scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
+                  low={estimatedRangeStart}
+                  high={estimatedRangeEnd}
+                  tone="teal"
+                />
+                {SHOW_FORWARD_PROJECTION ? (
+                  <>
+                    <ScorePathRow
+                      label="Month 4"
+                      value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
+                      low={month4RangeStart}
+                      high={month4RangeEnd}
+                      tone="softTeal"
+                    />
+                    <ScorePathRow
+                      label="Month 6"
+                      value={scoreRangeLabel(month6RangeStart, month6RangeEnd)}
+                      low={month6RangeStart}
+                      high={month6RangeEnd}
+                      tone="softTeal"
+                    />
+                  </>
+                ) : null}
+              </div>
+            </section>
 
             <section
-              className="grid grid-cols-1 items-center gap-6 rounded-2xl px-6 py-10 shadow-lg sm:grid-cols-[35%_65%] sm:px-10"
-              style={{ backgroundColor: NAVY, color: "#fff" }}
+              className="rounded-xl border-l-4 p-4 shadow-sm"
+              style={{ backgroundColor: NAVY, borderLeftColor: TEAL, color: "#E9F5F3" }}
+              role="alert"
             >
-              <div className="mx-auto flex shrink-0 justify-center sm:mx-0 sm:justify-center">
-                {hasPlan ? (
-                  <ScoreRing
-                    score={rebuildScoreKnown ? rebuildScore : 0}
-                    maxScore={100}
-                    centerValue={rebuildScoreKnown ? String(rebuildScore) : "—"}
-                    subLabel="Rebuild score"
-                    headingFontClass={h}
-                  />
-                ) : (
-                  <ScoreRing
-                    score={equifaxScoreKnown ? equifaxScore : 0}
-                    maxScore={850}
-                    centerValue={equifaxScoreKnown ? String(equifaxScore) : "—"}
-                    subLabel="Equifax score"
-                    headingFontClass={h}
-                  />
-                )}
-              </div>
-              <div className="w-full min-w-0 space-y-2" style={{ textAlign: "left", paddingLeft: 16 }}>
-                {hasPlan ? (
-                  <>
-                    <p className={`text-lg font-semibold ${h}`} style={{ color: TEAL }}>
-                      {formatDisplay(plan?.rebuild_score_label)}
-                    </p>
-                    <p className="leading-relaxed text-white/85" style={{ fontSize: 14 }}>
-                      {scoreSummaryParts.visible}
-                    </p>
-                    {scoreSummaryParts.hasDetail ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setShowScoreSummaryDetail((v) => !v)}
-                          className="mt-1 inline-flex items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-semibold"
-                          style={{ color: TEAL }}
-                          aria-expanded={showScoreSummaryDetail}
-                          aria-label={showScoreSummaryDetail ? "Hide full score summary" : "Show full score summary"}
-                        >
-                          <span
-                            aria-hidden
-                            className="inline-flex size-6 items-center justify-center rounded border text-base font-bold leading-none transition-colors"
-                            style={{
-                              borderColor: TEAL,
-                              backgroundColor: showScoreSummaryDetail ? "rgba(0, 201, 167, 0.2)" : "transparent",
-                            }}
-                          >
-                            {showScoreSummaryDetail ? "−" : "+"}
-                          </span>
-                        </button>
-                        {showScoreSummaryDetail ? (
-                          <p className="leading-relaxed" style={{ fontSize: 13, color: TEAL }}>
-                            {scoreSummaryParts.detail}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <p className={`text-lg font-semibold ${h}`} style={{ color: TEAL }}>
-                      Overall grade {equifaxScoreKnown ? scoreToLetterGrade(equifaxScore) : "—"}
-                    </p>
-                    <p className="text-white/75" style={{ fontSize: 14 }}>
-                      Based on your Equifax bureau snapshot. Follow your monthly actions to improve over your 24-month
-                      program.
-                    </p>
-                  </>
-                )}
-              </div>
+              <p className={`text-sm font-semibold leading-relaxed ${h}`} style={{ color: "#B45309" }}>
+                Before applying anywhere, contact us first. If you receive a text or call saying you are approved — do not respond.
+              </p>
             </section>
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -1785,27 +1493,109 @@ export default function BlueprintPage() {
               ))}
             </section>
 
-            {celebration ? (
-              <div
-                className="rounded-2xl border-2 px-5 py-4 shadow-sm"
-                style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.14)", color: NAVY }}
-                role="status"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className={`text-base font-bold leading-snug ${h}`}>
-                    Month {celebration.month} Unlocked! Your new focus: {celebration.theme}
-                  </p>
+            <section className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+              <p className={`text-xs font-bold uppercase tracking-[0.18em] ${h}`} style={{ color: TEAL }}>
+                Where you&apos;re at
+              </p>
+              <h2 className={`mt-2 text-lg font-bold ${h}`}>What&apos;s holding your score back</h2>
+              <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/75">
+                {scoreSummaryParts.visible && scoreSummaryParts.visible !== "—"
+                  ? scoreSummaryParts.visible
+                  : "Your bureau snapshot shows the areas to focus on first. Follow your monthly actions and avoid new applications while your file stabilizes."}
+              </p>
+              {scoreSummaryParts.hasDetail ? (
+                <>
                   <button
                     type="button"
-                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-sm font-semibold ${h}`}
-                    style={{ borderColor: NAVY, color: NAVY }}
-                    onClick={() => setCelebration(null)}
+                    onClick={() => setShowScoreSummaryDetail((v) => !v)}
+                    className={`mt-3 inline-flex items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-semibold ${h}`}
+                    style={{ color: TEAL }}
+                    aria-expanded={showScoreSummaryDetail}
+                    aria-label={showScoreSummaryDetail ? "Hide full score summary" : "Show full score summary"}
                   >
-                    Dismiss
+                    <span
+                      aria-hidden
+                      className="inline-flex size-6 items-center justify-center rounded border text-base font-bold leading-none transition-colors"
+                      style={{
+                        borderColor: TEAL,
+                        backgroundColor: showScoreSummaryDetail ? "rgba(0, 201, 167, 0.2)" : "transparent",
+                      }}
+                    >
+                      {showScoreSummaryDetail ? "−" : "+"}
+                    </span>
                   </button>
+                  {showScoreSummaryDetail ? (
+                    <p className="mt-2 text-sm leading-relaxed" style={{ color: TEAL }}>
+                      {scoreSummaryParts.detail}
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
+            </section>
+
+            <section
+              className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+              style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+            >
+              <h2 className={`text-lg font-bold ${h}`}>Your Rebuild Progress</h2>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+                  <p className="text-sm text-[#0F1923]/75">Actions Completed</p>
+                  <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+                    {completedSet.size} of {topActionsTotal} completed
+                  </p>
+                </div>
+                <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+                  <p className="text-sm text-[#0F1923]/75">Months Clean</p>
+                  <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+                    {monthsClean}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-black/5 bg-white p-4" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+                  <p className="text-sm text-[#0F1923]/75">Credit Cards Reporting</p>
+                  <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+                    {revolvingNetworkCount} of 3 recommended
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white p-4" style={{ border: `1px solid ${TEAL}` }}>
+                  <p className="text-sm text-[#0F1923]/75">Approval status</p>
+                  <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
+                    ✓ Ready to Apply
+                  </p>
+                  <p className="mt-1 text-xs text-[#0F1923]/65">Talk to Michael before you apply anywhere.</p>
                 </div>
               </div>
-            ) : null}
+              <p className="mt-4 text-xs font-medium" style={{ color: TEAL }}>
+                Complete your monthly actions to move these numbers forward.
+              </p>
+            </section>
+
+            <section
+              className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+              style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+            >
+              <h2 className={`text-lg font-bold ${h}`}>Score factors</h2>
+              <ul className="mt-4 space-y-3">
+                {PLAIN_SCORE_FACTORS.map((factor) => (
+                  <li
+                    key={factor.label}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-black/5 px-3 py-2.5"
+                    style={{ borderColor: "rgba(15, 25, 35, 0.06)" }}
+                  >
+                    <span className="text-sm leading-snug">{factor.label}</span>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${h}`}
+                      style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                    >
+                      {factor.pill}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs font-semibold text-[#0F1923]/55">
+                {formatDisplay(s.total_accounts)} total accounts · {formatDisplay(s.open_accounts)} open
+              </p>
+            </section>
 
             <section className="space-y-4">
               <h2 className={`text-lg font-bold ${h}`} style={{ color: NAVY }}>
@@ -1846,92 +1636,99 @@ export default function BlueprintPage() {
                 ))}
               </div>
             </section>
-
-            <section className="grid gap-6 lg:grid-cols-2">
-              <div
-                className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-                style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-              >
-                <h2 className={`text-lg font-bold ${h}`}>Account summary</h2>
-                <dl className="mt-4 space-y-3 text-sm">
-                  <div className="flex justify-between gap-4 border-b border-black/5 pb-2">
-                    <dt className="opacity-70">Total accounts</dt>
-                    <dd className="font-semibold">{formatDisplay(s.total_accounts)}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-b border-black/5 pb-2">
-                    <dt className="opacity-70">Open accounts</dt>
-                    <dd className="font-semibold">{formatDisplay(s.open_accounts)}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div
-                className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
-                style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
-              >
-                <h2 className={`text-lg font-bold ${h}`}>Score factors</h2>
-                {factors.length === 0 ? (
-                  <p className="mt-4 text-sm opacity-60">No score factors were returned in this parse.</p>
-                ) : (
-                  <ul className="mt-4 space-y-3">
-                    {factors.map((f, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start justify-between gap-3 rounded-xl border border-black/5 px-3 py-2.5"
-                        style={{ borderColor: "rgba(15, 25, 35, 0.06)" }}
-                      >
-                        <span className="text-sm leading-snug">{f.text}</span>
-                        <span
-                          className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-bold ${h}`}
-                          style={{ backgroundColor: "rgba(0, 201, 167, 0.15)", color: NAVY }}
-                        >
-                          {f.grade}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </section>
           </div>
         )}
 
         {tab === "tradelines" && (
-          <div className="overflow-x-auto rounded-2xl border border-black/5 bg-white shadow-sm" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
-            <table className="min-w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-black/10" style={{ backgroundColor: "rgba(15, 25, 35, 0.04)" }}>
-                  {["Creditor", "Network", "Balance", "Util.", "30/60/90", "Payment status", "Action"].map((col) => (
-                    <th key={col} className={`whitespace-nowrap px-4 py-3 text-xs font-bold uppercase tracking-wide ${h}`}>
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tradelines.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-sm opacity-60">
-                      No tradelines in this report.
-                    </td>
+          <div>
+            <div className="space-y-3 md:hidden">
+              {tradelines.length === 0 ? (
+                <div className="rounded-2xl border border-black/5 bg-white px-6 py-8 text-center text-sm opacity-60 shadow-sm">
+                  No tradelines in this report.
+                </div>
+              ) : (
+                tradelines.map((row, i) => {
+                  const status = tradelineStatus(row);
+                  return (
+                    <article
+                      key={i}
+                      className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
+                      style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className={`min-w-0 text-sm font-bold leading-snug ${h}`}>{formatDisplay(row.creditor_name)}</h3>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${h}`}
+                          style={{ backgroundColor: status.bg, color: status.color }}
+                        >
+                          {status.label}
+                        </span>
+                      </div>
+                      <dl className="mt-4 grid grid-cols-4 gap-2 text-xs">
+                        <div className="min-w-0">
+                          <dt className="font-semibold text-[#0F1923]/45">Network</dt>
+                          <dd className="mt-1 truncate capitalize text-[#0F1923]/80">{formatDisplay(row.network)}</dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-semibold text-[#0F1923]/45">Balance</dt>
+                          <dd className="mt-1 truncate tabular-nums text-[#0F1923]/80">{formatDisplay(row.balance)}</dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-semibold text-[#0F1923]/45">Util.</dt>
+                          <dd className="mt-1 truncate tabular-nums text-[#0F1923]/80">{formatPercent(row.utilization)}</dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="font-semibold text-[#0F1923]/45">30-60-90</dt>
+                          <dd className="mt-1 truncate tabular-nums text-[#0F1923]/80">
+                            {formatDisplay(row.late_30)}/{formatDisplay(row.late_60)}/{formatDisplay(row.late_90)}
+                          </dd>
+                        </div>
+                      </dl>
+                      <div className="mt-4 border-t border-black/10 pt-3">
+                        <p className="text-sm leading-relaxed text-[#0F1923]/80">{formatDisplay(row.action_recommended)}</p>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-2xl border border-black/5 bg-white shadow-sm md:block" style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}>
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-black/10" style={{ backgroundColor: "rgba(15, 25, 35, 0.04)" }}>
+                    {["Creditor", "Network", "Balance", "Util.", "30/60/90", "Payment status", "Action"].map((col) => (
+                      <th key={col} className={`whitespace-nowrap px-4 py-3 text-xs font-bold uppercase tracking-wide ${h}`}>
+                        {col}
+                      </th>
+                    ))}
                   </tr>
-                ) : (
-                  tradelines.map((row, i) => (
-                    <tr key={i} className="border-b border-black/5 last:border-0">
-                      <td className="px-4 py-3 font-medium">{formatDisplay(row.creditor_name)}</td>
-                      <td className="px-4 py-3 capitalize">{formatDisplay(row.network)}</td>
-                      <td className="px-4 py-3 tabular-nums">{formatDisplay(row.balance)}</td>
-                      <td className="px-4 py-3 tabular-nums">{formatPercent(row.utilization)}</td>
-                      <td className="px-4 py-3 tabular-nums text-xs">
-                        {formatDisplay(row.late_30)}/{formatDisplay(row.late_60)}/{formatDisplay(row.late_90)}
+                </thead>
+                <tbody>
+                  {tradelines.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-sm opacity-60">
+                        No tradelines in this report.
                       </td>
-                      <td className="px-4 py-3">{formatDisplay(row.payment_status)}</td>
-                      <td className="px-4 py-3 text-[#0F1923]/80">{formatDisplay(row.action_recommended)}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    tradelines.map((row, i) => (
+                      <tr key={i} className="border-b border-black/5 last:border-0">
+                        <td className="px-4 py-3 font-medium">{formatDisplay(row.creditor_name)}</td>
+                        <td className="px-4 py-3 capitalize">{formatDisplay(row.network)}</td>
+                        <td className="px-4 py-3 tabular-nums">{formatDisplay(row.balance)}</td>
+                        <td className="px-4 py-3 tabular-nums">{formatPercent(row.utilization)}</td>
+                        <td className="px-4 py-3 tabular-nums text-xs">
+                          {formatDisplay(row.late_30)}/{formatDisplay(row.late_60)}/{formatDisplay(row.late_90)}
+                        </td>
+                        <td className="px-4 py-3">{formatDisplay(row.payment_status)}</td>
+                        <td className="px-4 py-3 text-[#0F1923]/80">{formatDisplay(row.action_recommended)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
