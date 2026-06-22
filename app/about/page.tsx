@@ -32,7 +32,8 @@ export default function AboutPage() {
                 Built for the people the banks keep saying no to.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-relaxed text-[#0F1923]/80">
-                I&apos;m a Finance Director at a dealership. Every day I watch good people get turned away — not because they&apos;re bad with money, but because no one ever showed them how credit works. So I built the plan I wished I could hand every one of them.
+                I&apos;m a Finance Director at a dealership. Every day I watch good people get turned away — not because they&apos;re bad with money, but because no one ever showed them how credit works.{" "}
+                <span style={{ color: TEAL }}>So I built the plan I wished I could hand every one of them.</span>
               </p>
             </div>
           </div>
@@ -68,7 +69,7 @@ export default function AboutPage() {
                   key={value.title}
                   className="rounded-2xl border border-black/10 bg-[#F5F7FA] p-6 shadow-sm"
                 >
-                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>{value.title}</h3>
+                  <h3 className={`text-lg font-bold ${h}`} style={{ color: TEAL }}>{value.title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/75">{value.copy}</p>
                 </div>
               ))}
