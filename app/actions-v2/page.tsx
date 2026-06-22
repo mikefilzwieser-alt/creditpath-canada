@@ -16,7 +16,10 @@ const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
 const UPGRADE_MONTH = 8;
-const SHOW_FORWARD_PROJECTION = false;
+const SHOW_FORWARD_PROJECTION = true;
+const SCORE_SCALE_MIN = 380;
+const SCORE_SCALE_MAX = 750;
+const PROJECTED_BAR_MAX_PERCENT = 60;
 const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
 
 const CREDIT_PRODUCT_OFFERS = [
@@ -184,8 +187,9 @@ function displayActionText(action: unknown): string {
   }
 }
 
-function scoreToPercent(score: number): number {
-  return Math.min(100, Math.max(0, ((score - 300) / 600) * 100));
+function scoreToPercent(score: number, capPercent = 100): number {
+  const raw = ((score - SCORE_SCALE_MIN) / (SCORE_SCALE_MAX - SCORE_SCALE_MIN)) * 100;
+  return Math.min(capPercent, Math.max(0, raw));
 }
 
 function scoreRangeLabel(low: number | null, high: number | null): string {
@@ -209,12 +213,22 @@ type PathRowProps = {
   value: string;
   low: number | null;
   high: number | null;
-  tone: "grey" | "teal" | "softTeal";
+  tone: "grey" | "teal" | "projection1" | "projection2" | "projection3";
 };
 
 function PathRow({ label, value, low, high, tone }: PathRowProps) {
-  const barColor = tone === "grey" ? "rgba(15, 25, 35, 0.3)" : tone === "teal" ? TEAL : "rgba(0, 201, 167, 0.35)";
-  const endScore = high ?? low ?? 300;
+  const barColor =
+    tone === "grey"
+      ? "rgba(15, 25, 35, 0.3)"
+      : tone === "teal"
+        ? TEAL
+        : tone === "projection1"
+          ? "rgba(0, 201, 167, 0.55)"
+          : tone === "projection2"
+            ? "rgba(0, 201, 167, 0.38)"
+            : "rgba(0, 201, 167, 0.24)";
+  const endScore = high ?? low ?? SCORE_SCALE_MIN;
+  const capPercent = tone === "grey" || tone === "teal" ? 100 : PROJECTED_BAR_MAX_PERCENT;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3 text-xs font-semibold">
@@ -224,7 +238,7 @@ function PathRow({ label, value, low, high, tone }: PathRowProps) {
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-[#E7ECEF]">
-        <div className="h-full rounded-full" style={{ width: `${scoreToPercent(endScore)}%`, backgroundColor: barColor }} />
+        <div className="h-full rounded-full" style={{ width: `${scoreToPercent(endScore, capPercent)}%`, backgroundColor: barColor }} />
       </div>
     </div>
   );
@@ -354,7 +368,6 @@ export default function ActionsV2Page() {
   const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
   const currentMonth = normalizeProgramMonth(blueprint?.current_month);
   const nextMonth = currentMonth + 1;
-  const followingMonth = currentMonth + 2;
   const hasBlueprint = Boolean(blueprint) && !blueprintLoading;
 
   const equifaxScore = (() => {
@@ -392,10 +405,12 @@ export default function ActionsV2Page() {
     equifaxScore !== null ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
   const estimatedRangeStart = estimatedScore;
   const estimatedRangeEnd = estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
-  const month4RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 10) : null;
-  const month4RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 25) : null;
-  const month6RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 20) : null;
-  const month6RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 45) : null;
+  const month3RangeStart = 530;
+  const month3RangeEnd = 555;
+  const month4RangeStart = 545;
+  const month4RangeEnd = 572;
+  const month5RangeStart = 560;
+  const month5RangeEnd = 588;
 
   const monthlyProgramActions: MonthlyProgramAction[] = useMemo(() => {
     if (!blueprint || !parsed) return [];
@@ -588,12 +603,12 @@ export default function ActionsV2Page() {
           <div className="my-4 h-px bg-[#0F1923]/10" />
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
-              <span>300</span>
-              <span>900</span>
+              <span>380</span>
+              <span>750</span>
             </div>
             <PathRow label="Month 1" value={String(equifaxScore)} low={equifaxScore} high={equifaxScore} tone="grey" />
             <PathRow
-              label={`Month ${currentMonth}`}
+              label="Month 2"
               value={scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
               low={estimatedRangeStart}
               high={estimatedRangeEnd}
@@ -602,18 +617,25 @@ export default function ActionsV2Page() {
             {SHOW_FORWARD_PROJECTION ? (
               <>
                 <PathRow
+                  label="Month 3"
+                  value={scoreRangeLabel(month3RangeStart, month3RangeEnd)}
+                  low={month3RangeStart}
+                  high={month3RangeEnd}
+                  tone="projection1"
+                />
+                <PathRow
                   label="Month 4"
                   value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
                   low={month4RangeStart}
                   high={month4RangeEnd}
-                  tone="softTeal"
+                  tone="projection2"
                 />
                 <PathRow
-                  label="Month 6"
-                  value={scoreRangeLabel(month6RangeStart, month6RangeEnd)}
-                  low={month6RangeStart}
-                  high={month6RangeEnd}
-                  tone="softTeal"
+                  label="Month 5"
+                  value={scoreRangeLabel(month5RangeStart, month5RangeEnd)}
+                  low={month5RangeStart}
+                  high={month5RangeEnd}
+                  tone="projection3"
                 />
               </>
             ) : null}
@@ -720,20 +742,6 @@ export default function ActionsV2Page() {
         <p className="text-sm font-bold leading-relaxed" style={{ color: "#B45309" }}>
           Before applying anywhere, contact us first. If you receive a text or call saying you are approved — do not respond.
         </p>
-      </section>
-
-      <section className="rounded-2xl border border-black/5 bg-white/80 p-4 shadow-sm sm:p-5">
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0F1923]/40">Locked ahead</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-black/5 bg-[#F5F7FA] p-4 opacity-70">
-            <p className="font-bold">Month {nextMonth}</p>
-            <p className="mt-1 text-sm text-[#0F1923]/55">unlocks after this month</p>
-          </div>
-          <div className="rounded-xl border border-black/5 bg-[#F5F7FA] p-4 opacity-55">
-            <p className="font-bold">Month {followingMonth}</p>
-            <p className="mt-1 text-sm text-[#0F1923]/55">coming soon</p>
-          </div>
-        </div>
       </section>
 
       <section className="rounded-2xl border-2 p-5 shadow-sm" style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}>
