@@ -1,0 +1,859 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
+import { logPostgrestError } from "@/lib/log-postgrest-error";
+import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
+import {
+  getProgramMonthThemeTitle,
+  MAX_THEMED_PROGRAM_MONTH,
+  normalizeProgramMonth,
+} from "@/lib/monthly-progression-themes";
+import { supabase } from "@/lib/supabase";
+
+const TEAL = "#00C9A7";
+const NAVY = "#0F1923";
+const TOTAL_MONTHS = 24;
+const UPGRADE_MONTH = 8;
+const SHOW_FORWARD_PROJECTION = false;
+const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
+
+const CREDIT_PRODUCT_OFFERS = [
+  {
+    name: "Neo Financial",
+    description: "Canada's top credit-building card. Reports to Equifax. Apply now.",
+    href: "https://neo.cc/refer/G3Y6L5A9",
+    cta: "Apply now",
+  },
+  {
+    name: "Tangerine Money-Back Credit Card",
+    description: "No credit check secured option. Reports to both Equifax and TransUnion.",
+    href: "https://www.tangerine.ca/en/products/spending/creditcard",
+    cta: "Apply now",
+  },
+  {
+    name: "Koho",
+    description: "No credit check. Build credit with every purchase. Reports to Equifax.",
+    href: "https://www.koho.ca",
+    cta: "Get started",
+  },
+] as const;
+
+type ParsedBureau = {
+  consumer_proposal?: boolean;
+  tradelines?: Array<{
+    creditor_name?: string;
+    network?: string;
+    account_type?: string;
+    equifax_rating_code?: string;
+    rating_code?: string;
+    late_30?: number | string;
+    late_60?: number | string;
+    late_90?: number | string;
+  }>;
+  collections?: Array<{
+    creditor?: string;
+    status?: string;
+    amount?: number | string;
+  }>;
+  score?: { equifax_score?: number };
+  summary?: {
+    utilization_percentage?: number | string;
+    on_time_payment_percentage?: number | string;
+    derogatory_marks?: number | string;
+    hard_inquiries_12mo?: number | string;
+  };
+};
+
+type BlueprintPlan = {
+  rebuild_score?: number;
+  rebuild_score_label?: string;
+  score_summary?: string;
+  this_months_focus?: string;
+  readiness_percentage?: number;
+  credit_cards_reporting?: number;
+  top_actions?: Array<{
+    action?: string;
+    impact?: string;
+    timeline?: string;
+  }>;
+};
+
+type BlueprintRow = {
+  id?: string;
+  created_at?: string;
+  raw_parse_data: ParsedBureau | null;
+  blueprint_data: BlueprintPlan | null;
+  current_month?: number | null;
+  month_unlocked_at?: string | null;
+};
+
+type MonthlyPlanRow = {
+  month_number: number;
+  theme: string | null;
+  actions: unknown;
+};
+
+function firstNameFromUser(
+  user: {
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+  } | null,
+) {
+  if (!user) return "there";
+  const meta = user.user_metadata ?? {};
+  const full = meta.full_name;
+  if (typeof full === "string" && full.trim()) return full.trim().split(/\s+/)[0]!;
+  const first = meta.first_name;
+  if (typeof first === "string" && first.trim()) return first.trim();
+  const email = user.email;
+  if (email && email.includes("@")) return email.split("@")[0]!;
+  return "there";
+}
+
+function parseNumberLike(v: unknown): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(n)) return n;
+  }
+  return 0;
+}
+
+function formatDisplay(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  if (typeof v === "string") return v.trim() || "—";
+  return String(v);
+}
+
+function isNetworkCard(tradeline: NonNullable<ParsedBureau["tradelines"]>[number]): boolean {
+  const codeRaw = String(tradeline?.equifax_rating_code ?? tradeline?.rating_code ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s/g, "");
+  if (!/^R\d/.test(codeRaw)) return false;
+
+  const network = String(tradeline?.network ?? "").toLowerCase().trim();
+  if (network === "visa" || network === "mastercard" || network === "amex") return true;
+  if (network === "store_only" || network === "n/a") return false;
+
+  const merged = `${tradeline?.account_type ?? ""} ${tradeline?.creditor_name ?? ""}`.toLowerCase();
+  return /\bvisa\b|mastercard|master card|\bamex\b|american express/.test(merged);
+}
+
+function renderMarkdownInlineLinks(text: string): ReactNode {
+  const t = text.trim();
+  if (!t || t === "—") return t || "—";
+  const re = /\[([^\]]+)\((https?:\/\/[^)\s]+)\)/g;
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t)) !== null) {
+    if (m.index > last) nodes.push(t.slice(last, m.index));
+    nodes.push(
+      <a
+        key={`md-${m.index}`}
+        href={m[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold underline decoration-[#00C9A7]/50 underline-offset-2"
+        style={{ color: TEAL }}
+      >
+        {m[1]}
+      </a>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < t.length) nodes.push(t.slice(last));
+  return nodes.length > 0 ? nodes : t;
+}
+
+function displayActionText(action: unknown): string {
+  const text = formatDisplay(action);
+  switch (text) {
+    case "Focus extra payments on your Lend Direct line of credit this month to reduce its 95% utilization.":
+      return "Pay $50+ extra on your Lend Direct line this month (currently 95% used).";
+    case "Confirm your pre-authorized payments are running smoothly on all accounts including Consumer Proposal payments.":
+      return "Confirm pre-authorized payments are active on every account, including your Consumer Proposal.";
+    case "Maintain your hard inquiry freeze — absolutely no new credit applications this month.":
+      return "Don't apply for any new credit this month.";
+    default:
+      return text;
+  }
+}
+
+function scoreToPercent(score: number): number {
+  return Math.min(100, Math.max(0, ((score - 300) / 600) * 100));
+}
+
+function scoreRangeLabel(low: number | null, high: number | null): string {
+  if (low === null || high === null) return "—";
+  return `${low}–${high}`;
+}
+
+function countdownLabel(unlockAtMs: number | null, nowMs: number): string {
+  if (unlockAtMs === null) return "after completion";
+  const remainingMs = unlockAtMs - nowMs;
+  if (remainingMs <= 0) return "after completion";
+  const totalMinutes = Math.floor(remainingMs / (60 * 1000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  return `${days}d ${hours}h ${minutes}m`;
+}
+
+type PathRowProps = {
+  label: string;
+  value: string;
+  low: number | null;
+  high: number | null;
+  tone: "grey" | "teal" | "softTeal";
+};
+
+function PathRow({ label, value, low, high, tone }: PathRowProps) {
+  const barColor = tone === "grey" ? "rgba(15, 25, 35, 0.3)" : tone === "teal" ? TEAL : "rgba(0, 201, 167, 0.35)";
+  const endScore = high ?? low ?? 300;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+        <span className="text-[#0F1923]/70">{label}</span>
+        <span className="tabular-nums" style={{ color: tone === "grey" ? "rgba(15,25,35,0.7)" : TEAL }}>
+          {value}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-[#E7ECEF]">
+        <div className="h-full rounded-full" style={{ width: `${scoreToPercent(endScore)}%`, backgroundColor: barColor }} />
+      </div>
+    </div>
+  );
+}
+
+export default function ActionsV2Page() {
+  const { user, loading: authLoading, headingFontClass, hasDashboardAccess } = useDashboardAuth();
+  const firstName = firstNameFromUser(user);
+  const h = headingFontClass;
+  const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
+  const [monthlyPlanRow, setMonthlyPlanRow] = useState<MonthlyPlanRow | null>(null);
+  const [blueprintLoading, setBlueprintLoading] = useState(true);
+  const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
+  const completionsRef = useRef<Set<number>>(new Set());
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
+
+  const loadBlueprint = useCallback(async () => {
+    if (!user) return;
+    setBlueprintLoading(true);
+    const { data, error } = await supabase
+      .from("blueprints")
+      .select(
+        "id, client_id, month_number, status, raw_parse_data, blueprint_data, created_at, updated_at, current_month, month_unlocked_at",
+      )
+      .eq("client_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      setBlueprint(null);
+      setMonthlyPlanRow(null);
+    } else {
+      const latest = data as BlueprintRow | null;
+      setBlueprint(latest);
+      if (latest?.id) {
+        const progMonth = normalizeProgramMonth(latest.current_month);
+        if (progMonth >= 2 && progMonth <= MAX_THEMED_PROGRAM_MONTH) {
+          const { data: mp, error: mpErr } = await supabase
+            .from("monthly_plans")
+            .select("month_number, theme, actions")
+            .eq("blueprint_id", latest.id)
+            .eq("month_number", progMonth)
+            .maybeSingle();
+          setMonthlyPlanRow(mpErr ? null : (mp as MonthlyPlanRow | null));
+        } else {
+          setMonthlyPlanRow(null);
+        }
+      } else {
+        setMonthlyPlanRow(null);
+      }
+    }
+    setBlueprintLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void loadBlueprint();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadBlueprint]);
+
+  useEffect(() => {
+    completionsRef.current = completedSet;
+  }, [completedSet]);
+
+  useEffect(() => {
+    if (!user?.id || !blueprint?.id) {
+      queueMicrotask(() => {
+        const empty = new Set<number>();
+        completionsRef.current = empty;
+        setCompletedSet(empty);
+      });
+      return;
+    }
+    const programMonth = normalizeProgramMonth(blueprint.current_month);
+    let cancelled = false;
+    void (async () => {
+      const { data, error: qErr } = await supabase
+        .from("action_completions")
+        .select("action_index")
+        .eq("client_id", user.id)
+        .eq("blueprint_id", blueprint.id)
+        .eq("program_month", programMonth);
+      if (cancelled) return;
+      if (qErr) {
+        logPostgrestError("[actions-v2] action_completions select failed", qErr, {
+          client_id: user.id,
+          blueprint_id: blueprint.id,
+          program_month: programMonth,
+        });
+        const empty = new Set<number>();
+        completionsRef.current = empty;
+        setCompletedSet(empty);
+        return;
+      }
+      const indexes = new Set<number>();
+      for (const row of (data ?? []) as Array<{ action_index?: number | null }>) {
+        if (typeof row.action_index === "number" && Number.isFinite(row.action_index)) {
+          indexes.add(row.action_index);
+        }
+      }
+      completionsRef.current = indexes;
+      setCompletedSet(indexes);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [blueprint?.id, blueprint?.current_month, user?.id]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const parsed = blueprint?.raw_parse_data as ParsedBureau | null | undefined;
+  const plan = blueprint?.blueprint_data as BlueprintPlan | null | undefined;
+  const tradelines = Array.isArray(parsed?.tradelines) ? parsed.tradelines : [];
+  const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
+  const currentMonth = normalizeProgramMonth(blueprint?.current_month);
+  const nextMonth = currentMonth + 1;
+  const followingMonth = currentMonth + 2;
+  const hasBlueprint = Boolean(blueprint) && !blueprintLoading;
+
+  const equifaxScore = (() => {
+    const raw = parsed as { equifax_score?: number; score?: { equifax_score?: number } } | null | undefined;
+    const s = (typeof raw?.equifax_score === "number" ? raw.equifax_score : undefined) ?? raw?.score?.equifax_score;
+    return typeof s === "number" && Number.isFinite(s) ? Math.round(Math.min(900, Math.max(300, s))) : null;
+  })();
+
+  const createdAt = blueprint?.created_at ? new Date(blueprint.created_at) : null;
+  const monthsElapsed =
+    createdAt && Number.isFinite(createdAt.getTime())
+      ? Math.max(
+          0,
+          (new Date().getFullYear() - createdAt.getFullYear()) * 12 + (new Date().getMonth() - createdAt.getMonth()),
+        )
+      : 0;
+  const hasAnyLate = tradelines.some((t) => {
+    const codeRaw = String(t?.equifax_rating_code ?? t?.rating_code ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s/g, "");
+    const digit = /^([RIO])(\d)/.exec(codeRaw)?.[2];
+    const lateViaRating = digit ? Number(digit) >= 2 : false;
+    const lateViaColumns =
+      parseNumberLike(t?.late_30) > 0 || parseNumberLike(t?.late_60) > 0 || parseNumberLike(t?.late_90) > 0;
+    return lateViaRating || lateViaColumns;
+  });
+  const hasCollections = collections.length > 0;
+  const revolvingNetworkCount =
+    typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
+      ? Math.max(0, Math.floor(plan.credit_cards_reporting))
+      : tradelines.filter(isNetworkCard).length;
+  const estimatedGain = !hasAnyLate && !hasCollections ? Math.min(80, monthsElapsed * 8) : 0;
+  const estimatedScore =
+    equifaxScore !== null ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
+  const estimatedRangeStart = estimatedScore;
+  const estimatedRangeEnd = estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
+  const month4RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 10) : null;
+  const month4RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 25) : null;
+  const month6RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 20) : null;
+  const month6RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 45) : null;
+
+  const monthlyProgramActions: MonthlyProgramAction[] = useMemo(() => {
+    if (!blueprint || !parsed) return [];
+    if (currentMonth === 1) {
+      return buildFoundationMonthActions(parsed);
+    }
+    if (currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH) {
+      const raw = monthlyPlanRow?.actions;
+      if (!Array.isArray(raw) || raw.length === 0) return [];
+      const out: MonthlyProgramAction[] = [];
+      for (const item of raw) {
+        if (!item || typeof item !== "object") continue;
+        const o = item as Record<string, unknown>;
+        const action = typeof o.action === "string" ? o.action.trim() : "";
+        const impact = typeof o.impact === "string" ? o.impact.trim() : "Medium impact";
+        const timeline = typeof o.timeline === "string" ? o.timeline.trim() : "This month";
+        if (action) out.push({ action, impact, timeline });
+        if (out.length >= 3) break;
+      }
+      return out.slice(0, 3);
+    }
+    return [];
+  }, [blueprint, parsed, currentMonth, monthlyPlanRow?.actions]);
+
+  const nextUnlockMeta = useMemo(() => {
+    if (!blueprint || currentMonth >= 4) {
+      return { unlockAtMs: null as number | null, nextMonth: nextMonth };
+    }
+    const unlockedAt = blueprint.month_unlocked_at ?? blueprint.created_at;
+    const gateMs = new Date(unlockedAt ?? "").getTime();
+    if (!Number.isFinite(gateMs)) {
+      return { unlockAtMs: null, nextMonth };
+    }
+    return { unlockAtMs: gateMs + TWENTY_EIGHT_DAYS_MS, nextMonth };
+  }, [blueprint, currentMonth, nextMonth]);
+
+  const runSyncProgress = useCallback(async () => {
+    if (!user?.id) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess?.session?.access_token;
+    if (!token) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const res = await fetch(`${origin}/api/monthly-progress/sync`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const j = (await res.json()) as { ok?: boolean; updated?: boolean };
+    if (j.ok && j.updated) {
+      await loadBlueprint();
+    }
+  }, [loadBlueprint, user?.id]);
+
+  const saveCompletion = useCallback(
+    async (index: number, action: MonthlyProgramAction) => {
+      if (!user?.id || !blueprint?.id) return;
+      const blueprintId = blueprint.id;
+      const programMonth = normalizeProgramMonth(blueprint.current_month);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess?.session?.access_token;
+      if (!token) return;
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+
+      if (completionsRef.current.has(index)) {
+        completionsRef.current.delete(index);
+        const res = await fetch(`${origin}/api/action-completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            blueprintId,
+            programMonth,
+            actionIndex: index,
+            completed: false,
+          }),
+        });
+        if (!res.ok) {
+          completionsRef.current.add(index);
+          return;
+        }
+        setCompletedSet((prev) => {
+          const next = new Set(prev);
+          next.delete(index);
+          return next;
+        });
+        void runSyncProgress();
+        return;
+      }
+
+      completionsRef.current.add(index);
+      const actionText = typeof action?.action === "string" ? action.action : formatDisplay(action?.action);
+      const res = await fetch(`${origin}/api/action-completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          blueprintId,
+          programMonth,
+          actionIndex: index,
+          actionText,
+          completed: true,
+        }),
+      });
+      if (!res.ok) {
+        completionsRef.current.delete(index);
+        return;
+      }
+      setCompletedSet((prev) => new Set([...prev, index]));
+      const nextCompleted = new Set([...completionsRef.current]);
+      nextCompleted.add(index);
+      const allDoneNow = [0, 1, 2].every((i) => nextCompleted.has(i)) && monthlyProgramActions.length >= 3;
+      if (allDoneNow && programMonth > 0 && programMonth < 5 && typeof window !== "undefined") {
+        const key = `actions_v2_celebration_shown_month_${programMonth}`;
+        if (window.localStorage.getItem(key) !== "1") {
+          setShowMonthCompletionOverlay(true);
+        }
+      }
+      void runSyncProgress();
+    },
+    [blueprint, monthlyProgramActions.length, runSyncProgress, user?.id],
+  );
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${h}`}>Loading…</p>
+      </div>
+    );
+  }
+
+  if (!hasDashboardAccess) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center px-4 text-center text-sm text-[#0F1923]/60">
+        Redirecting to your dashboard…
+      </div>
+    );
+  }
+
+  if (blueprintLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${h}`}>Loading your actions…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`mx-auto max-w-4xl space-y-5 ${h}`} style={{ color: NAVY }}>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {firstName}</h1>
+          <p className="mt-1 text-sm font-medium text-[#0F1923]/60">Here&apos;s your focus this month</p>
+        </div>
+        <span
+          className="inline-flex w-fit items-center rounded-full border px-4 py-1.5 text-sm font-bold"
+          style={{ borderColor: TEAL, color: TEAL, backgroundColor: "rgba(0, 201, 167, 0.12)" }}
+        >
+          Month {currentMonth} of {TOTAL_MONTHS}
+        </span>
+      </header>
+
+      {hasBlueprint && equifaxScore !== null ? (
+        <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-5" style={{ border: `1.5px solid ${TEAL}` }}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#0F1923]/50">Current Score</p>
+              <p className="mt-1 text-[44px] font-extrabold leading-none tabular-nums">{equifaxScore}</p>
+            </div>
+            <div className="sm:text-right">
+              <p className="text-xs font-bold text-[#0F1923]/55">Where this month could take you</p>
+              <p className="mt-1 text-2xl font-extrabold leading-none tabular-nums" style={{ color: TEAL }}>
+                {scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
+              </p>
+            </div>
+          </div>
+          <div className="my-4 h-px bg-[#0F1923]/10" />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
+              <span>300</span>
+              <span>900</span>
+            </div>
+            <PathRow label="Month 1" value={String(equifaxScore)} low={equifaxScore} high={equifaxScore} tone="grey" />
+            <PathRow
+              label={`Month ${currentMonth}`}
+              value={scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
+              low={estimatedRangeStart}
+              high={estimatedRangeEnd}
+              tone="teal"
+            />
+            {SHOW_FORWARD_PROJECTION ? (
+              <>
+                <PathRow
+                  label="Month 4"
+                  value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
+                  low={month4RangeStart}
+                  high={month4RangeEnd}
+                  tone="softTeal"
+                />
+                <PathRow
+                  label="Month 6"
+                  value={scoreRangeLabel(month6RangeStart, month6RangeEnd)}
+                  low={month6RangeStart}
+                  high={month6RangeEnd}
+                  tone="softTeal"
+                />
+              </>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {hasBlueprint ? (
+        <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-extrabold">
+              Month {currentMonth} — {getProgramMonthThemeTitle(currentMonth)}
+            </h2>
+            <p className="text-sm font-medium text-[#0F1923]/60">3 things to do this month. Check each off as you go.</p>
+          </div>
+
+          {currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
+            <p className="mt-4 text-sm text-[#0F1923]/65">
+              Your personalized plan for this month is being prepared. Refresh the page in a moment — if this message
+              persists, contact Credit Path Canada.
+            </p>
+          ) : monthlyProgramActions.length > 0 ? (
+            <>
+              <ol className="mt-4 space-y-2.5">
+                {monthlyProgramActions.slice(0, 3).map((item, idx) => {
+                  const done = completedSet.has(idx);
+                  const canSave = Boolean(user?.id && blueprint?.id);
+                  const impactLine = [formatDisplay(item.impact), formatDisplay(item.timeline)]
+                    .filter((x) => x !== "—")
+                    .join(" · ");
+                  return (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-3 rounded-xl px-3 py-3"
+                      style={{
+                        border: "1.5px solid",
+                        borderColor: done ? "rgba(0, 201, 167, 0.48)" : "rgba(15, 25, 35, 0.08)",
+                        backgroundColor: done ? "rgba(0, 201, 167, 0.06)" : "#fff",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="mt-0.5 flex shrink-0 items-center justify-center rounded border text-[13px] font-extrabold leading-none disabled:cursor-default"
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderColor: done ? TEAL : "rgba(15,25,35,0.25)",
+                          backgroundColor: done ? TEAL : "transparent",
+                          color: done ? "#FFFFFF" : NAVY,
+                          WebkitAppearance: "none",
+                          appearance: "none",
+                        }}
+                        disabled={!canSave}
+                        aria-label={done ? "Mark action not complete" : "Mark action complete"}
+                        onClick={() => void saveCompletion(idx, item)}
+                      >
+                        {done ? "✓" : null}
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-bold leading-snug ${done ? "line-through" : ""}`} style={{ color: done ? TEAL : NAVY }}>
+                          {renderMarkdownInlineLinks(displayActionText(item.action))}
+                        </p>
+                        {impactLine ? (
+                          <p className={`mt-1 text-xs font-bold leading-snug ${done ? "line-through" : ""}`} style={{ color: TEAL }}>
+                            {impactLine}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+              <div className="mt-4 flex flex-col gap-2 border-t border-black/10 pt-3 text-sm font-bold sm:flex-row sm:items-center sm:justify-between">
+                <span style={{ color: TEAL }}>{completedSet.size} of 3 completed</span>
+                <span className="text-[#0F1923]/60">
+                  Month {nextUnlockMeta.nextMonth} unlocks in {countdownLabel(nextUnlockMeta.unlockAtMs, nowMs)}
+                </span>
+              </div>
+              <p className="mt-2 text-xs font-medium text-[#0F1923]/45">
+                Educational guidance based on your file. Individual results vary.
+              </p>
+            </>
+          ) : null}
+        </section>
+      ) : (
+        <section className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold">Activate your Blueprint</h2>
+              <p className="mt-1 text-sm text-[#0F1923]/70">Upload your Borrowell report to activate your actions.</p>
+            </div>
+            <Link
+              href="/dashboard/upload"
+              className="inline-flex shrink-0 items-center justify-center rounded-xl px-6 py-3 text-sm font-bold text-[#0F1923] transition-opacity hover:opacity-90"
+              style={{ backgroundColor: TEAL }}
+            >
+              Upload report
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <section className="rounded-xl border-l-4 p-4 shadow-sm" style={{ backgroundColor: NAVY, borderLeftColor: TEAL }} role="alert">
+        <p className="text-sm font-bold leading-relaxed" style={{ color: "#B45309" }}>
+          Before applying anywhere, contact us first. If you receive a text or call saying you are approved — do not respond.
+        </p>
+      </section>
+
+      <section className="rounded-2xl border border-black/5 bg-white/80 p-4 shadow-sm sm:p-5">
+        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0F1923]/40">Locked ahead</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-black/5 bg-[#F5F7FA] p-4 opacity-70">
+            <p className="font-bold">Month {nextMonth}</p>
+            <p className="mt-1 text-sm text-[#0F1923]/55">unlocks after this month</p>
+          </div>
+          <div className="rounded-xl border border-black/5 bg-[#F5F7FA] p-4 opacity-55">
+            <p className="font-bold">Month {followingMonth}</p>
+            <p className="mt-1 text-sm text-[#0F1923]/55">coming soon</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border-2 p-5 shadow-sm" style={{ backgroundColor: NAVY, borderColor: TEAL, color: "#E9F5F3" }}>
+        <p className="text-base font-extrabold leading-snug sm:text-lg">🚗 Your vehicle upgrade window opens at Month {UPGRADE_MONTH}.</p>
+        <a
+          href="mailto:michaelf@titaniumford.ca"
+          className="mt-4 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-center text-sm font-extrabold transition-opacity hover:opacity-92 sm:w-auto"
+          style={{ backgroundColor: TEAL, color: NAVY }}
+        >
+          Talk to Michael — Titanium Ford Finance Director
+        </a>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-extrabold" style={{ color: NAVY }}>
+          Recommended Credit Products
+        </h2>
+        <p className="rounded-xl border border-[rgba(15,25,35,0.1)] bg-[rgba(0,201,167,0.08)] px-4 py-3 text-sm font-medium leading-relaxed text-[#0F1923]/85">
+          You currently have {revolvingNetworkCount} of 3 revolving credit cards.
+        </p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-stretch">
+          {CREDIT_PRODUCT_OFFERS.map((product) => (
+            <div key={product.name} className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-extrabold" style={{ color: NAVY }}>
+                  {product.name}
+                </h3>
+                <p className="mt-2 text-sm font-medium leading-relaxed text-[#0F1923]/65">{product.description}</p>
+                {product.name === "Tangerine Money-Back Credit Card" ? (
+                  <p style={{ color: TEAL, fontSize: 13, marginTop: 6, fontWeight: 600 }}>
+                    💸 Use referral code 79976711S1 for a $50 bonus.
+                  </p>
+                ) : null}
+              </div>
+              <a
+                href={product.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex w-full items-center justify-center rounded-xl px-5 py-2.5 text-sm font-bold text-[#0F1923] transition-opacity hover:opacity-90"
+                style={{ backgroundColor: TEAL }}
+              >
+                {product.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {showMonthCompletionOverlay ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center px-6 py-10"
+          style={{ backgroundColor: "rgba(15, 25, 35, 0.94)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Month completion celebration"
+        >
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+            {Array.from({ length: 28 }, (_, i) => (
+              <span
+                key={i}
+                className="cp-confetti"
+                style={
+                  {
+                    left: `${(i * 3.7) % 100}%`,
+                    animationDelay: `${(i % 12) * 0.18}s`,
+                    animationDuration: `${4.8 + (i % 6) * 0.35}s`,
+                    backgroundColor: i % 2 === 0 ? TEAL : "#FFFFFF",
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+          <div className="relative z-10 mx-auto w-full max-w-xl text-center">
+            <p className="text-6xl" style={{ lineHeight: 1.1, color: TEAL }}>
+              🏆
+            </p>
+            <p className="mt-5 text-3xl font-extrabold" style={{ color: "#FFFFFF" }}>
+              🏆 You crushed Month {currentMonth}.
+            </p>
+            <p className="mx-auto mt-4 max-w-lg text-base font-medium leading-relaxed" style={{ color: "rgba(255,255,255,0.86)" }}>
+              Every action complete. Your progress is locked in. Keep this momentum going.
+            </p>
+            <button
+              type="button"
+              className="mt-8 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-extrabold"
+              style={{ backgroundColor: TEAL, color: NAVY }}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(`actions_v2_celebration_shown_month_${currentMonth}`, "1");
+                }
+                setShowMonthCompletionOverlay(false);
+              }}
+            >
+              Keep going →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <style jsx>{`
+        .cp-confetti {
+          position: absolute;
+          top: -12%;
+          width: 8px;
+          height: 14px;
+          border-radius: 999px;
+          opacity: 0.95;
+          animation-name: cp-fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        @keyframes cp-fall {
+          0% {
+            transform: translate3d(0, -10vh, 0) rotate(0deg);
+          }
+          100% {
+            transform: translate3d(0, 112vh, 0) rotate(420deg);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
