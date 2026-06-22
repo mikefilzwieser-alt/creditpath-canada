@@ -38,68 +38,41 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="border-b border-black/10 bg-[#F5F7FA] py-14 sm:py-20">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className={`text-2xl font-bold text-[#0F1923] sm:text-3xl ${h}`}>How it works</h2>
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    title: "We read your real Equifax file",
-                    copy: "Not generic advice — your actual bureau.",
-                  },
-                  {
-                    title: "You get a month-by-month plan",
-                    copy: "A few simple steps each month. No guesswork.",
-                  },
-                  {
-                    title: "I work with you when your window opens",
-                    copy: "I review every file personally.",
-                  },
-                ].map((step, index) => (
-                  <div key={step.title} className="rounded-2xl bg-[#F5F7FA] p-5">
-                    <span
-                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${h}`}
-                      style={{ backgroundColor: TEAL, color: NAVY }}
-                    >
-                      {index + 1}
-                    </span>
-                    <h3 className={`mt-4 text-base font-bold text-[#0F1923] ${h}`}>{step.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/70">{step.copy}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-black/10 bg-white py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="grid gap-6 sm:grid-cols-3">
+        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
+            <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
+              What we stand for
+            </p>
+            <h2 className={`mx-auto mt-4 max-w-3xl text-3xl font-bold leading-tight text-[#0F1923] sm:text-4xl ${h}`}>
+              We give Canadians who were told no a real plan to get to yes.
+            </h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/70">
+              Affordable. Honest. Step by step — built from your real file by someone who sees thousands of applications a year.
+            </p>
+            <div className="mt-8 grid gap-5 text-left md:grid-cols-3">
               {[
-                { stat: "30", label: "Credit applications seen daily at Titanium Ford" },
-                { stat: "29", label: "Declined on average — every single day" },
-                { stat: "24", label: "Month personalized rebuild program" },
-              ].map((item) => (
+                {
+                  title: "Truth",
+                  copy: "We tell you what you need to know, not what you want to hear. Credit takes months, not days — and the truth is the fastest path to results.",
+                },
+                {
+                  title: "Integrity",
+                  copy: "Every recommendation passes one test: would we give this advice to our own family. Our reputation is the only thing we won't compromise.",
+                },
+                {
+                  title: "We stay when others leave",
+                  copy: "When the banks said no, every dealer disappeared. We answer the text. We pick up the phone. The system failed you once — we won't be the second wall you hit.",
+                },
+              ].map((value) => (
                 <div
-                  key={item.stat}
-                  className="rounded-2xl border border-black/10 bg-[#F5F7FA] p-6 text-center shadow-sm"
+                  key={value.title}
+                  className="rounded-2xl border border-black/10 bg-[#F5F7FA] p-6 shadow-sm"
                 >
-                  <p className={`text-5xl font-bold ${h}`} style={{ color: TEAL }}>
-                    {item.stat}
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/75">{item.label}</p>
+                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>{value.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/75">{value.copy}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="border-b border-black/10 bg-[#F5F7FA] py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <p className="border-l-[6px] border-[#00C9A7] bg-white px-6 py-5 text-base italic leading-relaxed text-[#0F1923]/85 shadow-sm">
-              Every client who follows the program moves their score. Every point matters. Every door that opens is one the system tried to keep closed.
-            </p>
           </div>
         </section>
 
@@ -150,40 +123,37 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="border-b border-black/10 bg-white py-14 sm:py-20">
-          <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-            <p className={`text-xs font-bold uppercase tracking-[0.22em] text-[#00C9A7] ${h}`}>
-              What we stand for
-            </p>
-            <h2 className={`mx-auto mt-4 max-w-3xl text-3xl font-bold leading-tight text-[#0F1923] sm:text-4xl ${h}`}>
-              We give Canadians who were told no a real plan to get to yes.
-            </h2>
-            <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-[#0F1923]/70">
-              Affordable. Honest. Step by step — built from your real file by someone who sees thousands of applications a year.
-            </p>
-            <div className="mt-8 grid gap-5 text-left md:grid-cols-3">
-              {[
-                {
-                  title: "Truth",
-                  copy: "We tell you what you need to know, not what you want to hear. Credit takes months, not days — and the truth is the fastest path to results.",
-                },
-                {
-                  title: "Integrity",
-                  copy: "Every recommendation passes one test: would we give this advice to our own family. Our reputation is the only thing we won't compromise.",
-                },
-                {
-                  title: "We stay when others leave",
-                  copy: "When the banks said no, every dealer disappeared. We answer the text. We pick up the phone. The system failed you once — we won't be the second wall you hit.",
-                },
-              ].map((value) => (
-                <div
-                  key={value.title}
-                  className="rounded-2xl border border-black/10 bg-[#F5F7FA] p-6 shadow-sm"
-                >
-                  <h3 className={`text-lg font-bold text-[#0F1923] ${h}`}>{value.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-[#0F1923]/75">{value.copy}</p>
-                </div>
-              ))}
+        <section className="border-b border-black/10 bg-[#F5F7FA] py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className={`text-2xl font-bold text-[#0F1923] sm:text-3xl ${h}`}>How it works</h2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                {[
+                  {
+                    title: "We read your real Equifax file",
+                    copy: "Not generic advice — your actual bureau.",
+                  },
+                  {
+                    title: "You get a month-by-month plan",
+                    copy: "A few simple steps each month. No guesswork.",
+                  },
+                  {
+                    title: "I work with you when your window opens",
+                    copy: "I review every file personally.",
+                  },
+                ].map((step, index) => (
+                  <div key={step.title} className="rounded-2xl bg-[#F5F7FA] p-5">
+                    <span
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${h}`}
+                      style={{ backgroundColor: TEAL, color: NAVY }}
+                    >
+                      {index + 1}
+                    </span>
+                    <h3 className={`mt-4 text-base font-bold text-[#0F1923] ${h}`}>{step.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/70">{step.copy}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
