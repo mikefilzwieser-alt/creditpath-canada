@@ -587,21 +587,65 @@ export default function ActionsV2Page() {
       </header>
 
       {hasBlueprint && equifaxScore !== null ? (
-        <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-5" style={{ border: `1.5px solid ${TEAL}` }}>
+        <section className="rounded-2xl bg-white px-[1.1rem] py-4 shadow-sm sm:p-5" style={{ border: `1.5px solid ${TEAL}` }}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#0F1923]/50">Current Score</p>
-              <p className="mt-1 text-[44px] font-extrabold leading-none tabular-nums">{equifaxScore}</p>
+              <p className="mt-1 text-[36px] font-extrabold leading-none tabular-nums sm:text-[44px]">{equifaxScore}</p>
             </div>
             <div className="sm:text-right">
               <p className="text-xs font-bold text-[#0F1923]/55">Where this month could take you</p>
-              <p className="mt-1 text-2xl font-extrabold leading-none tabular-nums" style={{ color: TEAL }}>
+              <p className="mt-1 text-lg font-extrabold leading-none tabular-nums sm:text-2xl" style={{ color: TEAL }}>
                 {scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
               </p>
             </div>
           </div>
           <div className="my-4 h-px bg-[#0F1923]/10" />
-          <div className="space-y-3">
+          <details open className="space-y-3 md:hidden">
+            <summary className="cursor-pointer list-none text-xs font-extrabold leading-none" style={{ color: TEAL }}>
+              📈 Your 5-month path
+            </summary>
+            <div className="mt-3 space-y-3">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
+                <span>380</span>
+                <span>750</span>
+              </div>
+              <PathRow label="Month 1" value={String(equifaxScore)} low={equifaxScore} high={equifaxScore} tone="grey" />
+              <PathRow
+                label="Month 2"
+                value={scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
+                low={estimatedRangeStart}
+                high={estimatedRangeEnd}
+                tone="teal"
+              />
+              {SHOW_FORWARD_PROJECTION ? (
+                <>
+                  <PathRow
+                    label="Month 3"
+                    value={scoreRangeLabel(month3RangeStart, month3RangeEnd)}
+                    low={month3RangeStart}
+                    high={month3RangeEnd}
+                    tone="projection1"
+                  />
+                  <PathRow
+                    label="Month 4"
+                    value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
+                    low={month4RangeStart}
+                    high={month4RangeEnd}
+                    tone="projection2"
+                  />
+                  <PathRow
+                    label="Month 5"
+                    value={scoreRangeLabel(month5RangeStart, month5RangeEnd)}
+                    low={month5RangeStart}
+                    high={month5RangeEnd}
+                    tone="projection3"
+                  />
+                </>
+              ) : null}
+            </div>
+          </details>
+          <div className="hidden space-y-3 md:block">
             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
               <span>380</span>
               <span>750</span>
@@ -644,12 +688,12 @@ export default function ActionsV2Page() {
       ) : null}
 
       {hasBlueprint ? (
-        <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+        <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:p-5">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-extrabold">
               Month {currentMonth} — {getProgramMonthThemeTitle(currentMonth)}
             </h2>
-            <p className="text-sm font-medium text-[#0F1923]/60">3 things to do this month. Check each off as you go.</p>
+            <p className="text-[13px] font-medium text-[#0F1923]/60 sm:text-sm">3 things to do this month. Check each off as you go.</p>
           </div>
 
           {currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
@@ -669,7 +713,7 @@ export default function ActionsV2Page() {
                   return (
                     <li
                       key={idx}
-                      className="flex items-start gap-3 rounded-xl px-3 py-3"
+                      className="flex items-start gap-2.5 rounded-xl px-2.5 py-2 sm:gap-3 sm:px-3 sm:py-3"
                       style={{
                         border: "1.5px solid",
                         borderColor: done ? "rgba(0, 201, 167, 0.48)" : "rgba(15, 25, 35, 0.08)",
@@ -695,7 +739,7 @@ export default function ActionsV2Page() {
                         {done ? "✓" : null}
                       </button>
                       <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-bold leading-snug ${done ? "line-through" : ""}`} style={{ color: done ? TEAL : NAVY }}>
+                        <p className={`text-[13px] font-bold leading-snug sm:text-sm ${done ? "line-through" : ""}`} style={{ color: done ? TEAL : NAVY }}>
                           {renderMarkdownInlineLinks(displayActionText(item.action))}
                         </p>
                         {impactLine ? (
@@ -762,7 +806,35 @@ export default function ActionsV2Page() {
         <p className="rounded-xl border border-[rgba(15,25,35,0.1)] bg-[rgba(0,201,167,0.08)] px-4 py-3 text-sm font-medium leading-relaxed text-[#0F1923]/85">
           You currently have {revolvingNetworkCount} of 3 revolving credit cards.
         </p>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-stretch">
+        <div className="space-y-2 md:hidden">
+          {CREDIT_PRODUCT_OFFERS.map((product) => (
+            <div
+              key={product.name}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white px-3 py-3 shadow-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-extrabold" style={{ color: NAVY }}>
+                  {product.name}
+                </h3>
+                {product.name === "Tangerine Money-Back Credit Card" ? (
+                  <p style={{ color: TEAL, fontSize: 11, marginTop: 4, fontWeight: 600 }}>
+                    💸 Use referral code 79976711S1 for a $50 bonus.
+                  </p>
+                ) : null}
+              </div>
+              <a
+                href={product.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center rounded-full px-4 py-2 text-xs font-bold text-[#0F1923] transition-opacity hover:opacity-90"
+                style={{ backgroundColor: TEAL }}
+              >
+                {product.cta === "Get started" ? "Start" : "Apply"}
+              </a>
+            </div>
+          ))}
+        </div>
+        <div className="hidden grid-cols-1 gap-4 md:grid lg:grid-cols-3 lg:items-stretch">
           {CREDIT_PRODUCT_OFFERS.map((product) => (
             <div key={product.name} className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
               <div className="min-w-0 flex-1">
