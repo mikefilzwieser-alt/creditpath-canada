@@ -179,7 +179,9 @@ function displayActionText(action: unknown): string {
     case "Focus extra payments on your Lend Direct line of credit this month to reduce its 95% utilization.":
       return "Pay $50+ extra on your Lend Direct line this month (currently 95% used).";
     case "Confirm your pre-authorized payments are running smoothly on all accounts including Consumer Proposal payments.":
-      return "Confirm pre-authorized payments are active on every account, including your Consumer Proposal.";
+      return "Confirm pre-authorized payments are active on every account.";
+    case "Confirm pre-authorized payments are active on every account, including your Consumer Proposal.":
+      return "Confirm pre-authorized payments are active on every account.";
     case "Maintain your hard inquiry freeze — absolutely no new credit applications this month.":
       return "Don't apply for any new credit this month.";
     default:
@@ -690,10 +692,10 @@ export default function ActionsV2Page() {
       {hasBlueprint ? (
         <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:p-5">
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-extrabold">
+            <h2 className={`text-lg font-extrabold ${h}`}>
               Month {currentMonth} — {getProgramMonthThemeTitle(currentMonth)}
             </h2>
-            <p className="text-[13px] font-medium text-[#0F1923]/60 sm:text-sm">3 things to do this month. Check each off as you go.</p>
+            <p className="text-[13px] font-medium text-[#0F1923]/60 sm:text-sm">Check each off as you go.</p>
           </div>
 
           {currentMonth >= 2 && currentMonth <= MAX_THEMED_PROGRAM_MONTH && monthlyProgramActions.length === 0 ? (
@@ -709,7 +711,9 @@ export default function ActionsV2Page() {
                   const canSave = Boolean(user?.id && blueprint?.id);
                   const impactLine = [formatDisplay(item.impact), formatDisplay(item.timeline)]
                     .filter((x) => x !== "—")
-                    .join(" · ");
+                    .join(" · ")
+                    .replace("Reduces utilization impact significantly · This month", "Lowers your utilization · This month")
+                    .replace("Prevents further score damage · All month", "Protects your score · All month");
                   return (
                     <li
                       key={idx}
@@ -759,7 +763,7 @@ export default function ActionsV2Page() {
                 </span>
               </div>
               <p className="mt-2 text-xs font-medium text-[#0F1923]/45">
-                Educational guidance based on your file. Individual results vary.
+                Based on your file. Results vary.
               </p>
             </>
           ) : null}
@@ -799,12 +803,13 @@ export default function ActionsV2Page() {
         </a>
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-extrabold" style={{ color: NAVY }}>
-          Recommended Credit Products
-        </h2>
+      <details className="space-y-4" style={{ color: NAVY }}>
+        <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 text-lg font-extrabold ${h}`}>
+          <span>Recommended credit products</span>
+          <span aria-hidden style={{ color: TEAL }}>+</span>
+        </summary>
         <p className="rounded-xl border border-[rgba(15,25,35,0.1)] bg-[rgba(0,201,167,0.08)] px-4 py-3 text-sm font-medium leading-relaxed text-[#0F1923]/85">
-          You currently have {revolvingNetworkCount} of 3 revolving credit cards.
+          You have {revolvingNetworkCount} of 3 recommended cards.
         </p>
         <div className="space-y-2 md:hidden">
           {CREDIT_PRODUCT_OFFERS.map((product) => (
@@ -860,7 +865,7 @@ export default function ActionsV2Page() {
             </div>
           ))}
         </div>
-      </section>
+      </details>
 
       {showMonthCompletionOverlay ? (
         <div
