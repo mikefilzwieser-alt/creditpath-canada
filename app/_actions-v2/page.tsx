@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
 import { logPostgrestError } from "@/lib/log-postgrest-error";
@@ -247,20 +248,33 @@ function PathRow({ label, value, low, high, tone }: PathRowProps) {
 }
 
 export default function ActionsV2Page() {
+  const router = useRouter();
   const { user, loading: authLoading, headingFontClass, hasDashboardAccess } = useDashboardAuth();
   const firstName = firstNameFromUser(user);
   const h = headingFontClass;
+  const [checkoutActivating, setCheckoutActivating] = useState(false);
   const [blueprint, setBlueprint] = useState<BlueprintRow | null>(null);
   const [monthlyPlanRow, setMonthlyPlanRow] = useState<MonthlyPlanRow | null>(null);
   const [blueprintLoading, setBlueprintLoading] = useState(true);
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
+  const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
+  const [brandonDismissed, setBrandonDismissed] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("brandon_card_dismissed") === "true",
+  );
+  const [eqDismissed, setEqDismissed] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("eq_card_dismissed") === "true",
+  );
+  const [paywallUnlockBusy, setPaywallUnlockBusy] = useState(false);
+  const [paywallUnlockError, setPaywallUnlockError] = useState("");
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [showMonthCompletionOverlay, setShowMonthCompletionOverlay] = useState(false);
 
   const loadBlueprint = useCallback(async () => {
     if (!user) return;
     setBlueprintLoading(true);
+    const { data: clientData } = await supabase.from("clients").select("created_at").eq("id", user.id).maybeSingle();
+    setEnrolledAt(typeof clientData?.created_at === "string" ? clientData.created_at : null);
     const { data, error } = await supabase
       .from("blueprints")
       .select(
@@ -364,8 +378,70 @@ export default function ActionsV2Page() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "success") return;
+
+    let cancelled = false;
+
+    void (async () => {
+      setCheckoutActivating(true);
+      try {
+        await fetch("/api/clients/activate-after-checkout", {
+          method: "POST",
+          credentials: "same-origin",
+        });
+      } catch {
+        // Still clear the query param so the user is not stuck in a retry loop on refresh.
+      } finally {
+        if (cancelled) return;
+        router.replace("/dashboard");
+        setCheckoutActivating(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, router]);
+
+  const startPaywallCheckout = useCallback(async () => {
+    setPaywallUnlockError("");
+    setPaywallUnlockBusy(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok) {
+        setPaywallUnlockError(data.error ?? "Could not start checkout.");
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setPaywallUnlockError("Checkout did not return a URL.");
+    } catch {
+      setPaywallUnlockError("Network error.");
+    } finally {
+      setPaywallUnlockBusy(false);
+    }
+  }, []);
+
   const parsed = blueprint?.raw_parse_data as ParsedBureau | null | undefined;
   const plan = blueprint?.blueprint_data as BlueprintPlan | null | undefined;
+  const consumerProposal = parsed?.consumer_proposal === true;
+
+  const enrollmentDays = useMemo(() => {
+    if (!enrolledAt) return 0;
+    const created = new Date(enrolledAt).getTime();
+    if (!Number.isFinite(created)) return 0;
+    return Math.max(0, Math.floor((nowMs - created) / (24 * 60 * 60 * 1000)));
+  }, [enrolledAt, nowMs]);
+
   const tradelines = Array.isArray(parsed?.tradelines) ? parsed.tradelines : [];
   const collections = Array.isArray(parsed?.collections) ? parsed.collections : [];
   const currentMonth = normalizeProgramMonth(blueprint?.current_month);
@@ -539,6 +615,13 @@ export default function ActionsV2Page() {
     [blueprint, monthlyProgramActions.length, runSyncProgress, user?.id],
   );
 
+  const showBrandonCard = enrollmentDays >= 3 && !brandonDismissed;
+  const showEqCard = enrollmentDays >= 7 && !eqDismissed && !consumerProposal;
+  const monthOneActions = (Array.isArray(plan?.top_actions) ? plan.top_actions : [])
+    .map((a) => (typeof a?.action === "string" ? a.action.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3);
+
   if (authLoading || !user) {
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
@@ -552,10 +635,163 @@ export default function ActionsV2Page() {
     );
   }
 
-  if (!hasDashboardAccess) {
+  if (checkoutActivating) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center px-4 text-center text-sm text-[#0F1923]/60">
-        Redirecting to your dashboard…
+      <div
+        className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center"
+        style={{ color: NAVY }}
+      >
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Setting up account"
+        />
+        <p className={`text-base font-semibold sm:text-lg ${headingFontClass}`}>Setting up your account...</p>
+        <p className={`max-w-sm text-sm opacity-70 ${headingFontClass}`}>
+          Finishing your subscription so you can use the dashboard.
+        </p>
+      </div>
+    );
+  }
+
+  if (!hasDashboardAccess && blueprintLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4" style={{ color: NAVY }}>
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: `${TEAL} transparent ${TEAL} ${TEAL}` }}
+          aria-label="Loading"
+        />
+        <p className={`text-sm opacity-70 ${headingFontClass}`}>Loading your dashboard…</p>
+      </div>
+    );
+  }
+
+  if (!hasDashboardAccess && hasBlueprint) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6" style={{ color: NAVY }}>
+        <header className="space-y-2">
+          <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${h}`}>Welcome back, {firstName}</h1>
+          <p className="text-sm text-[#0F1923]/70">Your blueprint preview is ready.</p>
+        </header>
+        {showBrandonCard ? (
+          <section
+            className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+          >
+            <p className={`text-base font-bold leading-snug ${h}`}>📅 Not sure what this all means for your financial picture?</p>
+            <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+              Book a free session with Brandon Kirk — licensed financial specialist and Credit Path Canada partner. No cost, no obligation.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <a
+                href="https://calendly.com/brandonkirk/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Book Free Session →
+              </a>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+                onClick={() => {
+                  setBrandonDismissed(true);
+                  if (typeof window !== "undefined") window.localStorage.setItem("brandon_card_dismissed", "true");
+                }}
+              >
+                No thanks
+              </button>
+            </div>
+          </section>
+        ) : null}
+        {showEqCard ? (
+          <section
+            className="rounded-2xl border border-black/5 border-l-4 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)", borderLeftColor: TEAL }}
+          >
+            <p className={`text-base font-bold leading-snug ${h}`}>
+              💳 Did you know? One of the fastest ways to build your credit history is adding a card that reports to both bureaus.
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[#0F1923]/75">
+              EQ Bank&apos;s card has no credit check required and reports to both Equifax and TransUnion. It takes 5 minutes to apply.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <a
+                href="https://join.eqbank.ca/?code=MICHAEL1577"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold ${h}`}
+                style={{ backgroundColor: TEAL, color: NAVY }}
+              >
+                Get EQ Bank Card →
+              </a>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[#0F1923]/45 underline underline-offset-2"
+                onClick={() => {
+                  setEqDismissed(true);
+                  if (typeof window !== "undefined") window.localStorage.setItem("eq_card_dismissed", "true");
+                }}
+              >
+                No thanks
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="grid gap-4">
+          <div
+            className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+            style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F1923]/60">Equifax Score</p>
+            <p className={`mt-2 text-3xl font-bold tabular-nums ${h}`} style={{ color: NAVY }}>
+              {equifaxScore ?? "—"}
+            </p>
+          </div>
+        </section>
+
+        <section
+          className="relative overflow-hidden rounded-2xl border border-black/5 bg-white p-6 shadow-sm"
+          style={{ borderColor: "rgba(15, 25, 35, 0.08)" }}
+        >
+          <h2 className={`text-lg font-bold ${h}`}>Your 3 Month 1 actions are ready</h2>
+          <ul className="mt-4 space-y-3">
+            {(monthOneActions.length > 0 ? monthOneActions : ["Action 1", "Action 2", "Action 3"]).map((action, idx) => (
+              <li
+                key={`${idx}-${action}`}
+                className="rounded-xl border border-black/10 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold leading-relaxed text-[#0F1923]"
+                style={idx === 2 ? { filter: "blur(4px)", userSelect: "none" } : undefined}
+                aria-hidden
+              >
+                {action}
+              </li>
+            ))}
+          </ul>
+          <div className="absolute inset-x-4 bottom-4 rounded-2xl border-2 p-5 shadow-lg" style={{ borderColor: TEAL, backgroundColor: "rgba(0, 201, 167, 0.95)", color: NAVY }}>
+            <p className={`text-lg font-bold leading-snug ${h}`}>Your blueprint is built. Activate your free trial to unlock it.</p>
+            <p className="mt-2 text-sm font-semibold leading-relaxed">
+              First 30 days free. Cancel anytime. Less than a coffee a week.
+            </p>
+            {paywallUnlockError ? (
+              <p className="mt-3 text-center text-sm text-red-600">{paywallUnlockError}</p>
+            ) : null}
+            <button
+              type="button"
+              disabled={paywallUnlockBusy}
+              onClick={() => void startPaywallCheckout()}
+              className={`mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#0F1923] px-5 py-3 text-center text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${h}`}
+            >
+              {paywallUnlockBusy ? "Redirecting…" : "Unlock My Blueprint — Free for 30 Days"}
+            </button>
+            <p className="mt-2 text-center text-xs font-medium text-[#0F1923]/80">
+              You&apos;ll be sent to Stripe&apos;s secure checkout.
+            </p>
+          </div>
+          <div className="h-40" aria-hidden />
+        </section>
       </div>
     );
   }
