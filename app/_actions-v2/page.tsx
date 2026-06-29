@@ -17,7 +17,6 @@ const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
 const UPGRADE_MONTH = 8;
-const SHOW_FORWARD_PROJECTION = true;
 const SCORE_SCALE_MIN = 380;
 const SCORE_SCALE_MAX = 750;
 const PROJECTED_BAR_MAX_PERCENT = 60;
@@ -201,9 +200,9 @@ function scoreRangeLabel(low: number | null, high: number | null): string {
 }
 
 function countdownLabel(unlockAtMs: number | null, nowMs: number): string {
-  if (unlockAtMs === null) return "after completion";
+  if (unlockAtMs === null) return "0d 0h 0m";
   const remainingMs = unlockAtMs - nowMs;
-  if (remainingMs <= 0) return "after completion";
+  if (remainingMs <= 0) return "0d 0h 0m";
   const totalMinutes = Math.floor(remainingMs / (60 * 1000));
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
@@ -494,12 +493,6 @@ export default function ActionsV2Page() {
     equifaxScore !== null ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
   const estimatedRangeStart = estimatedScore;
   const estimatedRangeEnd = estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
-  const month3RangeStart = 530;
-  const month3RangeEnd = 555;
-  const month4RangeStart = 545;
-  const month4RangeEnd = 572;
-  const month5RangeStart = 560;
-  const month5RangeEnd = 588;
 
   const monthlyProgramActions: MonthlyProgramAction[] = useMemo(() => {
     if (!blueprint || !parsed) return [];
@@ -854,7 +847,7 @@ export default function ActionsV2Page() {
           <div className="my-4 h-px bg-[#0F1923]/10" />
           <details open className="space-y-3 md:hidden">
             <summary className="cursor-pointer list-none text-xs font-extrabold leading-none" style={{ color: TEAL }}>
-              📈 Your 5-month path
+              📈 Your path
             </summary>
             <div className="mt-3 space-y-3">
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-[#0F1923]/35">
@@ -869,31 +862,6 @@ export default function ActionsV2Page() {
                 high={estimatedRangeEnd}
                 tone="teal"
               />
-              {SHOW_FORWARD_PROJECTION ? (
-                <>
-                  <PathRow
-                    label="Month 3"
-                    value={scoreRangeLabel(month3RangeStart, month3RangeEnd)}
-                    low={month3RangeStart}
-                    high={month3RangeEnd}
-                    tone="projection1"
-                  />
-                  <PathRow
-                    label="Month 4"
-                    value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
-                    low={month4RangeStart}
-                    high={month4RangeEnd}
-                    tone="projection2"
-                  />
-                  <PathRow
-                    label="Month 5"
-                    value={scoreRangeLabel(month5RangeStart, month5RangeEnd)}
-                    low={month5RangeStart}
-                    high={month5RangeEnd}
-                    tone="projection3"
-                  />
-                </>
-              ) : null}
             </div>
           </details>
           <div className="hidden space-y-3 md:block">
@@ -909,31 +877,6 @@ export default function ActionsV2Page() {
               high={estimatedRangeEnd}
               tone="teal"
             />
-            {SHOW_FORWARD_PROJECTION ? (
-              <>
-                <PathRow
-                  label="Month 3"
-                  value={scoreRangeLabel(month3RangeStart, month3RangeEnd)}
-                  low={month3RangeStart}
-                  high={month3RangeEnd}
-                  tone="projection1"
-                />
-                <PathRow
-                  label="Month 4"
-                  value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
-                  low={month4RangeStart}
-                  high={month4RangeEnd}
-                  tone="projection2"
-                />
-                <PathRow
-                  label="Month 5"
-                  value={scoreRangeLabel(month5RangeStart, month5RangeEnd)}
-                  low={month5RangeStart}
-                  high={month5RangeEnd}
-                  tone="projection3"
-                />
-              </>
-            ) : null}
           </div>
         </section>
       ) : null}

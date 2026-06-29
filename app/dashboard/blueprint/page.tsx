@@ -15,7 +15,6 @@ import { supabase } from "@/lib/supabase";
 const TEAL = "#00C9A7";
 const NAVY = "#0F1923";
 const TOTAL_MONTHS = 24;
-const SHOW_FORWARD_PROJECTION = false;
 const MONTH_THEMES: Record<number, string> = {
   1: "Foundation",
   2: "Stability",
@@ -1254,10 +1253,12 @@ export default function BlueprintPage() {
   const estimatedRangeStart = estimatedScore;
   const estimatedRangeEnd =
     estimatedScore !== null ? Math.min(900, Math.max(300, Math.round(estimatedScore + 15))) : null;
-  const month4RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 10) : null;
-  const month4RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 25) : null;
-  const month6RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 20) : null;
-  const month6RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 45) : null;
+  const month3RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 10) : null;
+  const month3RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 25) : null;
+  const month4RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 20) : null;
+  const month4RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 45) : null;
+  const month5RangeStart = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 30) : null;
+  const month5RangeEnd = estimatedRangeEnd !== null ? Math.min(900, estimatedRangeEnd + 65) : null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8" style={{ color: NAVY }}>
@@ -1440,30 +1441,33 @@ export default function BlueprintPage() {
                   tone="grey"
                 />
                 <ScorePathRow
-                  label={`Month ${programMonth}`}
+                  label="Month 2"
                   value={scoreRangeLabel(estimatedRangeStart, estimatedRangeEnd)}
                   low={estimatedRangeStart}
                   high={estimatedRangeEnd}
                   tone="teal"
                 />
-                {SHOW_FORWARD_PROJECTION ? (
-                  <>
-                    <ScorePathRow
-                      label="Month 4"
-                      value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
-                      low={month4RangeStart}
-                      high={month4RangeEnd}
-                      tone="softTeal"
-                    />
-                    <ScorePathRow
-                      label="Month 6"
-                      value={scoreRangeLabel(month6RangeStart, month6RangeEnd)}
-                      low={month6RangeStart}
-                      high={month6RangeEnd}
-                      tone="softTeal"
-                    />
-                  </>
-                ) : null}
+                <ScorePathRow
+                  label="Month 3"
+                  value={scoreRangeLabel(month3RangeStart, month3RangeEnd)}
+                  low={month3RangeStart}
+                  high={month3RangeEnd}
+                  tone="softTeal"
+                />
+                <ScorePathRow
+                  label="Month 4"
+                  value={scoreRangeLabel(month4RangeStart, month4RangeEnd)}
+                  low={month4RangeStart}
+                  high={month4RangeEnd}
+                  tone="softTeal"
+                />
+                <ScorePathRow
+                  label="Month 5"
+                  value={scoreRangeLabel(month5RangeStart, month5RangeEnd)}
+                  low={month5RangeStart}
+                  high={month5RangeEnd}
+                  tone="softTeal"
+                />
               </div>
             </section>
 
