@@ -1243,6 +1243,11 @@ export default function BlueprintPage() {
       : 0;
   const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
   const topActionsTotal = monthlyProgramActions.length || 3;
+  const readinessPercentage =
+    typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
+      ? Math.round(plan.readiness_percentage)
+      : null;
+  const isReadyToApply = readinessPercentage !== null && readinessPercentage >= 75;
   const estimatedGain = !hasAnyLate && !hasCollectionsOnFile ? Math.min(80, monthsElapsed * 8) : 0;
   const estimatedScore =
     equifaxScoreKnown ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
@@ -1560,9 +1565,13 @@ export default function BlueprintPage() {
                 <div className="rounded-xl bg-white p-4" style={{ border: `1px solid ${TEAL}` }}>
                   <p className="text-sm text-[#0F1923]/75">Approval status</p>
                   <p className={`mt-2 text-xl font-bold ${h}`} style={{ color: TEAL }}>
-                    ✓ Ready to Apply
+                    {isReadyToApply ? "✓ Ready to Apply" : "Building toward ready"}
                   </p>
-                  <p className="mt-1 text-xs text-[#0F1923]/65">Talk to Michael before you apply anywhere.</p>
+                  <p className="mt-1 text-xs text-[#0F1923]/65">
+                    {isReadyToApply
+                      ? "Talk to Michael before you apply anywhere."
+                      : "Keep completing your actions — we'll let you know when you're ready."}
+                  </p>
                 </div>
               </div>
               <p className="mt-4 text-xs font-medium" style={{ color: TEAL }}>
