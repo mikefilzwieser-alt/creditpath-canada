@@ -58,6 +58,7 @@ export async function parsePdfBufferAndSaveBlueprintForUser(
       .update({
         status: "processing",
         raw_parse_data: parsed,
+        bureau_uploaded_at: nowIso,
         updated_at: nowIso,
       })
       .eq("id", blueprintId);
@@ -72,6 +73,7 @@ export async function parsePdfBufferAndSaveBlueprintForUser(
         month_number: 1,
         status: "processing",
         raw_parse_data: parsed,
+        bureau_uploaded_at: nowIso,
         current_month: 1,
         updated_at: nowIso,
       })

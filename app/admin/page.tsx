@@ -246,6 +246,8 @@ type ListRow = {
   blueprint_id: string | null;
   blueprint_status: string;
   blueprint_created_at: string | null;
+  bureau_uploaded_at: string | null;
+  current_month: number | null;
   readiness_percentage: number | null;
   auto_ready_alert: boolean;
   equifax_score: number | null;
@@ -253,7 +255,89 @@ type ListRow = {
   utilization_percentage: number | null;
   top_actions_count: number;
   actions_completed: number;
+  last_activity: string | null;
+  stale_bureau: boolean;
+  graduation_ready: boolean;
 };
+
+type ListSummary = {
+  active_clients: number;
+  trial_clients: number;
+  cancelled_clients: number;
+  stale_bureau_count: number;
+  graduation_ready_count: number;
+};
+
+type ClientSortKey =
+  | "name"
+  | "email"
+  | "phone"
+  | "subscription"
+  | "currentMonth"
+  | "equifax"
+  | "readiness"
+  | "lastActivity"
+  | "staleBureau"
+  | "graduationReady"
+  | "actions";
+
+const CLIENT_TABLE_COLUMNS: Array<{ sortKey: ClientSortKey; label: string; className: string }> = [
+  { sortKey: "name", label: "Name", className: "py-3 pr-3" },
+  { sortKey: "email", label: "Email", className: "py-3 pr-3" },
+  { sortKey: "phone", label: "Phone", className: "py-3 pr-3" },
+  { sortKey: "subscription", label: "Subscription", className: "py-3 pr-3" },
+  { sortKey: "currentMonth", label: "Month", className: "py-3 pr-3" },
+  { sortKey: "equifax", label: "Score", className: "py-3 pr-3" },
+  { sortKey: "readiness", label: "Readiness", className: "py-3 pr-3" },
+  { sortKey: "lastActivity", label: "Last activity", className: "py-3 pr-3" },
+  { sortKey: "staleBureau", label: "Stale bureau", className: "py-3 pr-3" },
+  { sortKey: "graduationReady", label: "Grad ready", className: "py-3 pr-3" },
+  { sortKey: "actions", label: "Actions", className: "py-3 pr-3" },
+];
+
+function compareNullableNumber(a: number | null | undefined, b: number | null | undefined, asc: boolean): number {
+  const mul = asc ? 1 : -1;
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return mul * (a - b);
+}
+
+function compareNullableDate(a: string | null | undefined, b: string | null | undefined, asc: boolean): number {
+  const av = a ? Date.parse(a) : null;
+  const bv = b ? Date.parse(b) : null;
+  return compareNullableNumber(Number.isFinite(av) ? av : null, Number.isFinite(bv) ? bv : null, asc);
+}
+
+function compareClientRows(a: ListRow, b: ListRow, key: ClientSortKey, asc: boolean): number {
+  const mul = asc ? 1 : -1;
+  switch (key) {
+    case "name":
+      return mul * (a.full_name ?? "").toLowerCase().localeCompare((b.full_name ?? "").toLowerCase());
+    case "email":
+      return mul * (a.email ?? "").toLowerCase().localeCompare((b.email ?? "").toLowerCase());
+    case "phone":
+      return mul * (a.phone ?? "").localeCompare(b.phone ?? "");
+    case "subscription":
+      return mul * (a.subscription_status ?? "").toLowerCase().localeCompare((b.subscription_status ?? "").toLowerCase());
+    case "currentMonth":
+      return compareNullableNumber(a.current_month, b.current_month, asc);
+    case "equifax":
+      return compareNullableNumber(a.equifax_score, b.equifax_score, asc);
+    case "readiness":
+      return compareNullableNumber(a.readiness_percentage, b.readiness_percentage, asc);
+    case "lastActivity":
+      return compareNullableDate(a.last_activity, b.last_activity, asc);
+    case "staleBureau":
+      return mul * (Number(a.stale_bureau) - Number(b.stale_bureau));
+    case "graduationReady":
+      return mul * (Number(a.graduation_ready) - Number(b.graduation_ready));
+    case "actions":
+      return mul * (a.actions_completed - b.actions_completed);
+    default:
+      return 0;
+  }
+}
 
 export default function VaAdminPage() {
   const h = montserrat.className;
@@ -286,10 +370,14 @@ export default function VaAdminPage() {
   const [listVaFilter, setListVaFilter] = useState<string>("");
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState("");
-  const [deleteSuccess, setDeleteSuccess] = useState("");
   const [listRows, setListRows] = useState<ListRow[]>([]);
+  const [listSummary, setListSummary] = useState<ListSummary | null>(null);
   const [selectedClient, setSelectedClient] = useState<ListRow | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [clientSubscriptionFilter, setClientSubscriptionFilter] = useState<"all" | "active" | "trial" | "cancelled" | "inactive">("all");
+  const [clientStaleFilter, setClientStaleFilter] = useState<"all" | "stale" | "fresh">("all");
+  const [clientGraduationFilter, setClientGraduationFilter] = useState<"all" | "ready" | "not_ready">("all");
+  const [clientSortKey, setClientSortKey] = useState<ClientSortKey | null>(null);
+  const [clientSortDir, setClientSortDir] = useState<"asc" | "desc">("asc");
 
   const [reportingLoading, setReportingLoading] = useState(false);
   const [reportingError, setReportingError] = useState("");
@@ -412,16 +500,24 @@ export default function VaAdminPage() {
           assigned_va: listVaFilter || null,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; clients?: ListRow[]; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        summary?: ListSummary;
+        clients?: ListRow[];
+        error?: string;
+      };
       if (!res.ok) {
         setListError(data.error ?? "Failed to load clients.");
         setListRows([]);
+        setListSummary(null);
         return;
       }
+      setListSummary(data.summary ?? null);
       setListRows(data.clients ?? []);
     } catch {
       setListError("Network error.");
       setListRows([]);
+      setListSummary(null);
     } finally {
       setListLoading(false);
     }
@@ -493,6 +589,28 @@ export default function VaAdminPage() {
     opsSortDir,
   ]);
 
+  const displayedClientRows = useMemo(() => {
+    let rows = listRows;
+    if (clientSubscriptionFilter !== "all") {
+      rows = rows.filter((row) => (row.subscription_status ?? "").trim().toLowerCase() === clientSubscriptionFilter);
+    }
+    if (clientStaleFilter !== "all") {
+      rows = rows.filter((row) => (clientStaleFilter === "stale" ? row.stale_bureau : !row.stale_bureau));
+    }
+    if (clientGraduationFilter !== "all") {
+      rows = rows.filter((row) => (clientGraduationFilter === "ready" ? row.graduation_ready : !row.graduation_ready));
+    }
+    if (clientSortKey == null) return rows;
+    return [...rows].sort((a, b) => compareClientRows(a, b, clientSortKey, clientSortDir === "asc"));
+  }, [
+    listRows,
+    clientSubscriptionFilter,
+    clientStaleFilter,
+    clientGraduationFilter,
+    clientSortKey,
+    clientSortDir,
+  ]);
+
   const onOpsSortHeaderClick = useCallback((key: OpsSortKey) => {
     setOpsSortKey((prev) => {
       if (prev !== key) {
@@ -500,6 +618,17 @@ export default function VaAdminPage() {
         return key;
       }
       setOpsSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      return prev;
+    });
+  }, []);
+
+  const onClientSortHeaderClick = useCallback((key: ClientSortKey) => {
+    setClientSortKey((prev) => {
+      if (prev !== key) {
+        setClientSortDir("asc");
+        return key;
+      }
+      setClientSortDir((d) => (d === "asc" ? "desc" : "asc"));
       return prev;
     });
   }, []);
@@ -617,40 +746,6 @@ export default function VaAdminPage() {
     if (typeof g === "string") return g || "—";
     return "—";
   }, []);
-
-  const deleteClient = useCallback(
-    async (row: ListRow) => {
-      if (!portalPassword) return;
-      if (!window.confirm("Are you sure you want to delete this client?")) return;
-      setDeletingId(row.id);
-      setListError("");
-      setDeleteSuccess("");
-      try {
-        const res = await fetch("/api/admin/va-delete-client", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ portal_password: portalPassword, client_id: row.id }),
-        });
-        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
-        if (!res.ok || !data.ok) {
-          setListError(data.error ?? "Delete failed.");
-          return;
-        }
-        setDeleteSuccess(
-          typeof data.message === "string" && data.message.trim()
-            ? data.message.trim()
-            : "Client fully deleted from Supabase and Stripe",
-        );
-        setSelectedClient((prev) => (prev?.id === row.id ? null : prev));
-        await loadClients();
-      } catch {
-        setListError("Network error.");
-      } finally {
-        setDeletingId(null);
-      }
-    },
-    [portalPassword, loadClients],
-  );
 
   if (!unlocked) {
     return (
@@ -1179,36 +1274,101 @@ export default function VaAdminPage() {
                   </button>
                 </div>
               </div>
-              {deleteSuccess ? <p className="text-sm font-semibold text-emerald-700">{deleteSuccess}</p> : null}
               {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
+              {listSummary ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  {[
+                    { label: "Active clients", value: listSummary.active_clients },
+                    { label: "Trial clients", value: listSummary.trial_clients },
+                    { label: "Cancelled clients", value: listSummary.cancelled_clients },
+                    { label: "Stale bureau", value: listSummary.stale_bureau_count },
+                    { label: "Graduation-ready", value: listSummary.graduation_ready_count },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm" style={{ borderColor: "rgba(15,25,35,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wide opacity-60">{item.label}</p>
+                      <p className="mt-2 text-2xl font-bold tabular-nums" style={{ color: TEAL }}>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="text-sm">
+                  <span className="block text-xs font-semibold uppercase tracking-wide opacity-60">Subscription</span>
+                  <select
+                    value={clientSubscriptionFilter}
+                    onChange={(e) => setClientSubscriptionFilter(e.target.value as "all" | "active" | "trial" | "cancelled" | "inactive")}
+                    className="mt-1 rounded-xl border border-black/10 px-3 py-2 text-sm"
+                    style={{ color: NAVY }}
+                  >
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="trial">Trial</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block text-xs font-semibold uppercase tracking-wide opacity-60">Bureau</span>
+                  <select
+                    value={clientStaleFilter}
+                    onChange={(e) => setClientStaleFilter(e.target.value as "all" | "stale" | "fresh")}
+                    className="mt-1 rounded-xl border border-black/10 px-3 py-2 text-sm"
+                    style={{ color: NAVY }}
+                  >
+                    <option value="all">All</option>
+                    <option value="stale">Stale</option>
+                    <option value="fresh">Fresh</option>
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block text-xs font-semibold uppercase tracking-wide opacity-60">Graduation</span>
+                  <select
+                    value={clientGraduationFilter}
+                    onChange={(e) => setClientGraduationFilter(e.target.value as "all" | "ready" | "not_ready")}
+                    className="mt-1 rounded-xl border border-black/10 px-3 py-2 text-sm"
+                    style={{ color: NAVY }}
+                  >
+                    <option value="all">All</option>
+                    <option value="ready">Ready</option>
+                    <option value="not_ready">Not ready</option>
+                  </select>
+                </label>
+              </div>
               {listLoading ? (
                 <p className="text-sm opacity-70">Loading…</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+                  <table className="w-full min-w-[1320px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-black/10 text-xs font-semibold uppercase tracking-wide opacity-60">
-                        <th className="py-3 pr-3">Name</th>
-                        <th className="py-3 pr-3">Email</th>
-                        <th className="py-3 pr-3">Phone</th>
-                        <th className="py-3 pr-3">Goal</th>
-                        <th className="py-3 pr-3">Assigned VA</th>
-                        <th className="py-3 pr-3">Score</th>
-                        <th className="py-3 pr-3">Blueprint</th>
-                        <th className="py-3 pr-3">Created</th>
-                        <th className="py-3 pr-3">Readiness</th>
-                        <th className="py-3 w-14 text-center"> </th>
+                        {CLIENT_TABLE_COLUMNS.map((col) => {
+                          const active = clientSortKey === col.sortKey;
+                          return (
+                            <th key={col.sortKey} scope="col" className={col.className} aria-sort={active ? (clientSortDir === "asc" ? "ascending" : "descending") : undefined}>
+                              <button
+                                type="button"
+                                onClick={() => onClientSortHeaderClick(col.sortKey)}
+                                className="inline-flex items-baseline gap-0.5 text-left uppercase tracking-wide opacity-100 transition-opacity hover:opacity-80"
+                              >
+                                <span>{col.label}</span>
+                                {active ? <span aria-hidden>{clientSortDir === "asc" ? "↑" : "↓"}</span> : null}
+                              </button>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody>
-                      {listRows.length === 0 ? (
+                      {displayedClientRows.length === 0 ? (
                         <tr>
-                          <td colSpan={10} className="py-8 text-center opacity-60">
+                          <td colSpan={CLIENT_TABLE_COLUMNS.length} className="py-8 text-center opacity-60">
                             No clients found.
                           </td>
                         </tr>
                       ) : (
-                        listRows.map((row) => {
+                        displayedClientRows.map((row) => {
                           const selected = selectedClient?.id === row.id;
                           const tealRow =
                             row.auto_ready_alert
@@ -1233,32 +1393,33 @@ export default function VaAdminPage() {
                               <td className="py-3 pr-3 font-semibold">{row.full_name ?? "—"}</td>
                               <td className="py-3 pr-3">{row.email ?? "—"}</td>
                               <td className="py-3 pr-3 tabular-nums">{row.phone ?? "—"}</td>
-                              <td className="py-3 pr-3 max-w-[200px] truncate" title={row.primary_goal ?? undefined}>
-                                {row.primary_goal ?? "—"}
-                              </td>
-                              <td className="py-3 pr-3">{row.assigned_va ?? "—"}</td>
+                              <td className="py-3 pr-3">{row.subscription_status ?? "—"}</td>
+                              <td className="py-3 pr-3 tabular-nums">{row.current_month ?? "—"}</td>
                               <td className="py-3 pr-3 tabular-nums">
                                 {row.equifax_score !== null && row.equifax_score !== undefined ? row.equifax_score : "—"}
                               </td>
-                              <td className="py-3 pr-3">{row.blueprint_status}</td>
-                              <td className="py-3 pr-3 whitespace-nowrap">{formatDate(row.client_created_at)}</td>
                               <td className="py-3 pr-3">
                                 {row.readiness_percentage !== null ? `${row.readiness_percentage}%` : "—"}
                               </td>
-                              <td className="py-3 text-center">
-                                <button
-                                  type="button"
-                                  title="Delete client"
-                                  disabled={deletingId === row.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    void deleteClient(row);
-                                  }}
-                                  className="inline-flex size-8 items-center justify-center rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-                                  style={{ backgroundColor: "#c5221f" }}
-                                >
-                                  ×
-                                </button>
+                              <td className="py-3 pr-3 whitespace-nowrap">{formatDate(row.last_activity)}</td>
+                              <td className="py-3 pr-3">
+                                {row.stale_bureau ? (
+                                  <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">Stale</span>
+                                ) : (
+                                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Fresh</span>
+                                )}
+                              </td>
+                              <td className="py-3 pr-3">
+                                {row.graduation_ready ? (
+                                  <span className="rounded-full px-2 py-1 text-xs font-bold text-[#0F1923]" style={{ backgroundColor: TEAL }}>
+                                    Ready
+                                  </span>
+                                ) : (
+                                  <span className="text-xs opacity-50">—</span>
+                                )}
+                              </td>
+                              <td className="py-3 pr-3 tabular-nums">
+                                {row.top_actions_count > 0 ? `${row.actions_completed} / ${row.top_actions_count}` : row.actions_completed}
                               </td>
                             </tr>
                           );

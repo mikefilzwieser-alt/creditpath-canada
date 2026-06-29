@@ -12,10 +12,26 @@ import { isValidVaPortalPassword } from "@/lib/va-portal";
 
 export const runtime = "nodejs";
 
+const STALE_BUREAU_DAYS = 60;
+
 type Body = {
   portal_password?: string;
   assigned_va?: string | null;
 };
+
+function normalizeProgramMonth(raw: unknown): number {
+  if (typeof raw === "number" && Number.isFinite(raw)) return Math.max(1, Math.floor(raw));
+  return 1;
+}
+
+function latestIso(a: string | null | undefined, b: string | null | undefined): string | null {
+  const rawAt = a ? new Date(a).getTime() : 0;
+  const rawBt = b ? new Date(b).getTime() : 0;
+  const at = Number.isFinite(rawAt) ? rawAt : 0;
+  const bt = Number.isFinite(rawBt) ? rawBt : 0;
+  if (at <= 0 && bt <= 0) return null;
+  return bt > at ? (b ?? null) : (a ?? null);
+}
 
 export async function POST(request: Request) {
   let body: Body;
@@ -49,12 +65,36 @@ export async function POST(request: Request) {
   const list = clients ?? [];
   const ids = list.map((c) => c.id as string).filter(Boolean);
   if (ids.length === 0) {
-    return NextResponse.json({ ok: true, clients: [] });
+    return NextResponse.json({
+      ok: true,
+      summary: {
+        active_clients: 0,
+        trial_clients: 0,
+        cancelled_clients: 0,
+        stale_bureau_count: 0,
+        graduation_ready_count: 0,
+      },
+      clients: [],
+    });
+  }
+
+  const lastSignInById = new Map<string, string | null>();
+  const chunkSize = 40;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    await Promise.all(
+      chunk.map(async (uid) => {
+        const { data, error } = await admin.auth.admin.getUserById(uid);
+        if (!error && data?.user) {
+          lastSignInById.set(uid, data.user.last_sign_in_at ?? null);
+        }
+      }),
+    );
   }
 
   const { data: bps, error: bErr } = await admin
     .from("blueprints")
-    .select("id, client_id, status, blueprint_data, raw_parse_data, created_at")
+    .select("id, client_id, status, blueprint_data, raw_parse_data, created_at, current_month, bureau_uploaded_at")
     .in("client_id", ids)
     .order("created_at", { ascending: false });
 
@@ -70,6 +110,8 @@ export async function POST(request: Request) {
       blueprint_data: unknown;
       raw_parse_data: unknown;
       created_at: string;
+      current_month: number;
+      bureau_uploaded_at: string | null;
     }
   >();
   for (const row of bps ?? []) {
@@ -81,6 +123,11 @@ export async function POST(request: Request) {
         blueprint_data: row.blueprint_data,
         raw_parse_data: row.raw_parse_data,
         created_at: String(row.created_at ?? ""),
+        current_month: normalizeProgramMonth((row as { current_month?: number | null }).current_month),
+        bureau_uploaded_at:
+          typeof (row as { bureau_uploaded_at?: string | null }).bureau_uploaded_at === "string"
+            ? (row as { bureau_uploaded_at: string }).bureau_uploaded_at
+            : null,
       });
     }
   }
@@ -90,20 +137,28 @@ export async function POST(request: Request) {
     .filter((id) => id.length > 0);
 
   const completionCountByBlueprint = new Map<string, number>();
-  if (blueprintIds.length > 0) {
+  const latestCompletionByClient = new Map<string, string | null>();
+  if (ids.length > 0) {
     const { data: compRows, error: compErr } = await admin
       .from("action_completions")
-      .select("blueprint_id")
-      .in("blueprint_id", blueprintIds);
+      .select("client_id, blueprint_id, completed_at")
+      .in("client_id", ids);
     if (!compErr && compRows) {
       for (const r of compRows) {
         const bid = String((r as { blueprint_id?: string }).blueprint_id ?? "");
-        if (!bid) continue;
-        completionCountByBlueprint.set(bid, (completionCountByBlueprint.get(bid) ?? 0) + 1);
+        if (bid && blueprintIds.includes(bid)) {
+          completionCountByBlueprint.set(bid, (completionCountByBlueprint.get(bid) ?? 0) + 1);
+        }
+        const cid = String((r as { client_id?: string }).client_id ?? "");
+        const completedAt = (r as { completed_at?: string | null }).completed_at ?? null;
+        if (cid && completedAt) {
+          latestCompletionByClient.set(cid, latestIso(latestCompletionByClient.get(cid), completedAt));
+        }
       }
     }
   }
 
+  const now = Date.now();
   const rows = list.map((c) => {
     const bp = latestByClient.get(c.id as string);
     const bd = (bp?.blueprint_data ?? null) as Record<string, unknown> | null;
@@ -124,6 +179,16 @@ export async function POST(request: Request) {
     const blueprintId = bp?.id?.length ? bp.id : null;
     const actionsCompleted =
       blueprintId !== null ? (completionCountByBlueprint.get(blueprintId) ?? 0) : 0;
+    const currentMonth = bp?.current_month ?? null;
+    const bureauUploadedAt = bp?.bureau_uploaded_at ?? null;
+    const bureauUploadedMs = bureauUploadedAt ? new Date(bureauUploadedAt).getTime() : null;
+    const staleBureau =
+      bureauUploadedMs === null ||
+      !Number.isFinite(bureauUploadedMs) ||
+      now - bureauUploadedMs > STALE_BUREAU_DAYS * 24 * 60 * 60 * 1000;
+    const graduationReady = (readiness !== null && readiness >= 75) || (currentMonth !== null && currentMonth >= 22);
+    const cid = c.id as string;
+    const lastActivity = latestIso(lastSignInById.get(cid), latestCompletionByClient.get(cid));
 
     return {
       id: c.id,
@@ -139,6 +204,8 @@ export async function POST(request: Request) {
       blueprint_id: blueprintId,
       blueprint_status: bp?.status ?? "—",
       blueprint_created_at: bp?.created_at ?? null,
+      bureau_uploaded_at: bureauUploadedAt,
+      current_month: currentMonth,
       readiness_percentage: readiness,
       auto_ready_alert: autoReady,
       equifax_score: equifax,
@@ -146,8 +213,30 @@ export async function POST(request: Request) {
       utilization_percentage: utilPct,
       top_actions_count: topActionsCount,
       actions_completed: actionsCompleted,
+      last_activity: lastActivity,
+      stale_bureau: staleBureau,
+      graduation_ready: graduationReady,
     };
   });
 
-  return NextResponse.json({ ok: true, clients: rows });
+  const summary = rows.reduce(
+    (acc, row) => {
+      const status = String(row.subscription_status ?? "").toLowerCase();
+      if (status === "active") acc.active_clients += 1;
+      if (status === "trial") acc.trial_clients += 1;
+      if (status === "cancelled") acc.cancelled_clients += 1;
+      if (row.stale_bureau) acc.stale_bureau_count += 1;
+      if (row.graduation_ready) acc.graduation_ready_count += 1;
+      return acc;
+    },
+    {
+      active_clients: 0,
+      trial_clients: 0,
+      cancelled_clients: 0,
+      stale_bureau_count: 0,
+      graduation_ready_count: 0,
+    },
+  );
+
+  return NextResponse.json({ ok: true, summary, clients: rows });
 }
