@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { calculateMonthsClean } from "@/lib/calculate-months-clean";
 
 export type MonthlySnapshotRow = {
   id: string;
@@ -13,22 +14,14 @@ export type MonthlySnapshotRow = {
   created_at: string;
 };
 
-export type WriteMonthlySnapshotOptions = {
-  /**
-   * Program adherence signal supplied by the caller.
-   * Do not derive this from bureau deltas; we do not have reliable monthly bureau history.
-   */
-  stayedOnTrack: boolean;
-};
-
 type LatestBlueprintRow = {
   id: string;
   raw_parse_data: unknown;
+  created_at: string;
 };
 
 type PriorSnapshotRow = {
   streak_count?: number | null;
-  months_clean?: number | null;
 };
 
 function normalizeProgramMonth(programMonth: number): number {
@@ -56,7 +49,7 @@ function extractEquifaxScore(rawParseData: unknown): number | null {
 async function fetchLatestBlueprint(admin: SupabaseClient, clientId: string): Promise<LatestBlueprintRow> {
   const { data, error } = await admin
     .from("blueprints")
-    .select("id, raw_parse_data")
+    .select("id, raw_parse_data, created_at")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -75,7 +68,7 @@ async function fetchPriorSnapshot(
   if (programMonth <= 1) return null;
   const { data, error } = await admin
     .from("monthly_snapshots")
-    .select("streak_count, months_clean")
+    .select("streak_count")
     .eq("client_id", clientId)
     .eq("program_month", programMonth - 1)
     .maybeSingle();
@@ -117,7 +110,6 @@ export async function writeMonthlySnapshot(
   admin: SupabaseClient,
   clientId: string,
   programMonthRaw: number,
-  options: WriteMonthlySnapshotOptions,
 ): Promise<MonthlySnapshotRow> {
   const clientIdTrimmed = clientId.trim();
   if (!clientIdTrimmed) throw new Error("clientId is required.");
@@ -129,9 +121,8 @@ export async function writeMonthlySnapshot(
 
   const onTrack = isMonthOnTrack(completions, programMonth);
   const priorStreak = Math.max(0, Math.floor(priorSnapshot?.streak_count ?? 0));
-  const priorMonthsClean = Math.max(0, Math.floor(priorSnapshot?.months_clean ?? 0));
   const streakCount = onTrack ? priorStreak + 1 : 0;
-  const monthsClean = options.stayedOnTrack ? priorMonthsClean + 1 : priorMonthsClean;
+  const monthsClean = calculateMonthsClean(blueprint.created_at);
   const actionsCompletedTotal = completions.length;
   const equifaxScore = extractEquifaxScore(blueprint.raw_parse_data);
 

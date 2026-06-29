@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
+import { calculateMonthsClean } from "@/lib/calculate-months-clean";
 import { logPostgrestError } from "@/lib/log-postgrest-error";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
 import {
@@ -479,7 +480,7 @@ export default function ActionsV2Page() {
     return lateViaRating || lateViaColumns;
   });
   const hasCollectionsOnFile = collections.length > 0;
-  const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
+  const monthsClean = calculateMonthsClean(createdAt, new Date(nowMs));
   const daysInProgram =
     createdAt && Number.isFinite(createdAt.getTime())
       ? Math.max(0, Math.floor((nowMs - createdAt.getTime()) / (24 * 60 * 60 * 1000)))

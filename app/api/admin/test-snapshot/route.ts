@@ -10,7 +10,6 @@ type Body = {
   client_id?: string;
   blueprint_id?: string;
   program_month?: number;
-  stayedOnTrack?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -28,11 +27,10 @@ export async function POST(request: Request) {
   const clientId = typeof body.client_id === "string" ? body.client_id.trim() : "";
   const blueprintId = typeof body.blueprint_id === "string" ? body.blueprint_id.trim() : "";
   const programMonth = Number(body.program_month);
-  const stayedOnTrack = body.stayedOnTrack;
 
-  if (!clientId || !Number.isFinite(programMonth) || typeof stayedOnTrack !== "boolean") {
+  if (!clientId || !Number.isFinite(programMonth)) {
     return NextResponse.json(
-      { error: "client_id, program_month, and stayedOnTrack are required." },
+      { error: "client_id and program_month are required." },
       { status: 400 },
     );
   }
@@ -43,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const row = await writeMonthlySnapshot(admin, clientId, programMonth, { stayedOnTrack });
+    const row = await writeMonthlySnapshot(admin, clientId, programMonth);
     if (blueprintId && row.blueprint_id !== blueprintId) {
       return NextResponse.json(
         {

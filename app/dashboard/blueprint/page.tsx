@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useDashboardAuth } from "@/components/dashboard/DashboardShell";
+import { calculateMonthsClean } from "@/lib/calculate-months-clean";
 import { buildFoundationMonthActions, type MonthlyProgramAction } from "@/lib/monthly-program-actions";
 import {
   MAX_THEMED_PROGRAM_MONTH,
@@ -1240,7 +1241,7 @@ export default function BlueprintPage() {
           (new Date().getFullYear() - createdAt.getFullYear()) * 12 + (new Date().getMonth() - createdAt.getMonth()),
         )
       : 0;
-  const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
+  const monthsClean = calculateMonthsClean(createdAt);
   const topActionsTotal = monthlyProgramActions.length || 3;
   const readinessPercentage =
     typeof plan?.readiness_percentage === "number" && Number.isFinite(plan.readiness_percentage)
