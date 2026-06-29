@@ -13,6 +13,7 @@ import { isValidVaPortalPassword } from "@/lib/va-portal";
 export const runtime = "nodejs";
 
 const STALE_BUREAU_DAYS = 60;
+const RECENT_ACTIVITY_DAYS = 14;
 
 type Body = {
   portal_password?: string;
@@ -137,17 +138,27 @@ export async function POST(request: Request) {
     .filter((id) => id.length > 0);
 
   const completionCountByBlueprint = new Map<string, number>();
+  const completionIndexesByBlueprintMonth = new Map<string, Set<number>>();
   const latestCompletionByClient = new Map<string, string | null>();
   if (ids.length > 0) {
     const { data: compRows, error: compErr } = await admin
       .from("action_completions")
-      .select("client_id, blueprint_id, completed_at")
+      .select("client_id, blueprint_id, program_month, action_index, completed_at")
       .in("client_id", ids);
     if (!compErr && compRows) {
       for (const r of compRows) {
         const bid = String((r as { blueprint_id?: string }).blueprint_id ?? "");
         if (bid && blueprintIds.includes(bid)) {
           completionCountByBlueprint.set(bid, (completionCountByBlueprint.get(bid) ?? 0) + 1);
+          const programMonth = normalizeProgramMonth((r as { program_month?: number | null }).program_month);
+          const monthKey = `${bid}:${programMonth}`;
+          if (!completionIndexesByBlueprintMonth.has(monthKey)) {
+            completionIndexesByBlueprintMonth.set(monthKey, new Set<number>());
+          }
+          const actionIndex = (r as { action_index?: number | null }).action_index;
+          if (typeof actionIndex === "number" && Number.isFinite(actionIndex)) {
+            completionIndexesByBlueprintMonth.get(monthKey)?.add(actionIndex);
+          }
         }
         const cid = String((r as { client_id?: string }).client_id ?? "");
         const completedAt = (r as { completed_at?: string | null }).completed_at ?? null;
@@ -180,6 +191,10 @@ export async function POST(request: Request) {
     const actionsCompleted =
       blueprintId !== null ? (completionCountByBlueprint.get(blueprintId) ?? 0) : 0;
     const currentMonth = bp?.current_month ?? null;
+    const currentMonthActionsCompleted =
+      blueprintId !== null && currentMonth !== null
+        ? (completionIndexesByBlueprintMonth.get(`${blueprintId}:${currentMonth}`)?.size ?? 0)
+        : 0;
     const bureauUploadedAt = bp?.bureau_uploaded_at ?? null;
     const bureauUploadedMs = bureauUploadedAt ? new Date(bureauUploadedAt).getTime() : null;
     const staleBureau =
@@ -189,6 +204,17 @@ export async function POST(request: Request) {
     const graduationReady = (readiness !== null && readiness >= 75) || (currentMonth !== null && currentMonth >= 22);
     const cid = c.id as string;
     const lastActivity = latestIso(lastSignInById.get(cid), latestCompletionByClient.get(cid));
+    const lastActivityMs = lastActivity ? new Date(lastActivity).getTime() : null;
+    const recentlyActive =
+      lastActivityMs !== null &&
+      Number.isFinite(lastActivityMs) &&
+      now - lastActivityMs <= RECENT_ACTIVITY_DAYS * 24 * 60 * 60 * 1000;
+    const stalledStatus =
+      recentlyActive && currentMonthActionsCompleted === 0
+        ? "not_started"
+        : recentlyActive && currentMonthActionsCompleted > 0 && currentMonthActionsCompleted < 3
+          ? "partial"
+          : null;
 
     return {
       id: c.id,
@@ -213,9 +239,11 @@ export async function POST(request: Request) {
       utilization_percentage: utilPct,
       top_actions_count: topActionsCount,
       actions_completed: actionsCompleted,
+      current_month_actions_completed: currentMonthActionsCompleted,
       last_activity: lastActivity,
       stale_bureau: staleBureau,
       graduation_ready: graduationReady,
+      stalled_status: stalledStatus,
     };
   });
 

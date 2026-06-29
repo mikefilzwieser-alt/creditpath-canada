@@ -255,9 +255,11 @@ type ListRow = {
   utilization_percentage: number | null;
   top_actions_count: number;
   actions_completed: number;
+  current_month_actions_completed: number;
   last_activity: string | null;
   stale_bureau: boolean;
   graduation_ready: boolean;
+  stalled_status: "not_started" | "partial" | null;
 };
 
 type ListSummary = {
@@ -277,6 +279,7 @@ type ClientSortKey =
   | "equifax"
   | "readiness"
   | "lastActivity"
+  | "stalled"
   | "staleBureau"
   | "graduationReady"
   | "actions";
@@ -290,6 +293,7 @@ const CLIENT_TABLE_COLUMNS: Array<{ sortKey: ClientSortKey; label: string; class
   { sortKey: "equifax", label: "Score", className: "py-3 pr-3" },
   { sortKey: "readiness", label: "Readiness", className: "py-3 pr-3" },
   { sortKey: "lastActivity", label: "Last activity", className: "py-3 pr-3" },
+  { sortKey: "stalled", label: "Stalled", className: "py-3 pr-3" },
   { sortKey: "staleBureau", label: "Stale bureau", className: "py-3 pr-3" },
   { sortKey: "graduationReady", label: "Grad ready", className: "py-3 pr-3" },
   { sortKey: "actions", label: "Actions", className: "py-3 pr-3" },
@@ -307,6 +311,11 @@ function compareNullableDate(a: string | null | undefined, b: string | null | un
   const av = a ? Date.parse(a) : null;
   const bv = b ? Date.parse(b) : null;
   return compareNullableNumber(Number.isFinite(av) ? av : null, Number.isFinite(bv) ? bv : null, asc);
+}
+
+function phoneTelHref(phone: string | null | undefined): string | null {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? `tel:${digits}` : null;
 }
 
 function compareClientRows(a: ListRow, b: ListRow, key: ClientSortKey, asc: boolean): number {
@@ -328,6 +337,10 @@ function compareClientRows(a: ListRow, b: ListRow, key: ClientSortKey, asc: bool
       return compareNullableNumber(a.readiness_percentage, b.readiness_percentage, asc);
     case "lastActivity":
       return compareNullableDate(a.last_activity, b.last_activity, asc);
+    case "stalled": {
+      const order = { not_started: 2, partial: 1 };
+      return mul * ((order[a.stalled_status ?? ""] ?? 0) - (order[b.stalled_status ?? ""] ?? 0));
+    }
     case "staleBureau":
       return mul * (Number(a.stale_bureau) - Number(b.stale_bureau));
     case "graduationReady":
@@ -376,6 +389,7 @@ export default function VaAdminPage() {
   const [clientSubscriptionFilter, setClientSubscriptionFilter] = useState<"all" | "active" | "trial" | "cancelled" | "inactive">("all");
   const [clientStaleFilter, setClientStaleFilter] = useState<"all" | "stale" | "fresh">("all");
   const [clientGraduationFilter, setClientGraduationFilter] = useState<"all" | "ready" | "not_ready">("all");
+  const [clientStalledFilter, setClientStalledFilter] = useState<"all" | "not_started" | "partial">("all");
   const [clientSortKey, setClientSortKey] = useState<ClientSortKey | null>(null);
   const [clientSortDir, setClientSortDir] = useState<"asc" | "desc">("asc");
 
@@ -600,6 +614,9 @@ export default function VaAdminPage() {
     if (clientGraduationFilter !== "all") {
       rows = rows.filter((row) => (clientGraduationFilter === "ready" ? row.graduation_ready : !row.graduation_ready));
     }
+    if (clientStalledFilter !== "all") {
+      rows = rows.filter((row) => row.stalled_status === clientStalledFilter);
+    }
     if (clientSortKey == null) return rows;
     return [...rows].sort((a, b) => compareClientRows(a, b, clientSortKey, clientSortDir === "asc"));
   }, [
@@ -607,6 +624,7 @@ export default function VaAdminPage() {
     clientSubscriptionFilter,
     clientStaleFilter,
     clientGraduationFilter,
+    clientStalledFilter,
     clientSortKey,
     clientSortDir,
   ]);
@@ -1335,6 +1353,19 @@ export default function VaAdminPage() {
                     <option value="not_ready">Not ready</option>
                   </select>
                 </label>
+                <label className="text-sm">
+                  <span className="block text-xs font-semibold uppercase tracking-wide opacity-60">Stalled</span>
+                  <select
+                    value={clientStalledFilter}
+                    onChange={(e) => setClientStalledFilter(e.target.value as "all" | "not_started" | "partial")}
+                    className="mt-1 rounded-xl border border-black/10 px-3 py-2 text-sm"
+                    style={{ color: NAVY }}
+                  >
+                    <option value="all">All</option>
+                    <option value="not_started">Not started</option>
+                    <option value="partial">Partial</option>
+                  </select>
+                </label>
               </div>
               {listLoading ? (
                 <p className="text-sm opacity-70">Loading…</p>
@@ -1392,7 +1423,20 @@ export default function VaAdminPage() {
                             >
                               <td className="py-3 pr-3 font-semibold">{row.full_name ?? "—"}</td>
                               <td className="py-3 pr-3">{row.email ?? "—"}</td>
-                              <td className="py-3 pr-3 tabular-nums">{row.phone ?? "—"}</td>
+                              <td className="py-3 pr-3 tabular-nums">
+                                {phoneTelHref(row.phone) ? (
+                                  <a
+                                    href={phoneTelHref(row.phone) ?? undefined}
+                                    className="font-semibold underline underline-offset-2"
+                                    style={{ color: TEAL }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {row.phone}
+                                  </a>
+                                ) : (
+                                  (row.phone ?? "—")
+                                )}
+                              </td>
                               <td className="py-3 pr-3">{row.subscription_status ?? "—"}</td>
                               <td className="py-3 pr-3 tabular-nums">{row.current_month ?? "—"}</td>
                               <td className="py-3 pr-3 tabular-nums">
@@ -1402,6 +1446,19 @@ export default function VaAdminPage() {
                                 {row.readiness_percentage !== null ? `${row.readiness_percentage}%` : "—"}
                               </td>
                               <td className="py-3 pr-3 whitespace-nowrap">{formatDate(row.last_activity)}</td>
+                              <td className="py-3 pr-3">
+                                {row.stalled_status === "not_started" ? (
+                                  <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
+                                    Not started
+                                  </span>
+                                ) : row.stalled_status === "partial" ? (
+                                  <span className="rounded-full px-2 py-1 text-xs font-bold text-[#0F1923]" style={{ backgroundColor: TEAL }}>
+                                    Partial — 1 step away
+                                  </span>
+                                ) : (
+                                  <span className="text-xs opacity-50">—</span>
+                                )}
+                              </td>
                               <td className="py-3 pr-3">
                                 {row.stale_bureau ? (
                                   <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">Stale</span>
