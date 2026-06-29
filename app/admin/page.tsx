@@ -338,8 +338,10 @@ function compareClientRows(a: ListRow, b: ListRow, key: ClientSortKey, asc: bool
     case "lastActivity":
       return compareNullableDate(a.last_activity, b.last_activity, asc);
     case "stalled": {
-      const order = { not_started: 2, partial: 1 };
-      return mul * ((order[a.stalled_status ?? ""] ?? 0) - (order[b.stalled_status ?? ""] ?? 0));
+      const order: Record<NonNullable<ListRow["stalled_status"]>, number> = { not_started: 2, partial: 1 };
+      const aRank = a.stalled_status ? order[a.stalled_status] : 0;
+      const bRank = b.stalled_status ? order[b.stalled_status] : 0;
+      return mul * (aRank - bRank);
     }
     case "staleBureau":
       return mul * (Number(a.stale_bureau) - Number(b.stale_bureau));
