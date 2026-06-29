@@ -188,7 +188,7 @@ export async function POST(request: Request) {
         if (customerId) {
           await admin
             .from("clients")
-            .update({ subscription_status: "inactive", access_until: null })
+            .update({ subscription_status: "cancelled", access_until: null })
             .eq("stripe_customer_id", customerId);
         }
         break;
