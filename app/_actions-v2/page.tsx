@@ -258,6 +258,7 @@ export default function ActionsV2Page() {
   const [blueprintLoading, setBlueprintLoading] = useState(true);
   const [completedSet, setCompletedSet] = useState<Set<number>>(new Set());
   const completionsRef = useRef<Set<number>>(new Set());
+  const [actionsCompletedTotal, setActionsCompletedTotal] = useState(0);
   const [enrolledAt, setEnrolledAt] = useState<string | null>(null);
   const [brandonDismissed, setBrandonDismissed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("brandon_card_dismissed") === "true",
@@ -331,6 +332,7 @@ export default function ActionsV2Page() {
         const empty = new Set<number>();
         completionsRef.current = empty;
         setCompletedSet(empty);
+        setActionsCompletedTotal(0);
       });
       return;
     }
@@ -339,10 +341,9 @@ export default function ActionsV2Page() {
     void (async () => {
       const { data, error: qErr } = await supabase
         .from("action_completions")
-        .select("action_index")
+        .select("program_month, action_index")
         .eq("client_id", user.id)
-        .eq("blueprint_id", blueprint.id)
-        .eq("program_month", programMonth);
+        .eq("blueprint_id", blueprint.id);
       if (cancelled) return;
       if (qErr) {
         logPostgrestError("[actions-v2] action_completions select failed", qErr, {
@@ -353,16 +354,21 @@ export default function ActionsV2Page() {
         const empty = new Set<number>();
         completionsRef.current = empty;
         setCompletedSet(empty);
+        setActionsCompletedTotal(0);
         return;
       }
       const indexes = new Set<number>();
-      for (const row of (data ?? []) as Array<{ action_index?: number | null }>) {
+      const rows = (data ?? []) as Array<{ program_month?: number | null; action_index?: number | null }>;
+      for (const row of rows) {
+        const rowMonth = typeof row.program_month === "number" && Number.isFinite(row.program_month) ? row.program_month : 1;
+        if (rowMonth !== programMonth) continue;
         if (typeof row.action_index === "number" && Number.isFinite(row.action_index)) {
           indexes.add(row.action_index);
         }
       }
       completionsRef.current = indexes;
       setCompletedSet(indexes);
+      setActionsCompletedTotal(rows.length);
     })();
     return () => {
       cancelled = true;
@@ -473,12 +479,17 @@ export default function ActionsV2Page() {
       parseNumberLike(t?.late_30) > 0 || parseNumberLike(t?.late_60) > 0 || parseNumberLike(t?.late_90) > 0;
     return lateViaRating || lateViaColumns;
   });
-  const hasCollections = collections.length > 0;
+  const hasCollectionsOnFile = collections.length > 0;
+  const monthsClean = hasAnyLate || hasCollectionsOnFile ? 0 : monthsElapsed;
+  const daysInProgram =
+    createdAt && Number.isFinite(createdAt.getTime())
+      ? Math.max(0, Math.floor((nowMs - createdAt.getTime()) / (24 * 60 * 60 * 1000)))
+      : 0;
   const revolvingNetworkCount =
     typeof plan?.credit_cards_reporting === "number" && Number.isFinite(plan.credit_cards_reporting)
       ? Math.max(0, Math.floor(plan.credit_cards_reporting))
       : tradelines.filter(isNetworkCard).length;
-  const estimatedGain = !hasAnyLate && !hasCollections ? Math.min(80, monthsElapsed * 8) : 0;
+  const estimatedGain = !hasAnyLate && !hasCollectionsOnFile ? Math.min(80, monthsElapsed * 8) : 0;
   const estimatedScore =
     equifaxScore !== null ? Math.min(900, Math.max(300, Math.round(equifaxScore + estimatedGain))) : null;
   const estimatedRangeStart = estimatedScore;
@@ -576,6 +587,7 @@ export default function ActionsV2Page() {
           next.delete(index);
           return next;
         });
+        setActionsCompletedTotal((prev) => Math.max(0, prev - 1));
         void runSyncProgress();
         return;
       }
@@ -601,6 +613,7 @@ export default function ActionsV2Page() {
         return;
       }
       setCompletedSet((prev) => new Set([...prev, index]));
+      setActionsCompletedTotal((prev) => prev + 1);
       const nextCompleted = new Set([...completionsRef.current]);
       nextCompleted.add(index);
       const allDoneNow = [0, 1, 2].every((i) => nextCompleted.has(i)) && monthlyProgramActions.length >= 3;
@@ -922,6 +935,54 @@ export default function ActionsV2Page() {
               </>
             ) : null}
           </div>
+        </section>
+      ) : null}
+
+      {hasBlueprint ? (
+        <section className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: NAVY, color: "#E9F5F3" }}>
+          <h2 className={`text-lg font-extrabold ${h}`}>Your Progress</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: "🛡️",
+                label: "Months clean",
+                value: monthsClean,
+                sublabel: "No new damage",
+              },
+              {
+                icon: "✓✓",
+                label: "Actions completed",
+                value: actionsCompletedTotal,
+                sublabel: "Since you started",
+              },
+              {
+                icon: "⏳",
+                label: "Days in the program",
+                value: daysInProgram,
+                sublabel: "Building your file",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4"
+              >
+                <div className="flex items-center gap-2 text-sm font-bold text-white/80">
+                  <span aria-hidden>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <p className={`mt-3 text-3xl font-extrabold tabular-nums ${h}`} style={{ color: TEAL }}>
+                  {item.value}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-white/55">{item.sublabel}</p>
+              </div>
+            ))}
+          </div>
+          <p
+            className="mt-4 rounded-xl border px-4 py-3 text-sm font-semibold leading-relaxed"
+            style={{ borderColor: "rgba(0, 201, 167, 0.45)", backgroundColor: "rgba(0, 201, 167, 0.12)", color: "#E9F5F3" }}
+          >
+            This is exactly what the banks want to see. Keep going — you&apos;re building the file that gets you approved.
+          </p>
         </section>
       ) : null}
 
