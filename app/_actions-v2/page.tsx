@@ -883,54 +883,6 @@ export default function ActionsV2Page() {
       ) : null}
 
       {hasBlueprint ? (
-        <section className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: NAVY, color: "#E9F5F3" }}>
-          <h2 className={`text-lg font-extrabold ${h}`}>Your Progress</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            {[
-              {
-                icon: "🛡️",
-                label: "Months clean",
-                value: monthsClean,
-                sublabel: "No new damage",
-              },
-              {
-                icon: "✓✓",
-                label: "Actions completed",
-                value: actionsCompletedTotal,
-                sublabel: "Since you started",
-              },
-              {
-                icon: "⏳",
-                label: "Days in the program",
-                value: daysInProgram,
-                sublabel: "Building your file",
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4"
-              >
-                <div className="flex items-center gap-2 text-sm font-bold text-white/80">
-                  <span aria-hidden>{item.icon}</span>
-                  <span>{item.label}</span>
-                </div>
-                <p className={`mt-3 text-3xl font-extrabold tabular-nums ${h}`} style={{ color: TEAL }}>
-                  {item.value}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-white/55">{item.sublabel}</p>
-              </div>
-            ))}
-          </div>
-          <p
-            className="mt-4 rounded-xl border px-4 py-3 text-sm font-semibold leading-relaxed"
-            style={{ borderColor: "rgba(0, 201, 167, 0.45)", backgroundColor: "rgba(0, 201, 167, 0.12)", color: "#E9F5F3" }}
-          >
-            This is exactly what the banks want to see. Keep going — you&apos;re building the file that gets you approved.
-          </p>
-        </section>
-      ) : null}
-
-      {hasBlueprint ? (
         <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:p-5">
           <div className="flex flex-col gap-1">
             <h2 className={`text-lg font-bold ${h}`}>
@@ -1026,6 +978,54 @@ export default function ActionsV2Page() {
           </div>
         </section>
       )}
+
+      {hasBlueprint ? (
+        <section className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: NAVY, color: "#E9F5F3" }}>
+          <h2 className={`text-lg font-extrabold ${h}`}>Your Progress</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: "🛡️",
+                label: "Months clean",
+                value: monthsClean,
+                sublabel: "No new damage",
+              },
+              {
+                icon: "✓✓",
+                label: "Actions completed",
+                value: actionsCompletedTotal,
+                sublabel: "Since you started",
+              },
+              {
+                icon: "⏳",
+                label: "Days in the program",
+                value: daysInProgram,
+                sublabel: "Building your file",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4"
+              >
+                <div className="flex items-center gap-2 text-sm font-bold text-white/80">
+                  <span aria-hidden>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <p className={`mt-3 text-3xl font-extrabold tabular-nums ${h}`} style={{ color: TEAL }}>
+                  {item.value}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-white/55">{item.sublabel}</p>
+              </div>
+            ))}
+          </div>
+          <p
+            className="mt-4 rounded-xl border px-4 py-3 text-sm font-semibold leading-relaxed"
+            style={{ borderColor: "rgba(0, 201, 167, 0.45)", backgroundColor: "rgba(0, 201, 167, 0.12)", color: "#E9F5F3" }}
+          >
+            This is exactly what the banks want to see. Keep going — you&apos;re building the file that gets you approved.
+          </p>
+        </section>
+      ) : null}
 
       <section className="rounded-xl border-l-4 p-4 shadow-sm" style={{ backgroundColor: NAVY, borderLeftColor: TEAL }} role="alert">
         <p className="text-sm font-bold leading-relaxed" style={{ color: "#B45309" }}>
