@@ -989,7 +989,7 @@ export default function ActionsV2Page() {
       {hasBlueprint ? (
         <section id="monthly-actions" className="rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:p-5">
           <div className="flex flex-col gap-1">
-            <h2 className={`text-lg font-extrabold ${h}`}>
+            <h2 className={`text-lg font-bold ${h}`}>
               Month {currentMonth} — {getProgramMonthThemeTitle(currentMonth)}
             </h2>
             <p className="text-[13px] font-medium text-[#0F1923]/60 sm:text-sm">Check each off as you go.</p>
@@ -1101,7 +1101,7 @@ export default function ActionsV2Page() {
       </section>
 
       <details className="space-y-4" style={{ color: NAVY }}>
-        <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 text-lg font-extrabold ${h}`}>
+        <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 text-lg font-bold ${h}`}>
           <span>Recommended credit products</span>
           <span aria-hidden style={{ color: TEAL }}>+</span>
         </summary>
@@ -1115,7 +1115,7 @@ export default function ActionsV2Page() {
               className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white px-3 py-3 shadow-sm"
             >
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-extrabold" style={{ color: NAVY }}>
+                <h3 className={`truncate text-sm font-bold ${h}`} style={{ color: NAVY }}>
                   {product.name}
                 </h3>
                 {product.name === "Tangerine Money-Back Credit Card" ? (
@@ -1140,7 +1140,7 @@ export default function ActionsV2Page() {
           {CREDIT_PRODUCT_OFFERS.map((product) => (
             <div key={product.name} className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
               <div className="min-w-0 flex-1">
-                <h3 className="text-base font-extrabold" style={{ color: NAVY }}>
+                <h3 className={`text-base font-bold ${h}`} style={{ color: NAVY }}>
                   {product.name}
                 </h3>
                 <p className="mt-2 text-sm font-medium leading-relaxed text-[#0F1923]/65">{product.description}</p>
