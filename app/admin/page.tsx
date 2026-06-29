@@ -338,7 +338,7 @@ function compareClientRows(a: ListRow, b: ListRow, key: ClientSortKey, asc: bool
     case "lastActivity":
       return compareNullableDate(a.last_activity, b.last_activity, asc);
     case "stalled": {
-      const order: Record<NonNullable<ListRow["stalled_status"]>, number> = { not_started: 2, partial: 1 };
+      const order = { not_started: 2, partial: 1 } satisfies Record<NonNullable<ListRow["stalled_status"]>, number>;
       const aRank = a.stalled_status ? order[a.stalled_status] : 0;
       const bRank = b.stalled_status ? order[b.stalled_status] : 0;
       return mul * (aRank - bRank);
