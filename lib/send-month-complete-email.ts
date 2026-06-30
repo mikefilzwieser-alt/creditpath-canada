@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { buildEmailFooter } from "@/lib/email-footer";
 
 export type MonthCompleteEmailResult =
   | { sent: true }
@@ -14,7 +15,7 @@ function escapeHtml(s: string): string {
 
 export async function sendMonthCompleteEmail(
   to: string,
-  args: { name: string; month: number; nextMonth: number; daysRemaining: number },
+  args: { name: string; month: number; nextMonth: number; daysRemaining: number; unsubscribeUrl: string },
 ): Promise<MonthCompleteEmailResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -24,7 +25,7 @@ export async function sendMonthCompleteEmail(
   const resend = new Resend(apiKey);
   const from = process.env.RESEND_FROM?.trim() ?? "Credit Path Canada <onboarding@resend.dev>";
 
-  const { name, month, nextMonth, daysRemaining } = args;
+  const { name, month, nextMonth, daysRemaining, unsubscribeUrl } = args;
   const html = `
 <div style="font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
 
@@ -85,11 +86,7 @@ export async function sendMonthCompleteEmail(
 
   </div>
 
-  <!-- FOOTER -->
-  <div style="background:#F8F6F1;padding:16px 40px;border-radius:0 0 16px 16px;text-align:center;">
-    <p style="margin:0;font-size:10px;color:#9CA3AF;">Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color:#00C9A7;text-decoration:none;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#9CA3AF;">Credit Path Canada provides educational credit guidance only. We are not a licensed credit repair agency or financial advisor.</p>
-  </div>
+${buildEmailFooter(unsubscribeUrl)}
 
 </div>`;
 

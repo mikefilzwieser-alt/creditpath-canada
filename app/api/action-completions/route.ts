@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendMonthCompleteEmail } from "@/lib/send-month-complete-email";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 export const runtime = "nodejs";
 
@@ -150,7 +151,8 @@ export async function POST(request: Request) {
     if (user.email) {
       const fullName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : undefined;
       const name = firstNameFromMetadata(fullName, user.email);
-      await sendMonthCompleteEmail(user.email, { name, month, nextMonth, daysRemaining });
+      const unsubscribeUrl = generateUnsubscribeUrl(user.id);
+      await sendMonthCompleteEmail(user.email, { name, month, nextMonth, daysRemaining, unsubscribeUrl });
     }
   }
 

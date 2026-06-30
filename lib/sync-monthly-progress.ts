@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateMonthlyPlanWithClaude } from "@/lib/generate-monthly-plan-claude";
 import { getProgramMonthThemeTitle, MAX_THEMED_PROGRAM_MONTH, normalizeProgramMonth } from "@/lib/monthly-progression-themes";
 import { sendMonthUnlockEmail } from "@/lib/send-month-unlock-email";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 const TWENTY_EIGHT_DAYS_MS = 28 * 24 * 60 * 60 * 1000;
 
@@ -184,7 +185,8 @@ export async function syncMonthlyProgressForUser(
           .eq("id", userId)
           .maybeSingle();
         if (clientRow?.email) {
-          await sendMonthUnlockEmail(clientRow.email, clientRow.full_name ?? "", nextMonth);
+          const unsubscribeUrl = generateUnsubscribeUrl(userId);
+          await sendMonthUnlockEmail(clientRow.email, clientRow.full_name ?? "", nextMonth, unsubscribeUrl);
         }
       } catch {
         // Non-critical — swallow error

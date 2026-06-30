@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { wrapCpcEmailHtml, escapeHtml } from "@/lib/email-layout-cpc";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { isEligibleForMarketingEmail } from "@/lib/email-eligibility";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 export const runtime = "nodejs";
 
@@ -62,7 +64,8 @@ async function runDrip(request: Request) {
 
   const { data: clients, error: listErr } = await admin
     .from("clients")
-    .select("id, created_at, email_drip_brandon_day3_sent_at, email_drip_eq_day7_sent_at");
+    .select("id, created_at, subscription_status, unsubscribed_at, email_drip_brandon_day3_sent_at, email_drip_eq_day7_sent_at")
+    .in("subscription_status", ["active", "trial"]);
 
   if (listErr) {
     console.error("[email-drip] clients select failed", listErr.message);
@@ -75,6 +78,11 @@ async function runDrip(request: Request) {
     const dayDiff = utcDayDiff(createdAt, now);
 
     if (dayDiff === 3 && !row.email_drip_brandon_day3_sent_at) {
+      if (!isEligibleForMarketingEmail(row)) {
+        (log.brandon as unknown[]).push({ id, ok: false, reason: "not eligible" });
+        continue;
+      }
+      const unsubscribeUrl = generateUnsubscribeUrl(id);
       const { data: userData, error: userErr } = await admin.auth.admin.getUserById(id);
       if (userErr || !userData?.user?.email) {
         (log.brandon as unknown[]).push({ id, ok: false, reason: userErr?.message ?? "no email" });
@@ -91,7 +99,7 @@ async function runDrip(request: Request) {
       <a href="https://calendly.com/brandonkirk/" style="background:#00C9A7;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Book Your Free Session →</a>
     </p>
     <p>— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Founder, Credit Path Canada</span></p>`;
-      const html = wrapCpcEmailHtml("A free resource for Credit Path Canada members", inner);
+      const html = wrapCpcEmailHtml("A free resource for Credit Path Canada members", inner, unsubscribeUrl);
       const { error: sendErr } = await resend.emails.send({
         from,
         to: [email],
@@ -116,6 +124,11 @@ async function runDrip(request: Request) {
     }
 
     if (dayDiff === 7 && !row.email_drip_eq_day7_sent_at) {
+      if (!isEligibleForMarketingEmail(row)) {
+        (log.eq as unknown[]).push({ id, ok: false, reason: "not eligible" });
+        continue;
+      }
+      const unsubscribeUrl = generateUnsubscribeUrl(id);
       const { data: userData, error: userErr } = await admin.auth.admin.getUserById(id);
       if (userErr || !userData?.user?.email) {
         (log.eq as unknown[]).push({ id, ok: false, reason: userErr?.message ?? "no email" });
@@ -131,7 +144,7 @@ async function runDrip(request: Request) {
       <a href="https://join.eqbank.ca/?code=MICHAEL1577" style="background:#00C9A7;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Get EQ Bank Card →</a>
     </p>
     <p>— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Founder, Credit Path Canada</span></p>`;
-      const html = wrapCpcEmailHtml("One of the fastest ways to build your credit history", inner);
+      const html = wrapCpcEmailHtml("One of the fastest ways to build your credit history", inner, unsubscribeUrl);
       const { error: sendErr } = await resend.emails.send({
         from,
         to: [email],

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { buildEmailFooter } from "@/lib/email-footer";
 
 const LOGO_URL = "https://www.creditpathcanada.ca/Teal%20Logo.png";
 const SIGNATURE_URL = "https://www.creditpathcanada.ca/sig.jpg";
@@ -11,7 +12,7 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export async function sendBrandonEmail(to: string, name: string): Promise<BrandonEmailResult> {
+export async function sendBrandonEmail(to: string, name: string, unsubscribeUrl: string): Promise<BrandonEmailResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return { sent: false, reason: "missing_api_key" };
 
@@ -61,11 +62,8 @@ export async function sendBrandonEmail(to: string, name: string): Promise<Brando
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <div style="background:#F8F6F1;padding:16px 40px;border-radius:0 0 16px 16px;text-align:center;">
-    <p style="margin:0;font-size:10px;color:#9CA3AF;">Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color:#00C9A7;text-decoration:none;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#9CA3AF;">Credit Path Canada provides educational credit guidance only. We are not a licensed credit repair agency or financial advisor.</p>
-  </div>
+${buildEmailFooter(unsubscribeUrl)}
+
 </div>`;
 
   const { error } = await resend.emails.send({ from, to: [to.trim()], subject, html });

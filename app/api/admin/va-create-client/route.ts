@@ -5,6 +5,7 @@ import { sendCpcWelcomeEmail } from "@/lib/send-cpc-welcome-email";
 import { sendBlueprintReadyEmail } from "@/lib/send-blueprint-ready-email";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 export const runtime = "nodejs";
 
@@ -147,12 +148,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: genResult.error }, { status: 502 });
   }
 
+  const unsubscribeUrl = generateUnsubscribeUrl(userId);
+
   console.info("[va-create-client] cpc welcome email send start", {
     userId,
     email,
     blueprint_id: parseResult.blueprintId,
   });
-  const welcomeResult = await sendCpcWelcomeEmail(email, full_name, temporaryPassword);
+  const welcomeResult = await sendCpcWelcomeEmail(email, full_name, temporaryPassword, unsubscribeUrl);
   console.info("[va-create-client] cpc welcome email send result", {
     userId,
     sent: welcomeResult.sent,
@@ -167,7 +170,7 @@ export async function POST(request: Request) {
     email,
     blueprint_id: parseResult.blueprintId,
   });
-  const blueprintReadyResult = await sendBlueprintReadyEmail(email, full_name);
+  const blueprintReadyResult = await sendBlueprintReadyEmail(email, full_name, unsubscribeUrl);
   console.info("[va-create-client] blueprint ready email send result", {
     userId,
     sent: blueprintReadyResult.sent,

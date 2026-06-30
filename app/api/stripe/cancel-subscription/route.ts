@@ -3,9 +3,23 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getStripe } from "@/lib/stripe-server";
 import { sendWinbackEmail } from "@/lib/send-winback-email";
+import { isEligibleForWinbackEmail } from "@/lib/email-eligibility";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function maybeSendWinbackEmail(admin: SupabaseClient, userId: string): Promise<void> {
+  const { data } = await admin
+    .from("clients")
+    .select("full_name, email, unsubscribed_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!data?.email || !isEligibleForWinbackEmail(data)) return;
+  const unsubscribeUrl = generateUnsubscribeUrl(userId);
+  void sendWinbackEmail(data.email, data.full_name ?? "", unsubscribeUrl).catch(() => null);
+}
 
 export async function POST() {
   console.log("[cancel-subscription] Step 0: start");
@@ -90,10 +104,7 @@ export async function POST() {
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
     }
-    const clientData2 = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
-    if (clientData2.data?.email) {
-      void sendWinbackEmail(clientData2.data.email, clientData2.data.full_name ?? "").catch(() => null);
-    }
+    await maybeSendWinbackEmail(admin, user.id);
     return NextResponse.json({ ok: true });
   }
 
@@ -103,10 +114,7 @@ export async function POST() {
     if (!r.ok) {
       return NextResponse.json({ error: r.message }, { status: 500 });
     }
-    const clientData2 = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
-    if (clientData2.data?.email) {
-      void sendWinbackEmail(clientData2.data.email, clientData2.data.full_name ?? "").catch(() => null);
-    }
+    await maybeSendWinbackEmail(admin, user.id);
     return NextResponse.json({ ok: true });
   }
 
@@ -180,11 +188,7 @@ export async function POST() {
 
     console.log("[cancel-subscription] Step 6: success — Stripe + DB updated");
 
-    // Fire win-back email
-    const clientData = await admin.from("clients").select("full_name, email").eq("id", user.id).maybeSingle();
-    if (clientData.data?.email) {
-      void sendWinbackEmail(clientData.data.email, clientData.data.full_name ?? "").catch(() => null);
-    }
+    await maybeSendWinbackEmail(admin, user.id);
 
     return NextResponse.json({ ok: true });
   } catch (e) {

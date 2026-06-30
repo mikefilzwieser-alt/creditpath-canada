@@ -5,6 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeAppliedPromoCode } from "@/lib/dashboard-access";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getStripe } from "@/lib/stripe-server";
+import { buildEmailFooter } from "@/lib/email-footer";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 function escapeHtml(s: string): string {
   return s
@@ -40,6 +42,7 @@ async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): 
     process.env.RESEND_FROM?.trim() ?? "Credit Path Canada <onboarding@resend.dev>";
 
   const greetingName = fullNameRaw ? escapeHtml(fullNameRaw) : "there";
+  const unsubscribeUrl = generateUnsubscribeUrl(userId);
 
   const html = `<div style="font-family: 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; color: #0F1923;">
   <div style="background: #00C9A7; padding: 24px; text-align: center;">
@@ -66,9 +69,7 @@ async function sendCheckoutWelcomeEmail(admin: SupabaseClient, userId: string): 
       <p style="margin-top: 16px;">— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Founder, Credit Path Canada<br>(604) 442-0894 · info@creditpathcanada.ca</span></p>
     </div>
   </div>
-  <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-    Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color: #00C9A7;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6
-  </div>
+${buildEmailFooter(unsubscribeUrl)}
 </div>`;
 
   const { error } = await resend.emails.send({

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { sendCpcWelcomeEmail } from "@/lib/send-cpc-welcome-email";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 export const runtime = "nodejs";
 
@@ -32,7 +34,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "to, full_name, and temporary_password are required." }, { status: 400 });
   }
 
-  const result = await sendCpcWelcomeEmail(to, full_name, temporary_password);
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: "Server is not configured for admin database access." }, { status: 503 });
+  }
+
+  const { data: clientRow, error: clientErr } = await admin
+    .from("clients")
+    .select("id")
+    .eq("email", to)
+    .maybeSingle();
+
+  if (clientErr || !clientRow?.id) {
+    return NextResponse.json({ error: "Client not found for that email." }, { status: 404 });
+  }
+
+  const unsubscribeUrl = generateUnsubscribeUrl(clientRow.id);
+  const result = await sendCpcWelcomeEmail(to, full_name, temporary_password, unsubscribeUrl);
   if (!result.sent) {
     const status = result.reason === "missing_api_key" ? 503 : 502;
     return NextResponse.json(

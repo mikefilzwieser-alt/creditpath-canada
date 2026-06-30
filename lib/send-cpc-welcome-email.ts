@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { buildEmailFooter } from "@/lib/email-footer";
 
 const LOGIN_URL = "https://creditpathcanada.ca/login";
 
@@ -13,6 +14,7 @@ export async function sendCpcWelcomeEmail(
   to: string,
   fullName: string,
   temporaryPassword: string,
+  unsubscribeUrl: string,
 ): Promise<CpcWelcomeEmailResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -94,11 +96,7 @@ export async function sendCpcWelcomeEmail(
 
   </div>
 
-  <!-- FOOTER -->
-  <div style="background:#F8F6F1;padding:16px 40px;border-radius:0 0 16px 16px;text-align:center;">
-    <p style="margin:0;font-size:10px;color:#9CA3AF;">Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color:#00C9A7;text-decoration:none;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#9CA3AF;">Credit Path Canada provides educational credit guidance only. We are not a licensed credit repair agency or financial advisor.</p>
-  </div>
+${buildEmailFooter(unsubscribeUrl)}
 
 </div>`.trim();
 

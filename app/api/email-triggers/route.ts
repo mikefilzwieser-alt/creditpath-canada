@@ -8,6 +8,8 @@ import { sendMonth2CheckinEmail } from "@/lib/send-month2-checkin-email";
 import { sendMonth2CardsEmail } from "@/lib/send-month2-cards-email";
 import { sendDay25KohoEmail } from "@/lib/send-day25-koho-email";
 import { sendDay45SpringEmail } from "@/lib/send-day45-spring-email";
+import { isEligibleForMarketingEmail } from "@/lib/email-eligibility";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 async function runEmailTriggers() {
   try {
@@ -23,7 +25,7 @@ async function runEmailTriggers() {
 
   const { data: clients, error } = await admin
     .from("clients")
-      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent, day25_koho_email_sent, month2_checkin_email_sent, month2_cards_email_sent, day45_spring_email_sent")
+      .select("id, full_name, email, subscription_status, created_at, last_login_at, unsubscribed_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent, day25_koho_email_sent, month2_checkin_email_sent, month2_cards_email_sent, day45_spring_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
   console.log("[email-triggers] query error:", error?.message ?? "none");
@@ -34,6 +36,9 @@ async function runEmailTriggers() {
 
   for (const client of clients) {
     if (!client.email) continue;
+    if (!isEligibleForMarketingEmail(client)) continue;
+
+    const unsubscribeUrl = generateUnsubscribeUrl(client.id);
     const createdAt = new Date(client.created_at);
     const daysSinceCreated = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
     const lastLogin = client.last_login_at ? new Date(client.last_login_at) : null;
@@ -43,7 +48,7 @@ async function runEmailTriggers() {
 
     // Day 10 — no login after paying
     if (daysSinceCreated >= 10 && !client.last_login_at && !client.day10_email_sent) {
-      const result = await sendDay10Email(client.email, client.full_name ?? "");
+      const result = await sendDay10Email(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ day10_email_sent: true }).eq("id", client.id);
         results.day10++;
@@ -51,7 +56,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 3 && !client.brandon_email_sent) {
-      const result = await sendBrandonEmail(client.email, client.full_name ?? "");
+      const result = await sendBrandonEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ brandon_email_sent: true }).eq("id", client.id);
         results.brandon++;
@@ -59,7 +64,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 14 && !client.day14_email_sent) {
-      const result = await sendDay14Email(client.email, client.full_name ?? "");
+      const result = await sendDay14Email(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ day14_email_sent: true }).eq("id", client.id);
         results.day14++;
@@ -67,7 +72,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 25 && !client.day25_koho_email_sent) {
-      const result = await sendDay25KohoEmail(client.email, client.full_name ?? "");
+      const result = await sendDay25KohoEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ day25_koho_email_sent: true }).eq("id", client.id);
         results.day25Koho++;
@@ -75,7 +80,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 35 && !client.month2_checkin_email_sent) {
-      const result = await sendMonth2CheckinEmail(client.email, client.full_name ?? "");
+      const result = await sendMonth2CheckinEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ month2_checkin_email_sent: true }).eq("id", client.id);
         results.month2Checkin++;
@@ -83,7 +88,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 39 && !client.month2_cards_email_sent) {
-      const result = await sendMonth2CardsEmail(client.email, client.full_name ?? "");
+      const result = await sendMonth2CardsEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ month2_cards_email_sent: true }).eq("id", client.id);
         results.month2Cards++;
@@ -91,7 +96,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceCreated >= 45 && !client.day45_spring_email_sent) {
-      const result = await sendDay45SpringEmail(client.email, client.full_name ?? "");
+      const result = await sendDay45SpringEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ day45_spring_email_sent: true }).eq("id", client.id);
         results.day45Spring++;
@@ -99,7 +104,7 @@ async function runEmailTriggers() {
     }
 
     if (daysSinceLogin >= 21 && !client.reengagement_email_sent) {
-      const result = await sendReengagementEmail(client.email, client.full_name ?? "");
+      const result = await sendReengagementEmail(client.email, client.full_name ?? "", unsubscribeUrl);
       if (result.sent) {
         await admin.from("clients").update({ reengagement_email_sent: true }).eq("id", client.id);
         results.reengagement++;
