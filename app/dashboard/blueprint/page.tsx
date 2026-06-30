@@ -382,9 +382,10 @@ const CREDIT_PRODUCT_OFFERS = [
     cta: "Apply now",
   },
   {
-    name: "Koho",
-    description: "No credit check. Build credit with every purchase. Reports to Equifax.",
-    href: "https://www.koho.ca",
+    name: "Koho — Secured Credit Building",
+    description:
+      "Guaranteed approval on their secured credit-building option — no credit check required. Reports to Equifax. KOHO reports an average 93-point increase for users on their credit-building tools (per KOHO, results vary).",
+    href: "https://www.koho.ca/credit-building/",
     cta: "Get started",
   },
 ] as const;
@@ -1634,6 +1635,10 @@ export default function BlueprintPage() {
                       {product.name === "Tangerine Money-Back Credit Card" ? (
                         <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
                           💸 Use referral code 79976711S1 for a $50 bonus.
+                        </p>
+                      ) : product.name === "Koho — Secured Credit Building" ? (
+                        <p style={{ color: "#00C9A7", fontSize: 13, marginTop: 6, fontWeight: 500 }}>
+                          Use referral code 68KDVQN2DC.
                         </p>
                       ) : null}
                     </div>
