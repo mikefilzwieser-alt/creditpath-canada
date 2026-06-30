@@ -3,7 +3,6 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendBrandonEmail } from "@/lib/send-brandon-email";
 import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
-import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 import { sendDay10Email } from "@/lib/send-day10-email";
 import { sendMonth2CheckinEmail } from "@/lib/send-month2-checkin-email";
 import { sendMonth2CardsEmail } from "@/lib/send-month2-cards-email";
@@ -18,7 +17,7 @@ async function runEmailTriggers() {
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
-  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0, day10: 0, month2Checkin: 0, month2Cards: 0 };
+  const results = { brandon: 0, reengagement: 0, day14: 0, day10: 0, month2Checkin: 0, month2Cards: 0 };
 
   const { data: clients, error } = await admin
     .from("clients")
