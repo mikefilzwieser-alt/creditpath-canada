@@ -13,6 +13,7 @@ export default function PrivacyPolicyPage() {
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>3. Consent</h2>
       <p>We collect, use, and disclose your personal information only with your knowledge and consent. By creating an account and uploading your credit bureau data, you expressly consent to the collection and use of your personal information as described in this Policy. You may withdraw consent at any time by contacting info@creditpathcanada.ca.</p>
       <p style={{ marginTop: 12 }}><strong>Manitoba Residents:</strong> You have the right to withdraw consent for any non-essential use of your personal information at any time without penalty, other than loss of access to services that require such information.</p>
+      <p style={{ marginTop: 12 }}>You may unsubscribe from marketing emails at any time using the unsubscribe link included in every marketing email, separate from withdrawing full consent or requesting account deletion.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>4. Information We Collect</h2>
       <p><strong>Account Information:</strong> Full name, email address, phone number, province of residence.</p>
@@ -25,10 +26,10 @@ export default function PrivacyPolicyPage() {
       <p style={{ marginTop: 8 }}><strong>Referral Disclosure:</strong> Credit Path Canada may receive referral compensation from financial product providers referenced in the platform. This does not influence the educational content of your blueprint.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>6. How We Share Your Information</h2>
-      <p>We do not sell your personal information. We share only with: Supabase (database), Stripe (payments), Resend (email delivery), Vercel (hosting). All providers are bound by data processing agreements.</p>
+      <p>We do not sell your personal information. We share only with: Supabase (database), Stripe (payments), Resend (email delivery), Vercel (hosting), Automotive AI (lead routing and SMS communications). All providers are bound by data processing agreements.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>7. Data Retention and Deletion</h2>
-      <p>We retain your information while your account is active. Upon cancellation, your personal information and credit bureau data will be permanently deleted within 30 days. To request deletion: info@creditpathcanada.ca.</p>
+      <p>We retain your information while your account is active. Upon request, we will delete your personal information and credit bureau data within 30 days, unless retention is required by law. To request deletion, contact info@creditpathcanada.ca.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>8. Security</h2>
       <p>We use encrypted data storage, secure HTTPS connections, row-level security policies, and access controls. No electronic storage is 100% secure.</p>

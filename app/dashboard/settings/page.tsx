@@ -610,6 +610,30 @@ export default function SettingsPage() {
           </div>
         </div>
       ) : null}
+
+      <section
+        className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm sm:p-8"
+        style={{ borderColor: CARD_BORDER }}
+      >
+        <h2 className={`text-lg font-bold ${h}`}>Legal</h2>
+        <p className="mt-1 text-sm text-[#0F1923]/65">Privacy policy and user agreement for Credit Path Canada.</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <Link
+            href="/privacy-policy"
+            className={`inline-flex min-h-[44px] items-center justify-center rounded-xl border-2 px-6 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${h}`}
+            style={{ borderColor: TEAL, color: NAVY, backgroundColor: "#fff" }}
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/user-agreement"
+            className={`inline-flex min-h-[44px] items-center justify-center rounded-xl border-2 px-6 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${h}`}
+            style={{ borderColor: TEAL, color: NAVY, backgroundColor: "#fff" }}
+          >
+            User Agreement
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

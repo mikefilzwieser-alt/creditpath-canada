@@ -34,7 +34,7 @@ export default function UserAgreementPage() {
       <p>You agree to: provide accurate information · not apply for new credit without consulting Credit Path Canada · set up pre-authorized payments on all existing accounts · maintain credit card utilization below 30% · not share account credentials.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>8. Referral Compensation Disclosure</h2>
-      <p>Credit Path Canada may receive referral compensation from financial product providers referenced in the platform, including Neo Financial, Tangerine, and Koho. This does not influence the educational content of your blueprint.</p>
+      <p>Credit Path Canada may receive referral compensation from financial product providers referenced in the platform, including Neo Financial, Tangerine, Koho, and Spring Financial. This does not influence the educational content of your blueprint.</p>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: "#00C9A7", marginTop: 32, marginBottom: 8 }}>9. Limitation of Liability</h2>
       <p>To the maximum extent permitted by law, Credit Path Canada shall not be liable for indirect, incidental, or consequential damages. Our total liability shall not exceed the total amount paid by you in the 12 months preceding the claim. Nothing in this Agreement limits any rights you may have under applicable provincial consumer protection legislation.</p>
