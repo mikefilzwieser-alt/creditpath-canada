@@ -26,7 +26,7 @@ export async function sendMonthCompleteEmail(
 
   const { name, month, nextMonth, daysRemaining } = args;
   const html = `
-<div style="font-family:'Montserrat',sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
+<div style="font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
 
   <!-- HEADER -->
   <div style="background:#0F1923;padding:32px 40px;border-radius:16px 16px 0 0;">

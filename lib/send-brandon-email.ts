@@ -23,11 +23,11 @@ export async function sendBrandonEmail(to: string, name: string): Promise<Brando
     ? `${firstName} — a free session with a financial planner, on us`
     : "A free session with a financial planner, on us";
 
-  const html = `<div style="font-family:'Montserrat',sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
+  const html = `<div style="font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
 
   <!-- HEADER -->
   <div style="background:#0F1923;padding:32px 40px;border-radius:16px 16px 0 0;">
-    <img src="${LOGO_URL}" alt="Credit Path Canada" style="display:block;width:160px;max-width:100%;height:auto;margin:0 0 24px;" />
+    <img src="${LOGO_URL}" alt="Credit Path Canada" style="display:block;width:160px;max-width:100%;height:auto;margin:0 0 24px;border-radius:8px;" />
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
       <div style="width:6px;height:6px;background:#00C9A7;border-radius:50%;"></div>
       <span style="font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);">CREDIT PATH CANADA</span>
@@ -53,7 +53,7 @@ export async function sendBrandonEmail(to: string, name: string): Promise<Brando
 
     <!-- SIGN OFF -->
     <div style="border-top:1px solid rgba(15,25,35,0.08);padding-top:20px;">
-      <img src="${SIGNATURE_URL}" alt="Michael Filzwieser signature" style="display:block;width:120px;max-width:100%;height:auto;margin:0 0 10px;" />
+      <img src="${SIGNATURE_URL}" alt="Michael Filzwieser signature" style="display:block;width:120px;max-width:100%;height:auto;margin:0 0 10px;border-radius:8px;" />
       <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Michael Filzwieser</p>
       <p style="margin:0 0 2px;font-size:11px;color:#6B7A8D;">Founder, Credit Path Canada · Finance Director, Titanium Ford</p>
       <p style="margin:0;font-size:11px;color:#6B7A8D;">(604) 442-0894 · info@creditpathcanada.ca</p>
