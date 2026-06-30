@@ -32,23 +32,18 @@ export async function sendDay14Email(to: string, name: string): Promise<Day14Ema
       <div style="width:6px;height:6px;background:#00C9A7;border-radius:50%;"></div>
       <span style="font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);">CREDIT PATH CANADA</span>
     </div>
-    <h1 style="margin:0;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;line-height:1.2;">Two Weeks In</h1>
-    <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">One simple action protects months of progress.</p>
+    <h1 style="margin:0;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;line-height:1.2;">Two weeks in.<br>One key move.</h1>
+    <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">The single highest-impact action in Month 1.</p>
   </div>
 
   <!-- BODY -->
   <div style="padding:32px 40px;">
     <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName || name)},</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">Quick check-in — have you set up pre-authorized payments on your accounts yet?</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">It sounds simple. But it's the single highest-impact action in Month 1. One missed payment can undo months of progress. Pre-authorized payments make sure that never happens.</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">If you haven't done it yet — this week is the week. Log in, check off that action, and you're protected going forward.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">Quick one. Have you set up <strong style="color:#0F1923;">pre-authorized payments</strong> on every account yet?</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">It sounds small, but it's the highest-impact thing you can do this month. <strong style="color:#00C9A7;">One missed payment can undo months of progress.</strong> Pre-auth makes sure that never happens.</p>
 
     <div style="text-align:center;margin:0 0 32px;">
-      <a href="https://www.creditpathcanada.ca/dashboard" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Check My Actions →</a>
-    </div>
-
-    <div style="background:#F8F6F1;border-radius:14px;padding:20px 24px;margin:0 0 32px;">
-      <p style="margin:0;font-size:13px;line-height:1.65;color:#0F1923;">Reply to this email if you have any questions. I'm here.</p>
+      <a href="https://www.creditpathcanada.ca/dashboard" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Check My Actions</a>
     </div>
 
     <!-- SIGN OFF -->

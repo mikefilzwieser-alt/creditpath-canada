@@ -37,7 +37,7 @@ export async function sendBlueprintReadyEmail(to: string, name: string): Promise
       <span style="font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);">Credit Path Canada</span>
     </div>
     <h1 style="margin:0;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;line-height:1.2;">Your Blueprint<br>is Ready.</h1>
-    <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">Every tradeline. Every collection. Every inquiry — analyzed.</p>
+    <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">Built from your actual file — not generic advice.</p>
   </div>
 
   <!-- WARNING -->
@@ -50,7 +50,8 @@ export async function sendBlueprintReadyEmail(to: string, name: string): Promise
   <div style="padding:32px 40px;">
 
     <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName || name)},</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 24px;">We just finished analyzing your bureau. What you'll see when you log in might surprise you — some things on your file are hurting you more than you think. Some are closer to fixed than you'd expect. Either way, <strong style="color:#0F1923;">you now have a clear plan.</strong></p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">Most credit advice online is generic — 'pay your bills, lower your balances,' the same tips for everyone. <strong style="color:#0F1923;">Yours isn't.</strong></p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 24px;">We built your blueprint from your <strong style="color:#0F1923;">actual Equifax file</strong> — your tradelines, your collections, your inquiries — ranked by what moves <strong style="color:#0F1923;">your</strong> score the fastest. No guessing. Just the next right move.</p>
 
     <!-- 2 RULES -->
     <div style="background:#F8F6F1;border-radius:14px;padding:20px 24px;margin:0 0 24px;">
@@ -68,29 +69,6 @@ export async function sendBlueprintReadyEmail(to: string, name: string): Promise
     <!-- CTA -->
     <div style="text-align:center;margin:0 0 28px;">
       <a href="https://www.creditpathcanada.ca/dashboard/blueprint#monthly-actions" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">View My Blueprint</a>
-    </div>
-
-    <!-- DIVIDER -->
-    <div style="border-top:1px solid rgba(15,25,35,0.08);margin:0 0 24px;"></div>
-
-    <!-- CREDIT GUIDE -->
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
-      <div style="width:40px;height:40px;background:rgba(0,201,167,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📘</div>
-      <div>
-        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Free Credit Guide</p>
-        <p style="margin:0 0 10px;font-size:12px;line-height:1.6;color:#6B7A8D;">7 habits that move your score — written specifically for Canadians rebuilding their credit.</p>
-        <a href="https://www.creditpathcanada.ca/credit-guide" style="font-size:11px;font-weight:700;color:#00C9A7;text-decoration:none;letter-spacing:0.04em;">Download Free Guide →</a>
-      </div>
-    </div>
-
-    <!-- CALENDLY -->
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:32px;">
-      <div style="width:40px;height:40px;background:rgba(0,201,167,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📅</div>
-      <div>
-        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Book a 15-Min File Review</p>
-        <p style="margin:0 0 10px;font-size:12px;line-height:1.6;color:#6B7A8D;">Want me to personally walk you through your file? No cost, no obligation.</p>
-        <a href="https://calendly.com/aec-michael/15min" style="font-size:11px;font-weight:700;color:#00C9A7;text-decoration:none;letter-spacing:0.04em;">Book with Michael →</a>
-      </div>
     </div>
 
     <!-- SIGN OFF -->

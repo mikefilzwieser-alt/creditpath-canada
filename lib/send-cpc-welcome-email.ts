@@ -48,7 +48,15 @@ export async function sendCpcWelcomeEmail(
   <div style="padding:32px 40px;">
 
     <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName)},</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">You just made the most important decision for your financial future. Every tradeline, every collection, every inquiry on your file is being analyzed and turned into a clear month-by-month plan. <strong style="color:#0F1923;">Your blueprint will be waiting when you log in.</strong></p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">You just made the most important decision for your financial future. Here's what makes this different from anything else you've tried.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 22px;">Credit Path Canada was built by <strong style="color:#0F1923;">Michael Filzwieser — a Finance Director who has spent years getting people with damaged credit approved.</strong> Not a faceless agency. Not empty promises. A real person whose focus is getting you to the approval — because that's where the real win is.</p>
+
+    <div style="background:#F8F6F1;border-left:3px solid #00C9A7;border-radius:0 12px 12px 0;padding:18px 22px;margin:0 0 22px;">
+      <p style="margin:0 0 10px;font-size:13px;line-height:1.7;color:#0F1923;font-style:italic;">"I filed a consumer proposal 4 years ago — I knew that presents a challenge. The approval process was smooth and finished with a deal I'm delighted with. Michael was listening."</p>
+      <p style="margin:0;font-size:11px;font-weight:700;color:#6B7A8D;">— Igor S. · ★★★★★ Google Review</p>
+    </div>
+
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">Right now, every tradeline, collection, and inquiry on your file is being turned into a clear month-by-month plan. <strong style="color:#0F1923;">It'll be waiting when you log in.</strong></p>
 
     <!-- LOGIN -->
     <div style="background:#F8F6F1;border-radius:14px;padding:20px 24px;margin:0 0 20px;">
@@ -72,41 +80,8 @@ export async function sendCpcWelcomeEmail(
 
     <!-- CTA -->
     <div style="text-align:center;margin:0 0 32px;">
-      <a href="${LOGIN_URL}" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Log In and See My Actions</a>
+      <a href="${LOGIN_URL}" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Log In and See My Blueprint</a>
       <p style="margin:10px 0 0;font-size:10px;color:#9CA3AF;">First 30 days free · No charge until Day 31 · Cancel anytime</p>
-    </div>
-
-    <!-- DIVIDER -->
-    <div style="border-top:1px solid rgba(15,25,35,0.08);margin:0 0 24px;"></div>
-
-    <!-- CREDIT GUIDE -->
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;">
-      <div style="min-width:40px;height:40px;background:rgba(0,201,167,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">📘</div>
-      <div>
-        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Free Credit Guide</p>
-        <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#6B7A8D;">7 habits that move your score — written specifically for Canadians rebuilding their credit.</p>
-        <a href="https://www.creditpathcanada.ca/credit-guide" style="font-size:11px;font-weight:700;color:#00C9A7;text-decoration:none;">Download Free Guide →</a>
-      </div>
-    </div>
-
-    <!-- BRANDON -->
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;">
-      <div style="min-width:40px;height:40px;background:rgba(0,201,167,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">💼</div>
-      <div>
-        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Free Financial Planning Session</p>
-        <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#6B7A8D;">Book a free session with Brandon Kirk at Safe Wealth Planners. No cost, no obligation.</p>
-        <a href="https://calendly.com/brandonkirk/" style="font-size:11px;font-weight:700;color:#00C9A7;text-decoration:none;">Book with Brandon →</a>
-      </div>
-    </div>
-
-    <!-- MICHAEL CALENDLY -->
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:32px;">
-      <div style="min-width:40px;height:40px;background:rgba(0,201,167,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">📅</div>
-      <div>
-        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Book a 15-Min File Review</p>
-        <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#6B7A8D;">Want me to personally walk you through your file? No cost, no obligation.</p>
-        <a href="https://calendly.com/aec-michael/15min" style="font-size:11px;font-weight:700;color:#00C9A7;text-decoration:none;">Book with Michael →</a>
-      </div>
     </div>
 
     <!-- SIGN OFF -->

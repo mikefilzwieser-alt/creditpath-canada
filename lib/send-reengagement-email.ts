@@ -37,16 +37,17 @@ export async function sendReengagementEmail(to: string, name: string): Promise<R
   <!-- BODY -->
   <div style="padding:32px 40px;">
     <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName || name)},</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">It looks like things got busy. That's completely okay.</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">Your blueprint is still here. Your actions are still waiting. Your score isn't moving on its own — but the moment you're ready to pick it back up, everything is exactly where you left it.</p>
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">It only takes a few minutes to check in. The clients who stay consistent — even when life gets in the way — are the ones who get approved.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 22px;">It looks like things got busy. That's completely okay — life happens. But your file is still here, and so is the plan.</p>
 
-    <div style="text-align:center;margin:0 0 32px;">
-      <a href="https://www.creditpathcanada.ca/dashboard" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Pick Up Where I Left Off →</a>
+    <div style="background:#F8F6F1;border-left:3px solid #00C9A7;border-radius:0 12px 12px 0;padding:18px 22px;margin:0 0 22px;">
+      <p style="margin:0 0 10px;font-size:13px;line-height:1.7;color:#0F1923;font-style:italic;">"My credit is shot and I wasn't sure how I'd get back on the road. Michael took great care of me — incredibly patient with all my anxiety. As long as I make my payments on time, I can trade up in a year while working on my credit. I'll be calling you, Michael."</p>
+      <p style="margin:0;font-size:11px;font-weight:700;color:#6B7A8D;">— Cassandra B. · ★★★★★ Google Review</p>
     </div>
 
-    <div style="background:#F8F6F1;border-radius:14px;padding:20px 24px;margin:0 0 32px;">
-      <p style="margin:0;font-size:13px;line-height:1.65;color:#0F1923;">If anything came up or you have questions, reply to this email. I read every one.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">The clients who stay consistent — <strong style="color:#0F1923;">even when life gets in the way</strong> — are the ones who get there. It only takes a few minutes to pick back up.</p>
+
+    <div style="text-align:center;margin:0 0 32px;">
+      <a href="https://www.creditpathcanada.ca/dashboard" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Pick Up Where I Left Off</a>
     </div>
 
     <!-- SIGN OFF -->
