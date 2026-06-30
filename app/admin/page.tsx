@@ -378,8 +378,10 @@ export default function VaAdminPage() {
   const [success, setSuccess] = useState<{
     client_name: string;
     temporary_password: string;
-    welcome_email_sent: boolean;
-    welcome_email_error: string | null;
+    cpc_welcome_email_sent: boolean;
+    cpc_welcome_email_error: string | null;
+    blueprint_ready_email_sent: boolean;
+    blueprint_ready_email_error: string | null;
   } | null>(null);
 
   const [listVaFilter, setListVaFilter] = useState<string>("");
@@ -711,8 +713,10 @@ export default function VaAdminPage() {
         error?: string;
         client_name?: string;
         temporary_password?: string;
-        welcome_email_sent?: boolean;
-        welcome_email_error?: string | null;
+        cpc_welcome_email_sent?: boolean;
+        cpc_welcome_email_error?: string | null;
+        blueprint_ready_email_sent?: boolean;
+        blueprint_ready_email_error?: string | null;
       };
       if (!res.ok) {
         completionModeRef.current = "error";
@@ -725,8 +729,10 @@ export default function VaAdminPage() {
       setSuccess({
         client_name: data.client_name ?? fullName.trim(),
         temporary_password: data.temporary_password ?? "",
-        welcome_email_sent: Boolean(data.welcome_email_sent),
-        welcome_email_error: data.welcome_email_error ?? null,
+        cpc_welcome_email_sent: Boolean(data.cpc_welcome_email_sent),
+        cpc_welcome_email_error: data.cpc_welcome_email_error ?? null,
+        blueprint_ready_email_sent: Boolean(data.blueprint_ready_email_sent),
+        blueprint_ready_email_error: data.blueprint_ready_email_error ?? null,
       });
       setFullName("");
       setEmail("");
@@ -1246,11 +1252,19 @@ export default function VaAdminPage() {
                     </a>
                   </p>
                   <p className="mt-2 text-xs opacity-80">
-                    Welcome email (Resend):{" "}
-                    {success.welcome_email_sent ? (
+                    Welcome email (login):{" "}
+                    {success.cpc_welcome_email_sent ? (
                       <span className="font-semibold text-green-700">Sent</span>
                     ) : (
-                      <span className="text-amber-800">Not sent — {success.welcome_email_error ?? "check RESEND_API_KEY"}</span>
+                      <span className="text-amber-800">Not sent — {success.cpc_welcome_email_error ?? "check RESEND_API_KEY"}</span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs opacity-80">
+                    Blueprint ready email:{" "}
+                    {success.blueprint_ready_email_sent ? (
+                      <span className="font-semibold text-green-700">Sent</span>
+                    ) : (
+                      <span className="text-amber-800">Not sent — {success.blueprint_ready_email_error ?? "check RESEND_API_KEY"}</span>
                     )}
                   </p>
                 </div>

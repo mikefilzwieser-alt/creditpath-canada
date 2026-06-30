@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runBlueprintGenerationForBlueprint } from "@/lib/blueprint-run-generation";
 import { parsePdfBufferAndSaveBlueprintForUser } from "@/lib/parse-bureau-save-for-user";
+import { sendCpcWelcomeEmail } from "@/lib/send-cpc-welcome-email";
 import { sendBlueprintReadyEmail } from "@/lib/send-blueprint-ready-email";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { isValidVaPortalPassword } from "@/lib/va-portal";
@@ -8,6 +9,18 @@ import { isValidVaPortalPassword } from "@/lib/va-portal";
 export const runtime = "nodejs";
 
 const MAX_BYTES = 10 * 1024 * 1024;
+const BLUEPRINT_READY_EMAIL_DELAY_MS = 5_000;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function emailSendErrorDetail(
+  result: { sent: true } | { sent: false; reason: string; detail?: string },
+): string | null {
+  if (result.sent) return null;
+  return result.reason === "missing_api_key" ? "RESEND_API_KEY not set" : result.detail ?? null;
+}
 
 function last4PhoneDigits(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -134,17 +147,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: genResult.error }, { status: 502 });
   }
 
+  console.info("[va-create-client] cpc welcome email send start", {
+    userId,
+    email,
+    blueprint_id: parseResult.blueprintId,
+  });
+  const welcomeResult = await sendCpcWelcomeEmail(email, full_name, temporaryPassword);
+  console.info("[va-create-client] cpc welcome email send result", {
+    userId,
+    sent: welcomeResult.sent,
+    reason: welcomeResult.sent ? null : welcomeResult.reason,
+    detail: welcomeResult.sent ? null : welcomeResult.detail ?? null,
+  });
+
+  await delay(BLUEPRINT_READY_EMAIL_DELAY_MS);
+
   console.info("[va-create-client] blueprint ready email send start", {
     userId,
     email,
     blueprint_id: parseResult.blueprintId,
   });
-  const emailResult = await sendBlueprintReadyEmail(email, full_name);
+  const blueprintReadyResult = await sendBlueprintReadyEmail(email, full_name);
   console.info("[va-create-client] blueprint ready email send result", {
     userId,
-    sent: emailResult.sent,
-    reason: emailResult.sent ? null : emailResult.reason,
-    detail: emailResult.sent ? null : emailResult.detail ?? null,
+    sent: blueprintReadyResult.sent,
+    reason: blueprintReadyResult.sent ? null : blueprintReadyResult.reason,
+    detail: blueprintReadyResult.sent ? null : blueprintReadyResult.detail ?? null,
   });
 
   return NextResponse.json({
@@ -152,8 +180,9 @@ export async function POST(request: Request) {
     client_name: full_name,
     temporary_password: temporaryPassword,
     blueprint_id: parseResult.blueprintId,
-    welcome_email_sent: emailResult.sent,
-    welcome_email_error:
-      emailResult.sent ? null : emailResult.reason === "missing_api_key" ? "RESEND_API_KEY not set" : emailResult.detail,
+    cpc_welcome_email_sent: welcomeResult.sent,
+    cpc_welcome_email_error: emailSendErrorDetail(welcomeResult),
+    blueprint_ready_email_sent: blueprintReadyResult.sent,
+    blueprint_ready_email_error: emailSendErrorDetail(blueprintReadyResult),
   });
 }
