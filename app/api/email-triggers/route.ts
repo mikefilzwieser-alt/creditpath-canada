@@ -5,6 +5,8 @@ import { sendReengagementEmail } from "@/lib/send-reengagement-email";
 import { sendDay14Email } from "@/lib/send-day14-email";
 import { sendBureauRefreshEmail } from "@/lib/send-bureau-refresh-email";
 import { sendDay10Email } from "@/lib/send-day10-email";
+import { sendMonth2CheckinEmail } from "@/lib/send-month2-checkin-email";
+import { sendMonth2CardsEmail } from "@/lib/send-month2-cards-email";
 
 async function runEmailTriggers() {
   try {
@@ -16,11 +18,11 @@ async function runEmailTriggers() {
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
-  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0, day10: 0 };
+  const results = { brandon: 0, reengagement: 0, day14: 0, bureauRefresh: 0, day10: 0, month2Checkin: 0, month2Cards: 0 };
 
   const { data: clients, error } = await admin
     .from("clients")
-      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent")
+      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent, month2_checkin_email_sent, month2_cards_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
   console.log("[email-triggers] query error:", error?.message ?? "none");
@@ -60,6 +62,22 @@ async function runEmailTriggers() {
       if (result.sent) {
         await admin.from("clients").update({ day14_email_sent: true }).eq("id", client.id);
         results.day14++;
+      }
+    }
+
+    if (daysSinceCreated >= 35 && !client.month2_checkin_email_sent) {
+      const result = await sendMonth2CheckinEmail(client.email, client.full_name ?? "");
+      if (result.sent) {
+        await admin.from("clients").update({ month2_checkin_email_sent: true }).eq("id", client.id);
+        results.month2Checkin++;
+      }
+    }
+
+    if (daysSinceCreated >= 39 && !client.month2_cards_email_sent) {
+      const result = await sendMonth2CardsEmail(client.email, client.full_name ?? "");
+      if (result.sent) {
+        await admin.from("clients").update({ month2_cards_email_sent: true }).eq("id", client.id);
+        results.month2Cards++;
       }
     }
 

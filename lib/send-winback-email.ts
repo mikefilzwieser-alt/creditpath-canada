@@ -37,7 +37,7 @@ export async function sendWinbackEmail(to: string, name: string): Promise<Winbac
     <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName)},</p>
     <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 20px;">The file that got you declined is still sitting there. Every month without a plan is a month your score isn't moving, your options aren't growing, and the vehicle — or whatever brought you to us — stays out of reach.</p>
 
-    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">Credit Path Canada clients who follow the program are <strong style="color:#0F1923;">approval-ready within 8–10 months.</strong> We've seen it happen. Our first graduates just drove off the lot in April.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">Credit Path Canada clients who follow the program are <strong style="color:#0F1923;">approval-ready within 8–10 months.</strong> We've seen it happen. Clients who follow the program are working toward approval in 8-10 months.</p>
 
     <!-- OFFER -->
     <div style="background:#F8F6F1;border-radius:14px;padding:24px;margin:0 0 28px;text-align:center;border:2px solid rgba(0,201,167,0.2);">

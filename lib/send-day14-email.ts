@@ -1,5 +1,8 @@
 import { Resend } from "resend";
 
+const LOGO_URL = "https://www.creditpathcanada.ca/Teal%20Logo.png";
+const SIGNATURE_URL = "https://www.creditpathcanada.ca/sig.jpg";
+
 export type Day14EmailResult =
   | { sent: true }
   | { sent: false; reason: "missing_api_key" | "request_failed"; detail?: string };
@@ -20,23 +23,48 @@ export async function sendDay14Email(to: string, name: string): Promise<Day14Ema
     ? `${firstName} — one question about your first two weeks`
     : "One question about your first two weeks";
 
-  const html = `<div style="font-family: 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; color: #0F1923;">
-  <div style="background: #00C9A7; padding: 24px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 22px;">Two Weeks In</h1>
+  const html = `<div style="font-family:'Montserrat',sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0F1923;">
+
+  <!-- HEADER -->
+  <div style="background:#0F1923;padding:32px 40px;border-radius:16px 16px 0 0;">
+    <img src="${LOGO_URL}" alt="Credit Path Canada" style="display:block;width:160px;max-width:100%;height:auto;margin:0 0 24px;" />
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+      <div style="width:6px;height:6px;background:#00C9A7;border-radius:50%;"></div>
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);">CREDIT PATH CANADA</span>
+    </div>
+    <h1 style="margin:0;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;line-height:1.2;">Two Weeks In</h1>
+    <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.5);font-weight:500;">One simple action protects months of progress.</p>
   </div>
-  <div style="padding: 32px;">
-    <p>Hi ${escapeHtml(firstName || name)},</p>
-    <p>Quick check-in — have you set up pre-authorized payments on your accounts yet?</p>
-    <p>It sounds simple. But it's the single highest-impact action in Month 1. One missed payment can undo months of progress. Pre-authorized payments make sure that never happens.</p>
-    <p>If you haven't done it yet — this week is the week. Log in, check off that action, and you're protected going forward.</p>
-    <p style="text-align: center; margin: 32px 0;">
-      <a href="https://www.creditpathcanada.ca/dashboard" style="background: #00C9A7; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">Check My Actions →</a>
-    </p>
-    <p style="color: #888; font-size: 13px;">Reply to this email if you have any questions. I'm here.</p>
-    <p style="margin-top: 32px;">— Michael Filzwieser<br><span style="color: #888; font-size: 13px;">Founder, Credit Path Canada<br>(604) 442-0894 · info@creditpathcanada.ca</span></p>
+
+  <!-- BODY -->
+  <div style="padding:32px 40px;">
+    <p style="font-size:15px;font-weight:600;color:#0F1923;margin:0 0 6px;">Hi ${escapeHtml(firstName || name)},</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">Quick check-in — have you set up pre-authorized payments on your accounts yet?</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 18px;">It sounds simple. But it's the single highest-impact action in Month 1. One missed payment can undo months of progress. Pre-authorized payments make sure that never happens.</p>
+    <p style="font-size:14px;line-height:1.8;color:#4B5563;margin:0 0 28px;">If you haven't done it yet — this week is the week. Log in, check off that action, and you're protected going forward.</p>
+
+    <div style="text-align:center;margin:0 0 32px;">
+      <a href="https://www.creditpathcanada.ca/dashboard" style="display:inline-block;background:#00C9A7;color:#0F1923;padding:14px 36px;border-radius:100px;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;">Check My Actions →</a>
+    </div>
+
+    <div style="background:#F8F6F1;border-radius:14px;padding:20px 24px;margin:0 0 32px;">
+      <p style="margin:0;font-size:13px;line-height:1.65;color:#0F1923;">Reply to this email if you have any questions. I'm here.</p>
+    </div>
+
+    <!-- SIGN OFF -->
+    <div style="border-top:1px solid rgba(15,25,35,0.08);padding-top:20px;">
+      <img src="${SIGNATURE_URL}" alt="Michael Filzwieser signature" style="display:block;width:120px;max-width:100%;height:auto;margin:0 0 10px;" />
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F1923;">Michael Filzwieser</p>
+      <p style="margin:0 0 2px;font-size:11px;color:#6B7A8D;">Founder, Credit Path Canada · Finance Director, Titanium Ford</p>
+      <p style="margin:0;font-size:11px;color:#6B7A8D;">(604) 442-0894 · info@creditpathcanada.ca</p>
+      <p style="margin:12px 0 0;font-size:11px;font-style:italic;color:#9CA3AF;">Built for Canadian families the system forgot.</p>
+    </div>
   </div>
-  <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-    Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color: #00C9A7;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6
+
+  <!-- FOOTER -->
+  <div style="background:#F8F6F1;padding:16px 40px;border-radius:0 0 16px 16px;text-align:center;">
+    <p style="margin:0;font-size:10px;color:#9CA3AF;">Credit Path Canada · <a href="https://www.creditpathcanada.ca" style="color:#00C9A7;text-decoration:none;">creditpathcanada.ca</a> · 34 W 7th Ave #401, Vancouver BC V5Y 1L6</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#9CA3AF;">Credit Path Canada provides educational credit guidance only. We are not a licensed credit repair agency or financial advisor.</p>
   </div>
 </div>`;
 
