@@ -7,6 +7,7 @@ import { sendDay10Email } from "@/lib/send-day10-email";
 import { sendMonth2CheckinEmail } from "@/lib/send-month2-checkin-email";
 import { sendMonth2CardsEmail } from "@/lib/send-month2-cards-email";
 import { sendDay25KohoEmail } from "@/lib/send-day25-koho-email";
+import { sendDay45SpringEmail } from "@/lib/send-day45-spring-email";
 
 async function runEmailTriggers() {
   try {
@@ -18,11 +19,11 @@ async function runEmailTriggers() {
   if (!admin) return NextResponse.json({ error: "Admin unavailable" }, { status: 500 });
 
   const now = new Date();
-  const results = { brandon: 0, reengagement: 0, day14: 0, day10: 0, day25Koho: 0, month2Checkin: 0, month2Cards: 0 };
+  const results = { brandon: 0, reengagement: 0, day14: 0, day10: 0, day25Koho: 0, month2Checkin: 0, month2Cards: 0, day45Spring: 0 };
 
   const { data: clients, error } = await admin
     .from("clients")
-      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent, day25_koho_email_sent, month2_checkin_email_sent, month2_cards_email_sent")
+      .select("id, full_name, email, subscription_status, created_at, last_login_at, brandon_email_sent, reengagement_email_sent, day14_email_sent, bureau_refresh_email_sent, day10_email_sent, day25_koho_email_sent, month2_checkin_email_sent, month2_cards_email_sent, day45_spring_email_sent")
     .in("subscription_status", ["active", "trial"]);
 
   console.log("[email-triggers] query error:", error?.message ?? "none");
@@ -86,6 +87,14 @@ async function runEmailTriggers() {
       if (result.sent) {
         await admin.from("clients").update({ month2_cards_email_sent: true }).eq("id", client.id);
         results.month2Cards++;
+      }
+    }
+
+    if (daysSinceCreated >= 45 && !client.day45_spring_email_sent) {
+      const result = await sendDay45SpringEmail(client.email, client.full_name ?? "");
+      if (result.sent) {
+        await admin.from("clients").update({ day45_spring_email_sent: true }).eq("id", client.id);
+        results.day45Spring++;
       }
     }
 
