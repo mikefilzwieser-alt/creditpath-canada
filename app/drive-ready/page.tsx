@@ -1,19 +1,37 @@
+import Link from "next/link";
 import { BrochureFooter } from "@/components/brochures/BrochureFooter";
 import { ThreeRulesBlock } from "@/components/brochures/ThreeRulesBlock";
 import { BROCHURE_CONTAINER, NAVY, NAVY_DEEP, TEAL } from "@/components/brochures/brochure-tokens";
 
 const STEPS = [
-  { n: "01", title: "[Step 1 — Reply]", body: "[Placeholder — reply step copy]" },
-  { n: "02", title: "[Step 2 — Blueprint]", body: "[Placeholder — blueprint step copy]" },
-  { n: "03", title: "[Step 3 — 3 actions]", body: "[Placeholder — monthly actions step copy]" },
-  { n: "04", title: "[Step 4 — Review]", body: "[Placeholder — review step copy]" },
+  {
+    n: "01",
+    title: "Reply — we take care of everything",
+    body: "We create your login and upload your Equifax. Don't lift a finger.",
+  },
+  {
+    n: "02",
+    title: "Get your personalized blueprint",
+    body: "We soft-pull your Equifax report — every tradeline — built from your live file.",
+  },
+  {
+    n: "03",
+    title: "3 actions — every month, that's it",
+    body: "Ranked by what moves your score fastest.",
+  },
+  {
+    n: "04",
+    title: "The day everything changes",
+    body: "Michael reviews your file and works to get you approved. Your name. Zero down.",
+  },
 ];
+
+const SMS_REPLY_HREF = "sms:+16044420894?body=YES";
 
 export default function DriveReadyBrochurePage() {
   return (
     <div className="min-h-full" style={{ background: NAVY_DEEP, color: "#fff" }}>
       <main>
-        {/* Hero */}
         <section
           style={{
             background: NAVY_DEEP,
@@ -33,9 +51,10 @@ export default function DriveReadyBrochurePage() {
               borderRadius: "50%",
               background: "radial-gradient(circle, rgba(0,201,167,0.1) 0%, transparent 65%)",
               pointerEvents: "none",
+              zIndex: 0,
             }}
           />
-          <div className={`${BROCHURE_CONTAINER} relative z-[1] text-center`}>
+          <div className={`${BROCHURE_CONTAINER} relative text-center`} style={{ zIndex: 1 }}>
             <p
               style={{
                 fontSize: 11,
@@ -80,22 +99,20 @@ export default function DriveReadyBrochurePage() {
                 margin: "0 auto",
               }}
             >
-              [Placeholder — Canada&apos;s Drive Ready Program is designed to get you approved — many clients in 8
-              to 10 months.]
+              Canada&apos;s Drive Ready Program is designed to get you approved — many clients in 8 to 10 months.
             </p>
           </div>
         </section>
 
-        {/* Real results strip */}
         <section style={{ background: NAVY, padding: "20px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className={`${BROCHURE_CONTAINER} text-center`}>
             <p style={{ fontSize: 13, fontWeight: 700, color: TEAL, letterSpacing: "0.04em" }}>
-              [Placeholder — Our first graduates purchased in April and May.]
+              <span style={{ color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>Real results: </span>
+              Our first graduates purchased in April and May.
             </p>
           </div>
         </section>
 
-        {/* Founder block */}
         <section style={{ background: NAVY, padding: "56px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className={`${BROCHURE_CONTAINER} grid gap-10 md:grid-cols-[minmax(0,1fr)_1.4fr] md:items-center`}>
             <div>
@@ -113,22 +130,22 @@ export default function DriveReadyBrochurePage() {
               />
             </div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Michael Filzwieser</p>
-              <p style={{ fontSize: 12, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Michael Filzwieser</p>
+              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.6)", marginBottom: 16 }}>
                 Founder, Credit Path Canada
                 <br />
                 Finance Director, Titanium Ford
                 <br />
                 TD&apos;s #1 dealer in Canada
               </p>
-              <p style={{ marginTop: 20, fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.5)" }}>
-                [Placeholder — founder intro copy]
+              <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.65)" }}>
+                Michael Filzwieser reviews your file personally. Founder of Credit Path Canada and Finance Director at
+                Titanium Ford.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Why this happened */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px" }}>
           <div className={BROCHURE_CONTAINER}>
             <p
@@ -154,13 +171,13 @@ export default function DriveReadyBrochurePage() {
             >
               The banks said no. We know exactly why.
             </h2>
-            <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.65)" }}>
-              [Placeholder — why this happened body copy]
+            <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: 640 }}>
+              Applications get declined every day — because nobody gave them a plan. We give you the blueprint: a
+              personalized credit plan built from your real file.
             </p>
           </div>
         </section>
 
-        {/* Four steps */}
         <section style={{ background: NAVY, padding: "56px 24px" }}>
           <div className={BROCHURE_CONTAINER}>
             <p
@@ -174,7 +191,7 @@ export default function DriveReadyBrochurePage() {
                 textAlign: "center",
               }}
             >
-              Four steps
+              The Drive Ready Program
             </p>
             <h2
               style={{
@@ -184,7 +201,7 @@ export default function DriveReadyBrochurePage() {
                 marginBottom: 32,
               }}
             >
-              [Placeholder — four steps section headline]
+              Four steps. Here&apos;s exactly what happens.
             </h2>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {STEPS.map((step) => (
@@ -198,7 +215,7 @@ export default function DriveReadyBrochurePage() {
                   }}
                 >
                   <p style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 12 }}>{step.n}</p>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{step.title}</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, lineHeight: 1.35 }}>{step.title}</h3>
                   <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)" }}>{step.body}</p>
                 </article>
               ))}
@@ -208,13 +225,9 @@ export default function DriveReadyBrochurePage() {
 
         <ThreeRulesBlock variant="dark" />
 
-        {/* Cassandra testimonial */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px" }}>
           <div className={`${BROCHURE_CONTAINER} max-w-[800px] text-center`}>
-            <p style={{ fontSize: 18, color: TEAL, marginBottom: 24, letterSpacing: "0.1em" }} aria-hidden>
-              ★★★★★
-            </p>
-            <h2
+            <p
               style={{
                 fontSize: 11,
                 fontWeight: 700,
@@ -225,22 +238,24 @@ export default function DriveReadyBrochurePage() {
               }}
             >
               Testimonial
-            </h2>
+            </p>
             <p
               style={{
-                fontSize: "clamp(16px, 2vw, 20px)",
+                fontSize: "clamp(16px, 2vw, 19px)",
                 fontWeight: 600,
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 marginBottom: 20,
+                fontStyle: "italic",
               }}
             >
-              [Placeholder — Cassandra Brinson testimonial quote]
+              &ldquo;My credit was shot and I wasn&apos;t sure how I was going to get back into a vehicle. Michael took
+              great care of me — incredibly patient with all my anxiety. As long as I make my payments on time, I had the
+              vehicle I wanted in a year. Thank you for your time, energy, patience and most of all kindness.&rdquo;
             </p>
             <p style={{ fontSize: 13, fontWeight: 700, color: TEAL }}>— Cassandra Brinson</p>
           </div>
         </section>
 
-        {/* Our promise */}
         <section style={{ background: NAVY, padding: "56px 24px" }}>
           <div className={`${BROCHURE_CONTAINER} max-w-[800px] text-center`}>
             <p
@@ -266,12 +281,12 @@ export default function DriveReadyBrochurePage() {
               Your score moves — or we work for free.
             </h2>
             <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.6)" }}>
-              [Placeholder — promise body copy]
+              Follow the program for 12 months, and if your score doesn&apos;t move, we work with you at no charge until
+              you&apos;re approved.
             </p>
           </div>
         </section>
 
-        {/* CTA block */}
         <section style={{ background: NAVY_DEEP, padding: "56px 24px", textAlign: "center" }}>
           <div className={`${BROCHURE_CONTAINER} max-w-[700px]`}>
             <h2
@@ -285,24 +300,29 @@ export default function DriveReadyBrochurePage() {
             >
               Built for Canadian families <span style={{ color: TEAL }}>the system forgot.</span>
             </h2>
-            <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.6)" }}>
-              [Placeholder — closing CTA body copy]
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 28 }}>
+              Your vehicle is still out there. Let&apos;s go get it.
             </p>
-            <p
+            <Link
+              href={SMS_REPLY_HREF}
               style={{
-                marginTop: 24,
                 display: "inline-block",
                 background: TEAL,
                 color: NAVY,
-                padding: "14px 32px",
+                padding: "16px 36px",
                 borderRadius: 100,
                 fontSize: 13,
                 fontWeight: 800,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
+                textDecoration: "none",
               }}
             >
-              [Placeholder CTA]
+              Reply Now — We&apos;ll Set It Up
+            </Link>
+            <p style={{ fontSize: 13, fontWeight: 600, color: TEAL, marginTop: 20 }}>creditpathcanada.ca</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 16, lineHeight: 1.6 }}>
+              About 50 cents/day after your free trial · Cancel anytime · No contracts
             </p>
           </div>
         </section>

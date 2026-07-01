@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import { FONT_STACK } from "@/components/brochures/brochure-tokens";
+import "@/components/brochures/brochure.css";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function DriveReadyBrochureLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={montserrat.className} style={{ fontFamily: FONT_STACK }}>
+    <div className={`brochure-root ${montserrat.variable} ${montserrat.className}`} style={{ fontFamily: FONT_STACK }}>
       {children}
     </div>
   );

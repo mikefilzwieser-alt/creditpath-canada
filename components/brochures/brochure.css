@@ -1,0 +1,6 @@
+.brochure-root h1,
+.brochure-root h2,
+.brochure-root h3 {
+  font-family: var(--font-brochure-mont), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+}

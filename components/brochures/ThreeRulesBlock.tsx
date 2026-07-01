@@ -5,9 +5,21 @@ type ThreeRulesBlockProps = {
 };
 
 const RULES = [
-  { icon: "🔕", title: "Zero new applications", body: "[Placeholder — zero new applications rule copy]" },
-  { icon: "⏰", title: "Pay on time", body: "[Placeholder — pay on time rule copy]" },
-  { icon: "📊", title: "Under 30% utilization", body: "[Placeholder — utilization rule copy]" },
+  {
+    icon: "🔕",
+    title: "Zero new applications",
+    body: "Do not apply anywhere without contacting us first. Hard inquiries do damage.",
+  },
+  {
+    icon: "⏰",
+    title: "Pay on time. Every single time.",
+    body: "Set up pre-authorized payments on every account. No exceptions.",
+  },
+  {
+    icon: "📈",
+    title: "Stay under 30% utilization",
+    body: "Keep every card under 30% of its limit. Going over drops your score.",
+  },
 ];
 
 export function ThreeRulesBlock({ variant = "dark" }: ThreeRulesBlockProps) {
