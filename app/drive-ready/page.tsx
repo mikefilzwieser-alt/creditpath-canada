@@ -27,10 +27,64 @@ const STEPS = [
 ];
 
 const SMS_REPLY_HREF = "sms:+16044420894?body=YES";
+const REVIEWS_HREF = "https://titaniumford-michaelf-5stars.netlify.app/";
+const CONSULT_HREF = "https://calendly.com/aec-michael/15min";
+
+const pillButtonClass =
+  "drive-ready-cta inline-block w-full rounded-full text-center text-[13px] font-extrabold uppercase tracking-[0.08em] no-underline sm:w-auto";
+
+const pillButtonStyle = {
+  background: TEAL,
+  color: NAVY,
+  padding: "16px 28px",
+} as const;
+
+const pillButtonSecondaryStyle = {
+  background: "transparent",
+  color: TEAL,
+  padding: "14px 28px",
+  border: `2px solid rgba(0, 201, 167, 0.45)`,
+} as const;
 
 export default function DriveReadyBrochurePage() {
   return (
     <div className="min-h-full" style={{ background: NAVY_DEEP, color: "#fff" }}>
+      <style>{`
+        @media (max-width: 639px) {
+          .drive-ready-cta {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+          }
+        }
+      `}</style>
+
+      <header
+        style={{
+          background: NAVY,
+          borderBottom: `1px solid rgba(0, 201, 167, 0.2)`,
+        }}
+      >
+        <div
+          className={`${BROCHURE_CONTAINER} flex items-center justify-between gap-4`}
+          style={{ paddingTop: 14, paddingBottom: 14 }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Teal%20Logo.png"
+            alt="Credit Path Canada"
+            style={{ height: 40, width: "auto", maxWidth: "min(180px, 55vw)", display: "block", borderRadius: 8 }}
+          />
+          <span
+            aria-label="Canada"
+            style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}
+            title="Canada"
+          >
+            🇨🇦
+          </span>
+        </div>
+      </header>
+
       <main>
         <section
           style={{
@@ -104,17 +158,8 @@ export default function DriveReadyBrochurePage() {
           </div>
         </section>
 
-        <section style={{ background: NAVY, padding: "20px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className={`${BROCHURE_CONTAINER} text-center`}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: TEAL, letterSpacing: "0.04em" }}>
-              <span style={{ color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>Real results: </span>
-              Our first graduates purchased in April and May.
-            </p>
-          </div>
-        </section>
-
         <section style={{ background: NAVY, padding: "56px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div className={`${BROCHURE_CONTAINER} grid gap-10 md:grid-cols-[minmax(0,1fr)_1.4fr] md:items-center`}>
+          <div className={`${BROCHURE_CONTAINER} grid gap-10 md:grid-cols-[minmax(0,1fr)_1.4fr] md:items-start`}>
             <div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -130,17 +175,44 @@ export default function DriveReadyBrochurePage() {
               />
             </div>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 12 }}>Michael Filzwieser</p>
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.6)", marginBottom: 16 }}>
+              <blockquote
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  lineHeight: 1.8,
+                  color: "rgba(255,255,255,0.75)",
+                  borderLeft: `3px solid ${TEAL}`,
+                  paddingLeft: 20,
+                }}
+              >
+                I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of TD&apos;s #1 dealer group in
+                Canada. I work subprime, which means most people who reach my desk have already been told no. I see it
+                every day: good people declined, not because they can&apos;t be helped, but because nobody gave them a
+                plan. I built Credit Path Canada so that a rejection isn&apos;t the end of the road. It&apos;s the start
+                of one.
+              </blockquote>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/sig.jpg"
+                alt="Michael Filzwieser signature"
+                style={{
+                  width: 120,
+                  maxWidth: "100%",
+                  height: "auto",
+                  display: "block",
+                  marginTop: 20,
+                  marginBottom: 16,
+                  borderRadius: 8,
+                  opacity: 0.9,
+                }}
+              />
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Michael Filzwieser</p>
+              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.6)" }}>
                 Founder, Credit Path Canada
                 <br />
                 Finance Director, Titanium Ford
                 <br />
                 TD&apos;s #1 dealer in Canada
-              </p>
-              <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.65)" }}>
-                Michael Filzwieser reviews your file personally. Founder of Credit Path Canada and Finance Director at
-                Titanium Ford.
               </p>
             </div>
           </div>
@@ -252,7 +324,27 @@ export default function DriveReadyBrochurePage() {
               great care of me — incredibly patient with all my anxiety. As long as I make my payments on time, I had the
               vehicle I wanted in a year. Thank you for your time, energy, patience and most of all kindness.&rdquo;
             </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: TEAL }}>— Cassandra Brinson</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: TEAL, marginBottom: 28 }}>— Cassandra Brinson</p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+              <a
+                href={REVIEWS_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={pillButtonClass}
+                style={pillButtonStyle}
+              >
+                5 Star Reviews
+              </a>
+              <a
+                href={CONSULT_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={pillButtonClass}
+                style={pillButtonSecondaryStyle}
+              >
+                Book a Free Credit Consultation
+              </a>
+            </div>
           </div>
         </section>
 
@@ -303,21 +395,7 @@ export default function DriveReadyBrochurePage() {
             <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.65)", marginBottom: 28 }}>
               Your vehicle is still out there. Let&apos;s go get it.
             </p>
-            <Link
-              href={SMS_REPLY_HREF}
-              style={{
-                display: "inline-block",
-                background: TEAL,
-                color: NAVY,
-                padding: "16px 36px",
-                borderRadius: 100,
-                fontSize: 13,
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-              }}
-            >
+            <Link href={SMS_REPLY_HREF} className={pillButtonClass} style={pillButtonStyle}>
               Reply Now — We&apos;ll Set It Up
             </Link>
             <p style={{ fontSize: 13, fontWeight: 600, color: TEAL, marginTop: 20 }}>creditpathcanada.ca</p>
