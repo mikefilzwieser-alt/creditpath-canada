@@ -65,8 +65,8 @@ export function buildFoundationMonthActions(parsed: ParsedBureauLite | null | un
     const pct = hi ? Math.round(hi.utilPct) : null;
     third = {
       action: pct
-        ? `Pay down ${label} first — it is at about ${pct}% utilization; aim under 30% on that card.`
-        : `Pay down your highest-utilization revolving account first; aim under 30% utilization on that card.`,
+        ? `Make extra payments toward ${label} this month — it is at about ${pct}% utilization. Every dollar paid down reduces what is hurting your score. Aim under 30% over time.`
+        : `Make extra payments toward your highest-utilization revolving account this month. Every dollar paid down reduces what is hurting your score. Aim under 30% utilization over time.`,
       impact: "Lowers reported utilization",
       timeline: "This billing cycle",
     };

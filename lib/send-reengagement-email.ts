@@ -59,6 +59,9 @@ export async function sendReengagementEmail(to: string, name: string, unsubscrib
       <p style="margin:0;font-size:11px;color:#6B7A8D;">(604) 442-0894 · info@creditpathcanada.ca</p>
       <p style="margin:12px 0 0;font-size:11px;font-style:italic;color:#9CA3AF;">Built for Canadian families the system forgot.</p>
     </div>
+
+    <p style="margin:12px 0 0;font-size:11px;color:#6B7A8D;">Questions about your file? <a href="https://calendly.com/aec-michael/15min" style="color:#00C9A7;text-decoration:none;">Book a free 15-min call with Michael →</a></p>
+
   </div>
 
 ${buildEmailFooter(unsubscribeUrl)}
