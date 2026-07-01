@@ -138,9 +138,6 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
           <Link href="/resources" style={linkStyle(resourcesActive)}>
             Free Resources
           </Link>
-          <Link href="/drive-ready" style={linkStyle(false)}>
-            Drive Ready
-          </Link>
           <Link
             href="/login"
             style={{
@@ -225,13 +222,6 @@ export function SiteHeader({ blogActive = false, faqActive = false, resourcesAct
               style={{ ...linkStyle(resourcesActive), padding: "6px 0", textAlign: "center" }}
             >
               Free Resources
-            </Link>
-            <Link
-              href="/drive-ready"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ ...linkStyle(false), padding: "6px 0", textAlign: "center" }}
-            >
-              Drive Ready
             </Link>
             <Link
               href="/login"
