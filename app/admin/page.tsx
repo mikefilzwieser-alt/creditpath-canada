@@ -396,6 +396,7 @@ export default function VaAdminPage() {
   const [clientStalledFilter, setClientStalledFilter] = useState<"all" | "not_started" | "partial">("all");
   const [clientSortKey, setClientSortKey] = useState<ClientSortKey | null>(null);
   const [clientSortDir, setClientSortDir] = useState<"asc" | "desc">("asc");
+  const [deactivating, setDeactivating] = useState(false);
 
   const [reportingLoading, setReportingLoading] = useState(false);
   const [reportingError, setReportingError] = useState("");
@@ -540,6 +541,40 @@ export default function VaAdminPage() {
       setListLoading(false);
     }
   }, [listVaFilter, portalPassword, unlocked]);
+
+  const deactivateClient = useCallback(async () => {
+    if (!selectedClient || !portalPassword) return;
+    if (
+      !window.confirm(
+        "This cancels their subscription and removes portal access. Their data is retained. Continue?",
+      )
+    ) {
+      return;
+    }
+    setDeactivating(true);
+    setListError("");
+    try {
+      const res = await fetch("/api/admin/deactivate-client", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          portal_password: portalPassword,
+          client_id: selectedClient.id,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
+      if (!res.ok || !data.ok) {
+        setListError(data.error ?? "Deactivate failed.");
+        return;
+      }
+      setSelectedClient(null);
+      await loadClients();
+    } catch {
+      setListError("Network error.");
+    } finally {
+      setDeactivating(false);
+    }
+  }, [loadClients, portalPassword, selectedClient]);
 
   const onTabClients = useCallback(() => {
     setTab("clients");
@@ -1601,6 +1636,14 @@ export default function VaAdminPage() {
                       <dd className="mt-0.5">{selectedClient.subscription_status ?? "—"}</dd>
                     </div>
                   </dl>
+                  <button
+                    type="button"
+                    disabled={deactivating}
+                    onClick={() => void deactivateClient()}
+                    className="mt-6 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deactivating ? "Deactivating…" : "Deactivate Client"}
+                  </button>
                   <details className="mt-6 rounded-xl border border-black/10 p-3 text-xs" style={{ borderColor: "rgba(15,25,35,0.1)" }}>
                     <summary className="cursor-pointer font-semibold opacity-80">More</summary>
                     <dl className="mt-3 space-y-2">

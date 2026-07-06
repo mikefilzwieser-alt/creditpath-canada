@@ -24,6 +24,7 @@ type ClientPaywallRow = {
   stripe_customer_id: string | null;
   access_until: string | null;
   goal_selected: boolean | null;
+  deactivated_at: string | null;
 };
 
 /**
@@ -54,6 +55,7 @@ function hasPaidDashboardAccess(row: ClientPaywallRow | null, readError: boolean
     trialStart: row.trial_start,
     stripeCustomerId: row.stripe_customer_id,
     accessUntil: row.access_until,
+    deactivatedAt: row.deactivated_at,
   });
 }
 
@@ -113,7 +115,9 @@ export async function middleware(request: NextRequest) {
 
     const { data: row, error } = await supabase
       .from("clients")
-      .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, goal_selected")
+      .select(
+        "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, goal_selected, deactivated_at",
+      )
       .eq("id", user.id)
       .maybeSingle();
 

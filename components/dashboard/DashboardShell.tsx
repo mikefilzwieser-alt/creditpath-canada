@@ -198,7 +198,7 @@ export function DashboardShell({
       const { data, error } = await supabase
         .from("clients")
         .select(
-          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen, goal_selected",
+          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, first_login_seen, goal_selected, deactivated_at",
         )
         .eq("id", user.id)
         .maybeSingle();
@@ -222,6 +222,7 @@ export function DashboardShell({
           trialStart: data?.trial_start,
           stripeCustomerId: data?.stripe_customer_id,
           accessUntil: data?.access_until,
+          deactivatedAt: data?.deactivated_at,
         })
       ) {
         setHasDashboardAccess(false);
@@ -264,7 +265,9 @@ export function DashboardShell({
     const poll = async () => {
       const { data } = await supabase
         .from("clients")
-        .select("subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until")
+        .select(
+          "subscription_status, applied_promo_code, trial_start, stripe_customer_id, access_until, deactivated_at",
+        )
         .eq("id", user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -275,6 +278,7 @@ export function DashboardShell({
           trialStart: data?.trial_start,
           stripeCustomerId: data?.stripe_customer_id,
           accessUntil: data?.access_until,
+          deactivatedAt: data?.deactivated_at,
         })
       ) {
         stripParam();

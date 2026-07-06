@@ -33,6 +33,8 @@ async function deleteClientAndChildren(admin: SupabaseClient, clientId: string):
 type Body = {
   portal_password?: string;
   client_id?: string;
+  confirm_permanent_delete?: boolean;
+  confirm_client_id?: string;
 };
 
 export async function POST(request: Request) {
@@ -50,6 +52,15 @@ export async function POST(request: Request) {
   const clientId = typeof body.client_id === "string" ? body.client_id.trim() : "";
   if (!clientId) {
     return NextResponse.json({ error: "Missing client_id." }, { status: 400 });
+  }
+
+  if (body.confirm_permanent_delete !== true) {
+    return NextResponse.json({ error: "Missing or invalid confirm_permanent_delete." }, { status: 400 });
+  }
+
+  const confirmClientId = typeof body.confirm_client_id === "string" ? body.confirm_client_id.trim() : "";
+  if (!confirmClientId || confirmClientId !== clientId) {
+    return NextResponse.json({ error: "confirm_client_id must match client_id exactly." }, { status: 400 });
   }
 
   const admin = getSupabaseAdmin();

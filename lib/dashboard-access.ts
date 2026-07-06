@@ -33,13 +33,23 @@ export function cancelledWithAccessWindowAllowsDashboard(
   return until.getTime() > Date.now();
 }
 
+export function isClientDeactivated(deactivatedAt: string | null | undefined): boolean {
+  const raw = (deactivatedAt ?? "").trim();
+  if (!raw) return false;
+  const at = new Date(raw);
+  return !Number.isNaN(at.getTime());
+}
+
 export function hasDashboardPaywallAccess(params: {
   subscriptionStatus: string | null | undefined;
   appliedPromoCode: string | null | undefined;
   trialStart?: string | null | undefined;
   stripeCustomerId?: string | null | undefined;
   accessUntil?: string | null | undefined;
+  deactivatedAt?: string | null | undefined;
 }): boolean {
+  if (isClientDeactivated(params.deactivatedAt)) return false;
+
   // Lifetime promo codes always grant access regardless of subscription status
   if (isLifetimePromoCode(params.appliedPromoCode)) return true;
 
