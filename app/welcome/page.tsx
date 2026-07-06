@@ -42,21 +42,32 @@ const VALUE_ITEMS = [
   },
 ];
 
-const NEXT_STEPS = [
+const WHAT_HAPPENS_STEPS = [
+  {
+    n: "01",
+    title: "Log in to your dashboard",
+    body: "Your blueprint is built. It's waiting.",
+    hasLogin: true,
+  },
   {
     n: "02",
     title: "Find your 3 monthly actions",
     body: "3 actions ranked by score impact. Complete them — that's how your file gets ready.",
+    hasLogin: false,
   },
   {
     n: "03",
     title: "That's the day everything changes",
     body: "Many clients are approved in 8 to 10 months. We're here anytime — let's ride.",
+    hasLogin: false,
   },
 ];
 
+const REVIEWS_HREF = "https://titaniumford-michaelf-5stars.netlify.app/";
+const CONSULT_HREF = "https://calendly.com/aec-michael/15min";
+
 const pillButtonClass =
-  "welcome-cta inline-block w-full rounded-full text-center text-[13px] font-extrabold uppercase tracking-[0.08em] no-underline sm:w-auto";
+  "brochure-cta-primary welcome-cta inline-block w-full rounded-full text-center text-[13px] font-extrabold uppercase tracking-[0.08em] no-underline sm:w-auto";
 
 const pillButtonStyle = {
   background: TEAL,
@@ -64,20 +75,32 @@ const pillButtonStyle = {
   padding: "14px 36px",
 } as const;
 
+const brochureCtaStyles = `
+  .brochure-cta-primary {
+    white-space: nowrap;
+  }
+  @media (max-width: 639px) {
+    .welcome-cta {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .brochure-cta-primary {
+      font-size: clamp(10px, 2.75vw, 13px);
+      letter-spacing: 0.04em;
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+  }
+`;
+
 export default function WelcomeBrochurePage() {
   return (
     <div className="min-h-full" style={{ background: "#F5F7FA", color: NAVY }}>
-      <style>{`
-        @media (max-width: 639px) {
-          .welcome-cta {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-          }
-        }
-      `}</style>
+      <style>{brochureCtaStyles}</style>
 
       <header
+        className="topbar"
         style={{
           background: NAVY,
           borderBottom: `1px solid rgba(0, 201, 167, 0.2)`,
@@ -87,44 +110,84 @@ export default function WelcomeBrochurePage() {
           className={`${BROCHURE_CONTAINER} flex items-center justify-between gap-4`}
           style={{ paddingTop: 14, paddingBottom: 14 }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/Teal%20Logo.png"
-            alt="Credit Path Canada"
-            style={{ height: 40, width: "auto", maxWidth: "min(180px, 55vw)", display: "block", borderRadius: 8 }}
-          />
+          <div className="flex min-w-0 items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Teal%20Logo.png"
+              alt=""
+              style={{ height: 36, width: "auto", display: "block", borderRadius: 6, flexShrink: 0 }}
+            />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.85)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Credit Path Canada
+            </span>
+          </div>
           <span
-            aria-label="Canada"
-            style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}
-            title="Canada"
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              flexShrink: 0,
+            }}
+            title="Titanium Ford logo unavailable"
           >
-            🇨🇦
+            Titanium Ford
           </span>
         </div>
       </header>
 
       <main>
         <section
+          className="hero"
           style={{
             background: NAVY_DEEP,
             padding: "56px 24px 64px",
             position: "relative",
             overflow: "hidden",
             color: "#fff",
+            borderRadius: "0 0 28px 28px",
           }}
         >
           <div
+            className="g1"
             aria-hidden
             style={{
               position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(circle at 85% 15%, rgba(0,201,167,0.1) 0%, transparent 55%)",
+              top: "-160px",
+              right: "-100px",
+              width: "480px",
+              height: "480px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(0,201,167,0.14) 0%, transparent 65%)",
               pointerEvents: "none",
               zIndex: 0,
             }}
           />
-          <div className={BROCHURE_CONTAINER} style={{ position: "relative", zIndex: 1 }}>
+          <div
+            className="g2"
+            aria-hidden
+            style={{
+              position: "absolute",
+              bottom: "-60px",
+              left: "-50px",
+              width: "280px",
+              height: "280px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(0,201,167,0.07) 0%, transparent 65%)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+          <div className={`${BROCHURE_CONTAINER} hero-top`} style={{ position: "relative", zIndex: 1 }}>
             <p
               style={{
                 fontSize: 11,
@@ -139,18 +202,50 @@ export default function WelcomeBrochurePage() {
             </p>
             <h1
               style={{
-                fontSize: "clamp(28px, 5vw, 44px)",
+                fontSize: "clamp(32px, 6vw, 48px)",
                 fontWeight: 800,
-                lineHeight: 1.08,
+                lineHeight: 1.06,
                 letterSpacing: "-0.03em",
                 marginBottom: 16,
               }}
             >
               Congratulations. You&apos;re in.
             </h1>
-            <p style={{ fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.7)", maxWidth: 560 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.7)", maxWidth: 560, marginBottom: 24 }}>
               Your blueprint is ready — and we&apos;re in your corner every step of the way.
             </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={REVIEWS_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full text-[11px] font-bold uppercase tracking-[0.06em] no-underline"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.7)",
+                  padding: "8px 16px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                5 Star Reviews
+              </a>
+              <a
+                href={CONSULT_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full text-[11px] font-bold uppercase tracking-[0.06em] no-underline"
+                style={{
+                  background: "rgba(0,201,167,0.1)",
+                  border: `1px solid rgba(0,201,167,0.25)`,
+                  color: TEAL,
+                  padding: "8px 16px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Book a 15-Min Credit Review
+              </a>
+            </div>
           </div>
         </section>
 
@@ -203,39 +298,49 @@ export default function WelcomeBrochurePage() {
           </div>
         </section>
 
-        <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid rgba(15,25,35,0.06)" }}>
+        <section style={{ padding: "0 24px 56px" }}>
           <div className={`${BROCHURE_CONTAINER} max-w-[720px]`}>
             <h2 style={{ fontSize: "clamp(20px, 2.4vw, 26px)", fontWeight: 800, marginBottom: 20 }}>
               Founder&apos;s note
             </h2>
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/headshot.jpg"
-                alt="Michael Filzwieser"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  flexShrink: 0,
-                  border: `3px solid ${TEAL}`,
-                }}
-              />
-              <div className="min-w-0">
-                <p style={{ fontSize: 14, lineHeight: 1.8, color: "rgba(15,25,35,0.8)", marginBottom: 20 }}>
-                  A decline today means your file needs a plan — and that&apos;s exactly what you now have. The banks
-                  decline without telling you why; we show you the blueprint. They don&apos;t teach us this stuff in
-                  school. If you follow the plan and complete your actions, my job is to get you approved. I&apos;ll work
-                  at it until we get there. Welcome to the program. Let&apos;s get to work.
-                </p>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>— Michael Filzwieser</p>
+            <div
+              className="letter-box"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,201,167,0.1) 0%, rgba(0,201,167,0.03) 100%)",
+                border: `1px solid rgba(0,201,167,0.22)`,
+                borderRadius: 16,
+                padding: "clamp(20px, 4vw, 28px)",
+              }}
+            >
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/sig.jpg"
-                  alt="Michael Filzwieser signature"
-                  style={{ width: 120, maxWidth: "100%", opacity: 0.9, borderRadius: 8 }}
+                  src="/headshot.jpg"
+                  alt="Michael Filzwieser"
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    flexShrink: 0,
+                    border: `3px solid ${TEAL}`,
+                  }}
                 />
+                <div className="min-w-0">
+                  <p style={{ fontSize: 14, lineHeight: 1.8, color: "rgba(15,25,35,0.8)", marginBottom: 20 }}>
+                    A decline today means your file needs a plan — and that&apos;s exactly what you now have. The banks
+                    decline without telling you why; we show you the blueprint. They don&apos;t teach us this stuff in
+                    school. If you follow the plan and complete your actions, my job is to get you approved. I&apos;ll work
+                    at it until we get there. Welcome to the program. Let&apos;s get to work.
+                  </p>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>— Michael Filzwieser</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/sig.jpg"
+                    alt="Michael Filzwieser signature"
+                    style={{ width: 120, maxWidth: "100%", opacity: 0.9, borderRadius: 8 }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -244,7 +349,7 @@ export default function WelcomeBrochurePage() {
         <section style={{ padding: "48px 24px", background: "#F8F6F1" }}>
           <div className={`${BROCHURE_CONTAINER} max-w-[640px] text-center`}>
             <Link
-              href="https://calendly.com/aec-michael/15min"
+              href={CONSULT_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className={pillButtonClass}
@@ -267,59 +372,77 @@ export default function WelcomeBrochurePage() {
             >
               What happens next
             </h2>
-            <div className="grid gap-5 md:grid-cols-3">
-              <article
-                style={{
-                  background: "#F8F6F1",
-                  borderRadius: 16,
-                  padding: 24,
-                  border: "1px solid rgba(15,25,35,0.06)",
-                }}
-              >
-                <p style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 12 }}>01</p>
-                <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, lineHeight: 1.35 }}>
-                  Log in to your dashboard
-                </h3>
-                <Link
-                  href="/login"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 44,
-                    padding: "10px 16px",
-                    background: TEAL,
-                    color: NAVY,
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    textDecoration: "none",
-                    marginBottom: 10,
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
-                  className="sm:w-auto"
-                >
-                  creditpathcanada.ca/login
-                </Link>
-                <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(15,25,35,0.7)" }}>
-                  Your blueprint is built. It&apos;s waiting.
-                </p>
-              </article>
-              {NEXT_STEPS.map((step) => (
-                <article
-                  key={step.n}
-                  style={{
-                    background: "#F8F6F1",
-                    borderRadius: 16,
-                    padding: 24,
-                    border: "1px solid rgba(15,25,35,0.06)",
-                  }}
-                >
-                  <p style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 12 }}>{step.n}</p>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, lineHeight: 1.35 }}>{step.title}</h3>
-                  <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(15,25,35,0.7)" }}>{step.body}</p>
-                </article>
+            <div
+              className="steps-box mx-auto max-w-[640px]"
+              style={{
+                background: "#F8F6F1",
+                border: "1px solid rgba(15,25,35,0.06)",
+                borderRadius: 16,
+                padding: "24px 24px 8px",
+              }}
+            >
+              {WHAT_HAPPENS_STEPS.map((step, index, arr) => (
+                <div key={step.n} className="step flex gap-4">
+                  <div className="flex flex-col items-center" style={{ width: 36, flexShrink: 0 }}>
+                    <div
+                      className="step-n flex items-center justify-center"
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        border: `2px solid ${TEAL}`,
+                        color: TEAL,
+                        fontSize: 12,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {step.n}
+                    </div>
+                    {index < arr.length - 1 ? (
+                      <div
+                        className="step-line"
+                        style={{
+                          width: 2,
+                          flex: 1,
+                          minHeight: 28,
+                          background: "rgba(0,201,167,0.25)",
+                          marginTop: 8,
+                          marginBottom: 8,
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                  <div style={{ paddingBottom: index < arr.length - 1 ? 24 : 16, flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: step.hasLogin ? 12 : 8, lineHeight: 1.35 }}>
+                      {step.title}
+                    </h3>
+                    {step.hasLogin ? (
+                      <Link
+                        href="/login"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          minHeight: 44,
+                          padding: "10px 16px",
+                          background: TEAL,
+                          color: NAVY,
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          textDecoration: "none",
+                          marginBottom: 10,
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                        className="sm:w-auto"
+                      >
+                        creditpathcanada.ca/login
+                      </Link>
+                    ) : null}
+                    <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(15,25,35,0.7)" }}>{step.body}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

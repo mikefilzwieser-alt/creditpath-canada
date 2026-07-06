@@ -31,7 +31,7 @@ const REVIEWS_HREF = "https://titaniumford-michaelf-5stars.netlify.app/";
 const CONSULT_HREF = "https://calendly.com/aec-michael/15min";
 
 const pillButtonClass =
-  "drive-ready-cta inline-block w-full rounded-full text-center text-[13px] font-extrabold uppercase tracking-[0.08em] no-underline sm:w-auto";
+  "brochure-cta-primary drive-ready-cta inline-block w-full rounded-full text-center text-[13px] font-extrabold uppercase tracking-[0.08em] no-underline sm:w-auto";
 
 const pillButtonStyle = {
   background: TEAL,
@@ -46,20 +46,32 @@ const pillButtonSecondaryStyle = {
   border: `2px solid rgba(0, 201, 167, 0.45)`,
 } as const;
 
+const brochureCtaStyles = `
+  .brochure-cta-primary {
+    white-space: nowrap;
+  }
+  @media (max-width: 639px) {
+    .drive-ready-cta {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .brochure-cta-primary {
+      font-size: clamp(10px, 2.75vw, 13px);
+      letter-spacing: 0.04em;
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+  }
+`;
+
 export default function DriveReadyBrochurePage() {
   return (
     <div className="min-h-full" style={{ background: NAVY_DEEP, color: "#fff" }}>
-      <style>{`
-        @media (max-width: 639px) {
-          .drive-ready-cta {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-          }
-        }
-      `}</style>
+      <style>{brochureCtaStyles}</style>
 
       <header
+        className="topbar"
         style={{
           background: NAVY,
           borderBottom: `1px solid rgba(0, 201, 167, 0.2)`,
@@ -69,46 +81,85 @@ export default function DriveReadyBrochurePage() {
           className={`${BROCHURE_CONTAINER} flex items-center justify-between gap-4`}
           style={{ paddingTop: 14, paddingBottom: 14 }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/Teal%20Logo.png"
-            alt="Credit Path Canada"
-            style={{ height: 40, width: "auto", maxWidth: "min(180px, 55vw)", display: "block", borderRadius: 8 }}
-          />
+          <div className="flex min-w-0 items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Teal%20Logo.png"
+              alt=""
+              style={{ height: 36, width: "auto", display: "block", borderRadius: 6, flexShrink: 0 }}
+            />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.85)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Credit Path Canada
+            </span>
+          </div>
           <span
-            aria-label="Canada"
-            style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}
-            title="Canada"
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              flexShrink: 0,
+            }}
+            title="Titanium Ford logo unavailable"
           >
-            🇨🇦
+            Titanium Ford
           </span>
         </div>
       </header>
 
       <main>
         <section
+          className="hero"
           style={{
             background: NAVY_DEEP,
-            padding: "56px 24px 64px",
+            minHeight: "calc(100svh - 65px)",
+            display: "flex",
+            alignItems: "center",
+            padding: "48px 24px 56px",
             position: "relative",
             overflow: "hidden",
           }}
         >
           <div
+            className="g1"
             aria-hidden
             style={{
               position: "absolute",
-              top: "-200px",
-              right: "-150px",
-              width: "600px",
-              height: "600px",
+              top: "-180px",
+              right: "-120px",
+              width: "520px",
+              height: "520px",
               borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(0,201,167,0.1) 0%, transparent 65%)",
+              background: "radial-gradient(circle, rgba(0,201,167,0.14) 0%, transparent 65%)",
               pointerEvents: "none",
               zIndex: 0,
             }}
           />
-          <div className={`${BROCHURE_CONTAINER} relative text-center`} style={{ zIndex: 1 }}>
+          <div
+            className="g2"
+            aria-hidden
+            style={{
+              position: "absolute",
+              bottom: "-80px",
+              left: "-60px",
+              width: "320px",
+              height: "320px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(0,201,167,0.07) 0%, transparent 65%)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+          <div className={`${BROCHURE_CONTAINER} relative w-full text-center`} style={{ zIndex: 1 }}>
             <p
               style={{
                 fontSize: 11,
@@ -116,18 +167,18 @@ export default function DriveReadyBrochurePage() {
                 letterSpacing: "0.28em",
                 textTransform: "uppercase",
                 color: TEAL,
-                marginBottom: 20,
+                marginBottom: 24,
               }}
             >
               Drive Ready Program
             </p>
             <h1
               style={{
-                fontSize: "clamp(28px, 5vw, 44px)",
+                fontSize: "clamp(32px, 6vw, 52px)",
                 fontWeight: 800,
-                lineHeight: 1.08,
+                lineHeight: 1.06,
                 letterSpacing: "-0.03em",
-                marginBottom: 16,
+                marginBottom: 20,
               }}
             >
               The vehicle you came for.
@@ -136,10 +187,10 @@ export default function DriveReadyBrochurePage() {
             </h1>
             <p
               style={{
-                fontSize: "clamp(18px, 3vw, 24px)",
+                fontSize: "clamp(18px, 3.2vw, 26px)",
                 fontWeight: 700,
                 color: TEAL,
-                marginBottom: 16,
+                marginBottom: 20,
               }}
             >
               Your name. Zero down. Approved.
@@ -158,63 +209,98 @@ export default function DriveReadyBrochurePage() {
           </div>
         </section>
 
-        <section style={{ background: NAVY, padding: "56px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div className={`${BROCHURE_CONTAINER} grid gap-10 md:grid-cols-[minmax(0,1fr)_1.4fr] md:items-start`}>
-            <div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/headshot.jpg"
-                alt="Michael Filzwieser"
+        <section
+          style={{
+            background: NAVY,
+            padding: "32px 24px 48px",
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          <div className={BROCHURE_CONTAINER}>
+            <div
+              className="author-row mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/headshot.jpg"
+                  alt="Michael Filzwieser"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    flexShrink: 0,
+                    border: `2px solid ${TEAL}`,
+                  }}
+                />
+                <div className="min-w-0">
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Michael Filzwieser</p>
+                  <p style={{ fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>
+                    Founder, Credit Path Canada
+                    <br />
+                    Finance Director, Titanium Ford
+                    <br />
+                    TD&apos;s #1 dealer in Canada
+                  </p>
+                </div>
+              </div>
+              <a
+                href={CONSULT_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 self-start rounded-full text-center text-[11px] font-bold uppercase tracking-[0.06em] no-underline sm:self-center"
                 style={{
-                  width: "100%",
-                  maxWidth: 380,
-                  borderRadius: 16,
-                  display: "block",
-                  border: `3px solid ${TEAL}`,
-                }}
-              />
-            </div>
-            <div>
-              <blockquote
-                style={{
-                  margin: 0,
-                  fontSize: 14,
-                  lineHeight: 1.8,
-                  color: "rgba(255,255,255,0.75)",
-                  borderLeft: `3px solid ${TEAL}`,
-                  paddingLeft: 20,
+                  background: "rgba(0,201,167,0.1)",
+                  border: `1px solid rgba(0,201,167,0.25)`,
+                  color: TEAL,
+                  padding: "10px 18px",
+                  whiteSpace: "nowrap",
                 }}
               >
-                I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of TD&apos;s #1 dealer group in
-                Canada. I work subprime, which means most people who reach my desk have already been told no. I see it
-                every day: good people declined, not because they can&apos;t be helped, but because nobody gave them a
-                plan. I built Credit Path Canada so that a rejection isn&apos;t the end of the road. It&apos;s the start
-                of one.
-              </blockquote>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/sig.jpg"
-                alt="Michael Filzwieser signature"
-                style={{
-                  width: 120,
-                  maxWidth: "100%",
-                  height: "auto",
-                  display: "block",
-                  marginTop: 20,
-                  marginBottom: 16,
-                  borderRadius: 8,
-                  opacity: 0.9,
-                }}
-              />
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Michael Filzwieser</p>
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.6)" }}>
-                Founder, Credit Path Canada
-                <br />
-                Finance Director, Titanium Ford
-                <br />
-                TD&apos;s #1 dealer in Canada
-              </p>
+                Book a Free Credit Consultation
+              </a>
             </div>
+
+            <blockquote
+              style={{
+                margin: 0,
+                fontSize: 14,
+                lineHeight: 1.8,
+                color: "rgba(255,255,255,0.75)",
+                borderLeft: `3px solid ${TEAL}`,
+                paddingLeft: 20,
+              }}
+            >
+              I&apos;m Michael Filzwieser — Finance Director at Titanium Ford, part of TD&apos;s #1 dealer group in
+              Canada. I work subprime, which means most people who reach my desk have already been told no. I see it
+              every day: good people declined, not because they can&apos;t be helped, but because nobody gave them a
+              plan. I built Credit Path Canada so that a rejection isn&apos;t the end of the road. It&apos;s the start
+              of one.
+            </blockquote>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sig.jpg"
+              alt="Michael Filzwieser signature"
+              style={{
+                width: 120,
+                maxWidth: "100%",
+                height: "auto",
+                display: "block",
+                marginTop: 20,
+                marginBottom: 16,
+                borderRadius: 8,
+                opacity: 0.9,
+              }}
+            />
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Michael Filzwieser</p>
+            <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.6)" }}>
+              Founder, Credit Path Canada
+              <br />
+              Finance Director, Titanium Ford
+              <br />
+              TD&apos;s #1 dealer in Canada
+            </p>
           </div>
         </section>
 
